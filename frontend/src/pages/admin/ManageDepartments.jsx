@@ -1,0 +1,132 @@
+import { useState, useEffect } from 'react';
+import client from '../../api/client';
+import { HiOutlinePlus, HiOutlinePencil, HiOutlineTrash, HiOutlineSearch } from 'react-icons/hi';
+
+export default function ManageDepartments() {
+  const [departments, setDepartments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [form, setForm] = useState({ name: '', code: '' });
+  const [saving, setSaving] = useState(false);
+
+  const fetchDepartments = async () => {
+    try {
+      const { data } = await client.get('/admin/departments');
+      setDepartments(data.departments);
+    } catch (err) { console.error(err); }
+    finally { setLoading(false); }
+  };
+
+  useEffect(() => { fetchDepartments(); }, []);
+
+  const openCreate = () => { setEditing(null); setForm({ name: '', code: '' }); setShowModal(true); };
+  const openEdit = (dept) => { setEditing(dept); setForm({ name: dept.name, code: dept.code }); setShowModal(true); };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      if (editing) {
+        await client.put(`/admin/departments/${editing.id}`, form);
+      } else {
+        await client.post('/admin/departments', form);
+      }
+      setShowModal(false);
+      fetchDepartments();
+    } catch (err) { alert(err.response?.data?.error || 'Error saving department'); }
+    finally { setSaving(false); }
+  };
+
+  const handleDelete = async (id) => {
+    if (!confirm('Are you sure you want to delete this department?')) return;
+    try {
+      await client.delete(`/admin/departments/${id}`);
+      fetchDepartments();
+    } catch (err) { alert('Failed to delete'); }
+  };
+
+  if (loading) return <div className="loading-container"><div className="spinner spinner-lg" /></div>;
+
+  return (
+    <div>
+      <div className="page-header">
+        <div>
+          <h1>Departments</h1>
+          <p className="page-subtitle">Manage academic departments</p>
+        </div>
+        <button className="btn btn-primary" onClick={openCreate}>
+          <HiOutlinePlus /> Add Department
+        </button>
+      </div>
+
+      <div className="card">
+        <div className="data-table-wrapper">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Name</th>
+                <th>Batches</th>
+                <th>Courses</th>
+                <th>Staff</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {departments.length === 0 ? (
+                <tr><td colSpan="6"><div className="empty-state"><p>No departments yet.</p></div></td></tr>
+              ) : departments.map((dept) => (
+                <tr key={dept.id}>
+                  <td><span className="badge badge-sky">{dept.code}</span></td>
+                  <td style={{ fontWeight: 500 }}>{dept.name}</td>
+                  <td>{dept._count?.batches || 0}</td>
+                  <td>{dept._count?.courses || 0}</td>
+                  <td>{dept._count?.staff || 0}</td>
+                  <td className="actions">
+                    <button className="btn btn-ghost btn-sm" onClick={() => openEdit(dept)} title="Edit">
+                      <HiOutlinePencil />
+                    </button>
+                    <button className="btn btn-ghost btn-sm" onClick={() => handleDelete(dept.id)} title="Delete"
+                      style={{ color: 'var(--color-danger)' }}>
+                      <HiOutlineTrash />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {showModal && (
+        <div className="modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{editing ? 'Edit Department' : 'Add Department'}</h2>
+              <button className="btn btn-ghost" onClick={() => setShowModal(false)}>✕</button>
+            </div>
+            <form onSubmit={handleSubmit}>
+              <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+                <div className="form-group">
+                  <label className="form-label">Department Name</label>
+                  <input className="form-input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required placeholder="e.g. Computer Science & Engineering" />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Code</label>
+                  <input className="form-input" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} required placeholder="e.g. CSE" />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary" disabled={saving}>
+                  {saving ? 'Saving...' : editing ? 'Update' : 'Create'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
