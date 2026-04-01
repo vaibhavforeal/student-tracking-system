@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import client from '../../api/client';
+import ConfirmDialog from '../../components/ConfirmDialog';
 import { HiOutlinePlus, HiOutlinePencil, HiOutlineTrash } from 'react-icons/hi';
 
 export default function ManageSections() {
@@ -11,6 +12,8 @@ export default function ManageSections() {
   const [form, setForm] = useState({ name: '', batchId: '' });
   const [saving, setSaving] = useState(false);
   const [filterBatch, setFilterBatch] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchData = async () => {
     try {
@@ -39,9 +42,18 @@ export default function ManageSections() {
     finally { setSaving(false); }
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm('Delete this section?')) return;
-    await client.delete(`/admin/sections/${id}`); fetchData();
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await client.delete(`/admin/sections/${deleteTarget}`);
+      setDeleteTarget(null);
+      fetchData();
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to delete section');
+    } finally {
+      setDeleting(false);
+    }
   };
 
   if (loading) return <div className="loading-container"><div className="spinner spinner-lg" /></div>;
@@ -76,8 +88,8 @@ export default function ManageSections() {
                   <td><span className="badge badge-purple">{s.batch?.department?.name}</span></td>
                   <td>{s._count?.students || 0}</td>
                   <td className="actions">
-                    <button className="btn btn-ghost btn-sm" onClick={() => openEdit(s)}><HiOutlinePencil /></button>
-                    <button className="btn btn-ghost btn-sm" onClick={() => handleDelete(s.id)} style={{ color: 'var(--color-danger)' }}><HiOutlineTrash /></button>
+                    <button className="btn btn-ghost btn-sm" onClick={() => openEdit(s)} title="Edit"><HiOutlinePencil /></button>
+                    <button className="btn btn-ghost btn-sm" onClick={() => setDeleteTarget(s.id)} title="Delete" style={{ color: 'var(--color-danger)' }}><HiOutlineTrash /></button>
                   </td>
                 </tr>
               ))}
@@ -112,6 +124,15 @@ export default function ManageSections() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Delete Section?"
+        message="This will soft-delete the section. Students assigned to this section will need to be reassigned."
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+        loading={deleting}
+      />
     </div>
   );
 }

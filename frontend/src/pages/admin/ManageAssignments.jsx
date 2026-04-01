@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import client from '../../api/client';
-import { HiOutlinePlus, HiOutlineTrash, HiOutlineSearch } from 'react-icons/hi';
+import ConfirmDialog from '../../components/ConfirmDialog';
+import { HiOutlinePlus, HiOutlineTrash } from 'react-icons/hi';
 
 export default function ManageAssignments() {
   const [assignments, setAssignments] = useState([]);
@@ -10,6 +11,9 @@ export default function ManageAssignments() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState(null); // { id }
+  const [deleting, setDeleting] = useState(false);
   const [form, setForm] = useState({ staffId: '', courseId: '', sectionId: '', academicYear: '' });
 
   const fetchData = async () => {
@@ -32,6 +36,7 @@ export default function ManageAssignments() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
     setSaving(true);
     try {
       await client.post('/admin/class-assignments', form);
@@ -39,15 +44,21 @@ export default function ManageAssignments() {
       setForm({ staffId: '', courseId: '', sectionId: '', academicYear: '' });
       fetchData();
     } catch (err) {
-      alert(err.response?.data?.error || 'Error creating assignment');
-    }
-    finally { setSaving(false); }
+      setError(err.response?.data?.error || 'Failed to create assignment. Please try again.');
+    } finally { setSaving(false); }
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm('Remove this assignment?')) return;
-    await client.delete(`/admin/class-assignments/${id}`);
-    fetchData();
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await client.delete(`/admin/class-assignments/${deleteTarget.id}`);
+      setDeleteTarget(null);
+      fetchData();
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to remove assignment.');
+      setDeleteTarget(null);
+    } finally { setDeleting(false); }
   };
 
   if (loading) return <div className="loading-container"><div className="spinner spinner-lg" /></div>;
@@ -57,15 +68,25 @@ export default function ManageAssignments() {
       <div className="page-header">
         <div>
           <h1>Class Assignments</h1>
-          <p className="page-subtitle">Assign teachers to sections & courses</p>
+          <p className="page-subtitle">Assign teachers to sections &amp; courses</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowForm(!showForm)}>
+        <button className="btn btn-primary" onClick={() => { setShowForm(!showForm); setError(''); }}>
           <HiOutlinePlus /> Assign Teacher
         </button>
       </div>
 
+      {/* Inline error */}
+      {error && (
+        <div className="alert alert-error" style={{ marginBottom: 'var(--space-4)' }}>
+          {error}
+        </div>
+      )}
+
       {showForm && (
         <div className="card" style={{ marginBottom: 'var(--space-6)' }}>
+          <div className="card-header">
+            <h3 className="card-title">New Assignment</h3>
+          </div>
           <div className="card-body">
             <form onSubmit={handleSubmit}>
               <div className="form-row">
@@ -115,7 +136,7 @@ export default function ManageAssignments() {
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 'var(--space-3)', marginTop: 'var(--space-5)', justifyContent: 'flex-end' }}>
-                <button type="button" className="btn btn-secondary" onClick={() => setShowForm(false)}>Cancel</button>
+                <button type="button" className="btn btn-secondary" onClick={() => { setShowForm(false); setError(''); }}>Cancel</button>
                 <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? 'Saving...' : 'Assign'}</button>
               </div>
             </form>
@@ -137,7 +158,7 @@ export default function ManageAssignments() {
             </thead>
             <tbody>
               {assignments.length === 0 ? (
-                <tr><td colSpan="5"><div className="empty-state"><p>No assignments yet. Assign a teacher to get started.</p></div></td></tr>
+                <tr><td colSpan="5"><div className="empty-state"><p>No assignments yet. Click "Assign Teacher" to get started.</p></div></td></tr>
               ) : assignments.map((a) => (
                 <tr key={a.id}>
                   <td style={{ fontWeight: 500 }}>
@@ -158,7 +179,14 @@ export default function ManageAssignments() {
                   </td>
                   <td><span className="badge badge-sky">{a.academicYear}</span></td>
                   <td className="actions">
-                    <button className="btn btn-ghost btn-sm" onClick={() => handleDelete(a.id)} style={{ color: 'var(--color-danger)' }}><HiOutlineTrash /></button>
+                    <button
+                      className="btn btn-ghost btn-sm"
+                      onClick={() => setDeleteTarget(a)}
+                      style={{ color: 'var(--color-danger)' }}
+                      title="Remove assignment"
+                    >
+                      <HiOutlineTrash />
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -166,6 +194,17 @@ export default function ManageAssignments() {
           </table>
         </div>
       </div>
+
+      {/* Confirm delete dialog */}
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Remove Assignment?"
+        message={`Remove ${deleteTarget?.staff?.user?.name || 'this teacher'} from ${deleteTarget?.course?.code} — ${deleteTarget?.section?.name}? This cannot be undone.`}
+        confirmText="Remove"
+        loading={deleting}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

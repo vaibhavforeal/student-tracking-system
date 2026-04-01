@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import client from '../../api/client';
+import ConfirmDialog from '../../components/ConfirmDialog';
 import { HiOutlinePlus, HiOutlinePencil, HiOutlineTrash } from 'react-icons/hi';
 
 export default function ManageCourses() {
@@ -11,6 +12,9 @@ export default function ManageCourses() {
   const [form, setForm] = useState({ code: '', name: '', credits: '3', semester: '1', type: 'theory', departmentId: '' });
   const [saving, setSaving] = useState(false);
   const [filterDept, setFilterDept] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState('');
 
   const fetchData = async () => {
     try {
@@ -26,22 +30,40 @@ export default function ManageCourses() {
 
   useEffect(() => { fetchData(); }, [filterDept]);
 
-  const openCreate = () => { setEditing(null); setForm({ code: '', name: '', credits: '3', semester: '1', type: 'theory', departmentId: departments[0]?.id || '' }); setShowModal(true); };
-  const openEdit = (c) => { setEditing(c); setForm({ code: c.code, name: c.name, credits: c.credits.toString(), semester: c.semester.toString(), type: c.type, departmentId: c.departmentId }); setShowModal(true); };
+  useEffect(() => {
+    if (error) {
+      const t = setTimeout(() => setError(''), 4000);
+      return () => clearTimeout(t);
+    }
+  }, [error]);
+
+  const openCreate = () => { setEditing(null); setError(''); setForm({ code: '', name: '', credits: '3', semester: '1', type: 'theory', departmentId: departments[0]?.id || '' }); setShowModal(true); };
+  const openEdit = (c) => { setEditing(c); setError(''); setForm({ code: c.code, name: c.name, credits: c.credits.toString(), semester: c.semester.toString(), type: c.type, departmentId: c.departmentId }); setShowModal(true); };
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); setSaving(true);
+    e.preventDefault(); setSaving(true); setError('');
     try {
       if (editing) await client.put(`/admin/courses/${editing.id}`, form);
       else await client.post('/admin/courses', form);
       setShowModal(false); fetchData();
-    } catch (err) { alert(err.response?.data?.error || 'Error'); }
+    } catch (err) {
+      setError(err.response?.data?.error || err.response?.data?.message || 'Failed to save course');
+    }
     finally { setSaving(false); }
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm('Delete this course?')) return;
-    await client.delete(`/admin/courses/${id}`); fetchData();
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await client.delete(`/admin/courses/${deleteTarget}`);
+      setDeleteTarget(null);
+      fetchData();
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to delete course');
+    } finally {
+      setDeleting(false);
+    }
   };
 
   if (loading) return <div className="loading-container"><div className="spinner spinner-lg" /></div>;
@@ -80,8 +102,8 @@ export default function ManageCourses() {
                   <td>Sem {c.semester}</td>
                   <td><span className={`badge ${typeColor[c.type] || 'badge-gray'}`}>{c.type}</span></td>
                   <td className="actions">
-                    <button className="btn btn-ghost btn-sm" onClick={() => openEdit(c)}><HiOutlinePencil /></button>
-                    <button className="btn btn-ghost btn-sm" onClick={() => handleDelete(c.id)} style={{ color: 'var(--color-danger)' }}><HiOutlineTrash /></button>
+                    <button className="btn btn-ghost btn-sm" onClick={() => openEdit(c)} title="Edit"><HiOutlinePencil /></button>
+                    <button className="btn btn-ghost btn-sm" onClick={() => setDeleteTarget(c.id)} title="Delete" style={{ color: 'var(--color-danger)' }}><HiOutlineTrash /></button>
                   </td>
                 </tr>
               ))}
@@ -96,6 +118,15 @@ export default function ManageCourses() {
             <div className="modal-header"><h2>{editing ? 'Edit Course' : 'Add Course'}</h2><button className="btn btn-ghost" onClick={() => setShowModal(false)}>✕</button></div>
             <form onSubmit={handleSubmit}>
               <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+                {error && (
+                  <div style={{
+                    padding: '10px 14px', borderRadius: '8px',
+                    backgroundColor: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626',
+                    fontSize: '0.9rem', fontWeight: 500,
+                  }}>
+                    ⚠️ {error}
+                  </div>
+                )}
                 <div className="form-row">
                   <div className="form-group">
                     <label className="form-label">Course Code</label>
@@ -140,6 +171,16 @@ export default function ManageCourses() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Delete Course?"
+        message="This will soft-delete the course. Related class assignments, marks, and attendance records may be affected."
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+        loading={deleting}
+      />
     </div>
   );
 }
+

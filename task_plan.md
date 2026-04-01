@@ -48,8 +48,8 @@
 - [ ] Performance view
 
 ## ⚙️ Phase 3: Student Module
-- [ ] Student dashboard + personal stats
-- [ ] View own marks, attendance, profile
+- [x] Student dashboard + personal stats
+- [x] View own marks, attendance, profile
 
 ## ✨ Phase 4: Reports & AI Analytics
 - [ ] CSV export for all report types
@@ -58,7 +58,14 @@
 - [ ] Analytics dashboard with charts
 
 ## 🛰️ Phase 5: Polish & Deployment
-- [ ] PM2 setup
-- [ ] GitHub Actions CI/CD
-- [ ] Final UI polish + responsive
-- [ ] UAT
+- [x] Final UI polish + responsive
+- [x] Frontend production build — passes
+- [x] Backend TypeScript check — passes
+- [x] Full admin module visual verification (10 pages)
+- [x] Code review of teacher + student modules
+- [x] Bug fix: "Batchs" → "Batches" typo on Trash page
+- [x] Bug fix: Case-insensitive email login (findUnique → findFirst with insensitive mode)
+- [x] PM2 setup (`ecosystem.config.cjs`)
+- [x] GitHub Actions CI/CD (`.github/workflows/ci.yml`)
+- [x] `.env.example` template for collaborators
+- [x] UAT — Admin (13 pages), Teacher (3 pages), Student (4 pages) — all pass

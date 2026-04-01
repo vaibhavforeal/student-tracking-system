@@ -10,11 +10,20 @@ import ManageBatches from './pages/admin/ManageBatches';
 import ManageSections from './pages/admin/ManageSections';
 import ManageCourses from './pages/admin/ManageCourses';
 import ManageUsers from './pages/admin/ManageUsers';
-import ManageAssignments from './pages/admin/ManageAssignments';
 import StudentDetail from './pages/admin/StudentDetail';
+import ManageAssignments from './pages/admin/ManageAssignments';
+import Reports from './pages/admin/Reports';
+import Analytics from './pages/admin/Analytics';
+import Trash from './pages/admin/Trash';
+import ManageSkillCourses from './pages/admin/ManageSkillCourses';
 import TeacherDashboard from './pages/teacher/Dashboard';
 import TeacherAttendance from './pages/teacher/Attendance';
 import TeacherMarks from './pages/teacher/Marks';
+import StudentDashboard from './pages/student/Dashboard';
+import StudentMyMarks from './pages/student/MyMarks';
+import StudentMyAttendance from './pages/student/MyAttendance';
+import StudentProfile from './pages/student/Profile';
+import StudentSkillCourses from './pages/student/SkillCourses';
 import useAuthStore from './store/authStore';
 
 function App() {
@@ -40,8 +49,12 @@ function App() {
           <Route path="batches" element={<ManageBatches />} />
           <Route path="sections" element={<ManageSections />} />
           <Route path="courses" element={<ManageCourses />} />
-          <Route path="users" element={<ManageUsers />} />
           <Route path="assignments" element={<ManageAssignments />} />
+          <Route path="users" element={<ManageUsers />} />
+          <Route path="reports" element={<Reports />} />
+          <Route path="analytics" element={<Analytics />} />
+          <Route path="trash" element={<Trash />} />
+          <Route path="skill-courses" element={<ManageSkillCourses />} />
         </Route>
 
         {/* Teacher Routes */}
@@ -55,15 +68,20 @@ function App() {
           <Route path="students/:id" element={<StudentDetail />} />
           <Route path="attendance" element={<TeacherAttendance />} />
           <Route path="marks" element={<TeacherMarks />} />
+          <Route path="reports" element={<Reports />} />
         </Route>
 
-        {/* Student Routes (placeholder for Phase 3) */}
+        {/* Student Routes */}
         <Route path="/student" element={
           <ProtectedRoute roles={['student']}>
             <DashboardLayout />
           </ProtectedRoute>
         }>
-          <Route index element={<div className="page-header"><div><h1>Student Dashboard</h1><p className="page-subtitle">Coming in Phase 3</p></div></div>} />
+          <Route index element={<StudentDashboard />} />
+          <Route path="marks" element={<StudentMyMarks />} />
+          <Route path="attendance" element={<StudentMyAttendance />} />
+          <Route path="profile" element={<StudentProfile />} />
+          <Route path="skill-courses" element={<StudentSkillCourses />} />
         </Route>
 
         {/* Default redirect */}

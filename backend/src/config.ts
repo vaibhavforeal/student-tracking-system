@@ -12,4 +12,5 @@ export const config = {
   jwtAccessExpire: process.env.JWT_ACCESS_EXPIRE || '15m',
   jwtRefreshExpire: process.env.JWT_REFRESH_EXPIRE || '7d',
   corsOrigins: (process.env.CORS_ORIGINS || 'http://localhost:5173').split(','),
+  geminiApiKey: process.env.GEMINI_API_KEY || '',
 };

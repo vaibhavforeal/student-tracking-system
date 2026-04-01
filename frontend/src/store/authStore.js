@@ -9,8 +9,8 @@ const useAuthStore = create(
       accessToken: null,
       refreshToken: null,
 
-      login: async (email, password) => {
-        const { data } = await client.post('/auth/login', { email, password });
+      login: async (credentials) => {
+        const { data } = await client.post('/auth/login', credentials);
         set({
           user: data.user,
           accessToken: data.accessToken,

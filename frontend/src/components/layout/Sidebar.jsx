@@ -4,7 +4,8 @@ import {
   HiOutlineHome, HiOutlineAcademicCap, HiOutlineUserGroup,
   HiOutlineOfficeBuilding, HiOutlineCollection, HiOutlineBookOpen,
   HiOutlineClipboardList, HiOutlineUsers, HiOutlineLogout, HiOutlineChartBar,
-  HiOutlineLink,
+  HiOutlineDocumentReport, HiOutlineSparkles, HiOutlineTrash, HiOutlineLink,
+  HiOutlineLightBulb,
 } from 'react-icons/hi';
 
 const adminLinks = [
@@ -16,7 +17,12 @@ const adminLinks = [
   { to: '/admin/sections', icon: HiOutlineClipboardList, label: 'Sections' },
   { to: '/admin/courses', icon: HiOutlineBookOpen, label: 'Courses' },
   { to: '/admin/assignments', icon: HiOutlineLink, label: 'Assignments' },
+  { to: '/admin/skill-courses', icon: HiOutlineLightBulb, label: 'Skill Courses' },
+
   { to: '/admin/users', icon: HiOutlineUsers, label: 'Users' },
+  { to: '/admin/trash', icon: HiOutlineTrash, label: 'Trash' },
+  { to: '/admin/reports', icon: HiOutlineDocumentReport, label: 'Reports' },
+  { to: '/admin/analytics', icon: HiOutlineSparkles, label: 'Analytics' },
 ];
 
 const teacherLinks = [
@@ -24,12 +30,15 @@ const teacherLinks = [
   { to: '/teacher/students', icon: HiOutlineAcademicCap, label: 'Students' },
   { to: '/teacher/attendance', icon: HiOutlineClipboardList, label: 'Attendance' },
   { to: '/teacher/marks', icon: HiOutlineChartBar, label: 'Marks' },
+  { to: '/teacher/reports', icon: HiOutlineDocumentReport, label: 'Reports' },
 ];
 
 const studentLinks = [
   { to: '/student', icon: HiOutlineHome, label: 'Dashboard', end: true },
   { to: '/student/marks', icon: HiOutlineChartBar, label: 'My Marks' },
   { to: '/student/attendance', icon: HiOutlineClipboardList, label: 'My Attendance' },
+  { to: '/student/profile', icon: HiOutlineUsers, label: 'My Profile' },
+  { to: '/student/skill-courses', icon: HiOutlineLightBulb, label: 'Skill Courses' },
 ];
 
 export default function Sidebar({ isOpen, onClose }) {

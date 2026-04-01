@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import client from '../../api/client';
-import { HiOutlinePlus, HiOutlinePencil, HiOutlineTrash, HiOutlineSearch } from 'react-icons/hi';
+import ConfirmDialog from '../../components/ConfirmDialog';
+import { HiOutlinePlus, HiOutlinePencil, HiOutlineTrash } from 'react-icons/hi';
 
 export default function ManageDepartments() {
   const [departments, setDepartments] = useState([]);
@@ -9,6 +10,9 @@ export default function ManageDepartments() {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({ name: '', code: '' });
   const [saving, setSaving] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState('');
 
   const fetchDepartments = async () => {
     try {
@@ -20,12 +24,19 @@ export default function ManageDepartments() {
 
   useEffect(() => { fetchDepartments(); }, []);
 
-  const openCreate = () => { setEditing(null); setForm({ name: '', code: '' }); setShowModal(true); };
-  const openEdit = (dept) => { setEditing(dept); setForm({ name: dept.name, code: dept.code }); setShowModal(true); };
+  useEffect(() => {
+    if (error) {
+      const t = setTimeout(() => setError(''), 4000);
+      return () => clearTimeout(t);
+    }
+  }, [error]);
+
+  const openCreate = () => { setEditing(null); setError(''); setForm({ name: '', code: '' }); setShowModal(true); };
+  const openEdit = (dept) => { setEditing(dept); setError(''); setForm({ name: dept.name, code: dept.code }); setShowModal(true); };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSaving(true);
+    setSaving(true); setError('');
     try {
       if (editing) {
         await client.put(`/admin/departments/${editing.id}`, form);
@@ -34,16 +45,24 @@ export default function ManageDepartments() {
       }
       setShowModal(false);
       fetchDepartments();
-    } catch (err) { alert(err.response?.data?.error || 'Error saving department'); }
+    } catch (err) {
+      setError(err.response?.data?.error || err.response?.data?.message || 'Failed to save department');
+    }
     finally { setSaving(false); }
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to delete this department?')) return;
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
     try {
-      await client.delete(`/admin/departments/${id}`);
+      await client.delete(`/admin/departments/${deleteTarget}`);
+      setDeleteTarget(null);
       fetchDepartments();
-    } catch (err) { alert('Failed to delete'); }
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to delete department');
+    } finally {
+      setDeleting(false);
+    }
   };
 
   if (loading) return <div className="loading-container"><div className="spinner spinner-lg" /></div>;
@@ -87,7 +106,7 @@ export default function ManageDepartments() {
                     <button className="btn btn-ghost btn-sm" onClick={() => openEdit(dept)} title="Edit">
                       <HiOutlinePencil />
                     </button>
-                    <button className="btn btn-ghost btn-sm" onClick={() => handleDelete(dept.id)} title="Delete"
+                    <button className="btn btn-ghost btn-sm" onClick={() => setDeleteTarget(dept.id)} title="Delete"
                       style={{ color: 'var(--color-danger)' }}>
                       <HiOutlineTrash />
                     </button>
@@ -108,6 +127,15 @@ export default function ManageDepartments() {
             </div>
             <form onSubmit={handleSubmit}>
               <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+                {error && (
+                  <div style={{
+                    padding: '10px 14px', borderRadius: '8px',
+                    backgroundColor: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626',
+                    fontSize: '0.9rem', fontWeight: 500,
+                  }}>
+                    ⚠️ {error}
+                  </div>
+                )}
                 <div className="form-group">
                   <label className="form-label">Department Name</label>
                   <input className="form-input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required placeholder="e.g. Computer Science & Engineering" />
@@ -127,6 +155,15 @@ export default function ManageDepartments() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Delete Department?"
+        message="This will soft-delete the department. Related batches, courses, and staff will need to be reassigned."
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+        loading={deleting}
+      />
     </div>
   );
 }

@@ -11,6 +11,7 @@ const pageTitles = {
   '/admin/sections': 'Sections',
   '/admin/courses': 'Courses',
   '/admin/users': 'Users',
+  '/admin/trash': 'Trash',
   '/teacher': 'Dashboard',
   '/teacher/attendance': 'Attendance',
   '/teacher/marks': 'Marks',

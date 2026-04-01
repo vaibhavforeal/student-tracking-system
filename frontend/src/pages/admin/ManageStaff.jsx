@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import client from '../../api/client';
+import ConfirmDialog from '../../components/ConfirmDialog';
 import { HiOutlinePlus, HiOutlinePencil, HiOutlineTrash, HiOutlineSearch } from 'react-icons/hi';
 
 export default function ManageStaff() {
@@ -11,6 +12,8 @@ export default function ManageStaff() {
   const [form, setForm] = useState({ employeeId: '', name: '', email: '', password: '', departmentId: '', designation: '', phone: '' });
   const [saving, setSaving] = useState(false);
   const [filterDept, setFilterDept] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchData = async () => {
     try {
@@ -39,9 +42,18 @@ export default function ManageStaff() {
     finally { setSaving(false); }
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm('Delete this staff member?')) return;
-    await client.delete(`/admin/staff/${id}`); fetchData();
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await client.delete(`/admin/staff/${deleteTarget}`);
+      setDeleteTarget(null);
+      fetchData();
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to delete staff member');
+    } finally {
+      setDeleting(false);
+    }
   };
 
   if (loading) return <div className="loading-container"><div className="spinner spinner-lg" /></div>;
@@ -79,7 +91,7 @@ export default function ManageStaff() {
                   <td>{s.phone}</td>
                   <td className="actions">
                     <button className="btn btn-ghost btn-sm" onClick={() => openEdit(s)}><HiOutlinePencil /></button>
-                    <button className="btn btn-ghost btn-sm" onClick={() => handleDelete(s.id)} style={{ color: 'var(--color-danger)' }}><HiOutlineTrash /></button>
+                    <button className="btn btn-ghost btn-sm" onClick={() => setDeleteTarget(s.id)} title="Delete" style={{ color: 'var(--color-danger)' }}><HiOutlineTrash /></button>
                   </td>
                 </tr>
               ))}
@@ -142,6 +154,15 @@ export default function ManageStaff() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Delete Staff Member?"
+        message="This will soft-delete the staff member, remove their class assignments, and deactivate their user account."
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+        loading={deleting}
+      />
     </div>
   );
 }

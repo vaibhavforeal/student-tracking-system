@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import { config } from '../config';
 
 interface TokenPayload {
@@ -10,13 +10,13 @@ interface TokenPayload {
 export function generateAccessToken(payload: TokenPayload): string {
   return jwt.sign(payload, config.jwtSecret, {
     expiresIn: config.jwtAccessExpire,
-  });
+  } as SignOptions);
 }
 
 export function generateRefreshToken(payload: TokenPayload): string {
   return jwt.sign(payload, config.jwtRefreshSecret, {
     expiresIn: config.jwtRefreshExpire,
-  });
+  } as SignOptions);
 }
 
 export function verifyAccessToken(token: string): TokenPayload {

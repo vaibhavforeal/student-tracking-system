@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import client from '../../api/client';
+import ConfirmDialog from '../../components/ConfirmDialog';
 import { HiOutlinePlus, HiOutlinePencil, HiOutlineTrash } from 'react-icons/hi';
 
 export default function ManageBatches() {
@@ -11,6 +12,8 @@ export default function ManageBatches() {
   const [form, setForm] = useState({ name: '', departmentId: '', degree: '', startYear: '', endYear: '' });
   const [saving, setSaving] = useState(false);
   const [filterDept, setFilterDept] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchData = async () => {
     try {
@@ -49,10 +52,18 @@ export default function ManageBatches() {
     finally { setSaving(false); }
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm('Delete this batch?')) return;
-    await client.delete(`/admin/batches/${id}`);
-    fetchData();
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await client.delete(`/admin/batches/${deleteTarget}`);
+      setDeleteTarget(null);
+      fetchData();
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to delete batch');
+    } finally {
+      setDeleting(false);
+    }
   };
 
   if (loading) return <div className="loading-container"><div className="spinner spinner-lg" /></div>;
@@ -93,7 +104,7 @@ export default function ManageBatches() {
                   <td>{b._count?.students || 0}</td>
                   <td className="actions">
                     <button className="btn btn-ghost btn-sm" onClick={() => openEdit(b)}><HiOutlinePencil /></button>
-                    <button className="btn btn-ghost btn-sm" onClick={() => handleDelete(b.id)} style={{ color: 'var(--color-danger)' }}><HiOutlineTrash /></button>
+                    <button className="btn btn-ghost btn-sm" onClick={() => setDeleteTarget(b.id)} title="Delete" style={{ color: 'var(--color-danger)' }}><HiOutlineTrash /></button>
                   </td>
                 </tr>
               ))}
@@ -145,6 +156,15 @@ export default function ManageBatches() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Delete Batch?"
+        message="This will soft-delete the batch. Related sections and students will need to be reassigned."
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+        loading={deleting}
+      />
     </div>
   );
 }

@@ -10,31 +10,78 @@ const prisma = new PrismaClient();
 // POST /api/auth/login
 router.post('/login', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email, password } = req.body;
+    const { role } = req.body;
 
-    if (!email || !password) {
-      res.status(400).json({ error: 'Email and password are required' });
-      return;
-    }
+    let user: any = null;
 
-    const user = await prisma.user.findUnique({
-      where: { email },
-      select: {
-        id: true, email: true, passwordHash: true,
-        role: true, name: true, avatarUrl: true,
-        isActive: true, deletedAt: true,
-      },
-    });
+    if (role === 'student') {
+      // ── Student login: enrollmentNo + DOB ──
+      const { enrollmentNo, dob } = req.body;
 
-    if (!user || user.deletedAt || !user.isActive) {
-      res.status(401).json({ error: 'Invalid credentials' });
-      return;
-    }
+      if (!enrollmentNo || !dob) {
+        res.status(400).json({ error: 'Enrollment number and date of birth are required' });
+        return;
+      }
 
-    const isValid = await comparePassword(password, user.passwordHash);
-    if (!isValid) {
-      res.status(401).json({ error: 'Invalid credentials' });
-      return;
+      // Find student by enrollment number
+      const student = await prisma.student.findUnique({
+        where: { enrollmentNo },
+        select: {
+          dob: true,
+          userId: true,
+          user: {
+            select: {
+              id: true, email: true, passwordHash: true,
+              role: true, name: true, avatarUrl: true,
+              isActive: true, deletedAt: true,
+            },
+          },
+        },
+      });
+
+      if (!student || !student.user || student.user.deletedAt || !student.user.isActive) {
+        res.status(401).json({ error: 'Invalid credentials' });
+        return;
+      }
+
+      // Compare DOB — format submitted dob to match stored date
+      const submittedDob = new Date(dob).toISOString().split('T')[0];
+      const storedDob = new Date(student.dob).toISOString().split('T')[0];
+
+      if (submittedDob !== storedDob) {
+        res.status(401).json({ error: 'Invalid credentials' });
+        return;
+      }
+
+      user = student.user;
+    } else {
+      // ── Teacher / Admin login: email + password ──
+      const { email, password } = req.body;
+
+      if (!email || !password) {
+        res.status(400).json({ error: 'Email and password are required' });
+        return;
+      }
+
+      user = await prisma.user.findFirst({
+        where: { email: { equals: email, mode: 'insensitive' } },
+        select: {
+          id: true, email: true, passwordHash: true,
+          role: true, name: true, avatarUrl: true,
+          isActive: true, deletedAt: true,
+        },
+      });
+
+      if (!user || user.deletedAt || !user.isActive) {
+        res.status(401).json({ error: 'Invalid credentials' });
+        return;
+      }
+
+      const isValid = await comparePassword(password, user.passwordHash);
+      if (!isValid) {
+        res.status(401).json({ error: 'Invalid credentials' });
+        return;
+      }
     }
 
     const tokenPayload = { userId: user.id, role: user.role, email: user.email };

@@ -5,6 +5,18 @@ import { authenticate, authorize } from '../middleware/auth';
 const router = Router();
 const prisma = new PrismaClient();
 
+/** Safely extract a single string from req.query */
+function qs(value: unknown): string | undefined {
+  if (typeof value === 'string') return value;
+  if (Array.isArray(value) && typeof value[0] === 'string') return value[0];
+  return undefined;
+}
+
+/** Safely extract a single string from req.params */
+function param(value: string | string[]): string {
+  return Array.isArray(value) ? value[0] : value;
+}
+
 // All teacher routes require authentication + teacher or admin role
 router.use(authenticate);
 router.use(authorize('teacher', 'admin'));
@@ -13,9 +25,9 @@ router.use(authorize('teacher', 'admin'));
 
 // GET /api/teacher/students — list students from teacher's assigned sections
 router.get('/students', async (req: Request, res: Response): Promise<void> => {
-  const { search } = req.query;
-  const page = parseInt(req.query.page as string) || 1;
-  const limit = parseInt(req.query.limit as string) || 20;
+  const search = qs(req.query.search);
+  const page = parseInt(qs(req.query.page) || '1');
+  const limit = parseInt(qs(req.query.limit) || '20');
   const skip = (page - 1) * limit;
 
   // Find sections assigned to this teacher (via staff → classAssignment)
@@ -45,9 +57,9 @@ router.get('/students', async (req: Request, res: Response): Promise<void> => {
     sectionId: { in: assignedSectionIds },
     ...(search && {
       OR: [
-        { firstName: { contains: search as string, mode: 'insensitive' } },
-        { lastName: { contains: search as string, mode: 'insensitive' } },
-        { enrollmentNo: { contains: search as string, mode: 'insensitive' } },
+        { firstName: { contains: search, mode: 'insensitive' } },
+        { lastName: { contains: search, mode: 'insensitive' } },
+        { enrollmentNo: { contains: search, mode: 'insensitive' } },
       ],
     }),
   };
@@ -59,6 +71,7 @@ router.get('/students', async (req: Request, res: Response): Promise<void> => {
         user: { select: { email: true } },
         batch: { select: { name: true, degree: true, department: { select: { name: true } } } },
         section: { select: { name: true } },
+        health: { select: { bloodGroup: true, diseases: true, allergies: true } },
       },
       orderBy: { firstName: 'asc' },
       skip,
@@ -83,7 +96,7 @@ router.get('/students/:id', async (req: Request, res: Response): Promise<void> =
   }
 
   const student = await prisma.student.findFirst({
-    where: { id: req.params.id, deletedAt: null },
+    where: { id: param(req.params.id), deletedAt: null },
     include: {
       user: { select: { email: true, name: true } },
       batch: { select: { name: true, degree: true, department: { select: { name: true } } } },
@@ -128,7 +141,7 @@ async function verifyTeacherAccess(req: Request, res: Response): Promise<string 
   }
 
   const student = await prisma.student.findFirst({
-    where: { id: req.params.id || req.params.studentId, deletedAt: null },
+    where: { id: param(req.params.id) || param(req.params.studentId), deletedAt: null },
     select: { sectionId: true },
   });
   if (!student) {
@@ -156,10 +169,10 @@ router.put('/students/:id/health', async (req: Request, res: Response): Promise<
 
   const { bloodGroup, diseases, allergies, emergencyContactName, emergencyContactPhone } = req.body;
   const health = await prisma.studentHealth.upsert({
-    where: { studentId: req.params.id },
+    where: { studentId: param(req.params.id) },
     update: { bloodGroup, diseases, allergies, emergencyContactName, emergencyContactPhone },
     create: {
-      studentId: req.params.id, bloodGroup, diseases: diseases || [],
+      studentId: param(req.params.id), bloodGroup, diseases: diseases || [],
       allergies: allergies || [], emergencyContactName, emergencyContactPhone,
     },
   });
@@ -177,7 +190,7 @@ router.post('/students/:id/previous-education', async (req: Request, res: Respon
     return;
   }
   const edu = await prisma.previousEducation.create({
-    data: { studentId: req.params.id, level, institution, board, percentage: parseFloat(percentage), yearOfPass: parseInt(yearOfPass) },
+    data: { studentId: param(req.params.id), level, institution, board, percentage: parseFloat(percentage), yearOfPass: parseInt(yearOfPass) },
   });
   res.status(201).json({ education: edu });
 });
@@ -188,7 +201,7 @@ router.put('/students/:studentId/previous-education/:eduId', async (req: Request
 
   const { level, institution, board, percentage, yearOfPass } = req.body;
   const edu = await prisma.previousEducation.update({
-    where: { id: req.params.eduId },
+    where: { id: param(req.params.eduId) },
     data: {
       ...(level && { level }), ...(institution && { institution }),
       ...(board !== undefined && { board }), ...(percentage && { percentage: parseFloat(percentage) }),
@@ -202,7 +215,7 @@ router.delete('/students/:studentId/previous-education/:eduId', async (req: Requ
   const staffId = await verifyTeacherAccess(req, res);
   if (!staffId) return;
 
-  await prisma.previousEducation.delete({ where: { id: req.params.eduId } });
+  await prisma.previousEducation.delete({ where: { id: param(req.params.eduId) } });
   res.json({ message: 'Education record deleted' });
 });
 
@@ -213,7 +226,7 @@ router.post('/students/:id/skills', async (req: Request, res: Response): Promise
 
   const { category, name, level } = req.body;
   const skill = await prisma.studentSkill.create({
-    data: { studentId: req.params.id, category, name, level },
+    data: { studentId: param(req.params.id), category, name, level },
   });
   res.status(201).json({ skill });
 });
@@ -222,7 +235,7 @@ router.delete('/students/:studentId/skills/:skillId', async (req: Request, res: 
   const staffId = await verifyTeacherAccess(req, res);
   if (!staffId) return;
 
-  await prisma.studentSkill.delete({ where: { id: req.params.skillId } });
+  await prisma.studentSkill.delete({ where: { id: param(req.params.skillId) } });
   res.json({ message: 'Skill deleted' });
 });
 
@@ -237,7 +250,7 @@ router.post('/students/:id/hobbies', async (req: Request, res: Response): Promis
     return;
   }
   const hobby = await prisma.studentHobby.create({
-    data: { studentId: req.params.id, type, name },
+    data: { studentId: param(req.params.id), type, name },
   });
   res.status(201).json({ hobby });
 });
@@ -246,7 +259,7 @@ router.delete('/students/:studentId/hobbies/:hobbyId', async (req: Request, res:
   const staffId = await verifyTeacherAccess(req, res);
   if (!staffId) return;
 
-  await prisma.studentHobby.delete({ where: { id: req.params.hobbyId } });
+  await prisma.studentHobby.delete({ where: { id: param(req.params.hobbyId) } });
   res.json({ message: 'Hobby deleted' });
 });
 
@@ -302,14 +315,16 @@ router.get('/dashboard-stats', async (req: Request, res: Response): Promise<void
 
 // GET /api/teacher/attendance — list attendance (by course, section, date)
 router.get('/attendance', async (req: Request, res: Response): Promise<void> => {
-  const { courseId, sectionId, date } = req.query;
+  const courseId = qs(req.query.courseId);
+  const sectionId = qs(req.query.sectionId);
+  const date = qs(req.query.date);
   const staff = await prisma.staff.findFirst({ where: { userId: req.user!.userId, deletedAt: null } });
   if (!staff) { res.status(403).json({ error: 'Staff profile not found' }); return; }
 
   // Verify access
   if (courseId && sectionId) {
     const hasAccess = await prisma.classAssignment.findFirst({
-      where: { staffId: staff.id, courseId: courseId as string, sectionId: sectionId as string },
+      where: { staffId: staff.id, courseId, sectionId },
     });
     if (!hasAccess && req.user!.role !== 'admin') {
       res.status(403).json({ error: 'Not assigned to this course/section' }); return;
@@ -319,7 +334,7 @@ router.get('/attendance', async (req: Request, res: Response): Promise<void> => 
   // Get students in the section
   const students = sectionId
     ? await prisma.student.findMany({
-        where: { sectionId: sectionId as string, deletedAt: null },
+        where: { sectionId, deletedAt: null },
         select: { id: true, enrollmentNo: true, firstName: true, lastName: true },
         orderBy: { firstName: 'asc' },
       })
@@ -327,8 +342,8 @@ router.get('/attendance', async (req: Request, res: Response): Promise<void> => 
 
   // Get existing records for the date
   const where: any = { markedBy: staff.id };
-  if (courseId) where.courseId = courseId as string;
-  if (date) where.date = new Date(date as string);
+  if (courseId) where.courseId = courseId;
+  if (date) where.date = new Date(date);
 
   const records = await prisma.attendance.findMany({
     where,
@@ -387,7 +402,7 @@ router.post('/attendance/bulk', async (req: Request, res: Response): Promise<voi
 router.put('/attendance/:id', async (req: Request, res: Response): Promise<void> => {
   const { status } = req.body;
   const record = await prisma.attendance.update({
-    where: { id: req.params.id as string },
+    where: { id: param(req.params.id) as string },
     data: { status },
   });
   res.json({ record });
@@ -397,14 +412,16 @@ router.put('/attendance/:id', async (req: Request, res: Response): Promise<void>
 
 // GET /api/teacher/marks — list marks (filter by course, section, assessmentType)
 router.get('/marks', async (req: Request, res: Response): Promise<void> => {
-  const { courseId, sectionId, assessmentType } = req.query;
+  const courseId = qs(req.query.courseId);
+  const sectionId = qs(req.query.sectionId);
+  const assessmentType = qs(req.query.assessmentType);
   const staff = await prisma.staff.findFirst({ where: { userId: req.user!.userId, deletedAt: null } });
   if (!staff) { res.status(403).json({ error: 'Staff profile not found' }); return; }
 
   // Verify access
   if (courseId && sectionId) {
     const hasAccess = await prisma.classAssignment.findFirst({
-      where: { staffId: staff.id, courseId: courseId as string, sectionId: sectionId as string },
+      where: { staffId: staff.id, courseId, sectionId },
     });
     if (!hasAccess && req.user!.role !== 'admin') {
       res.status(403).json({ error: 'Not assigned to this course/section' }); return;
@@ -414,7 +431,7 @@ router.get('/marks', async (req: Request, res: Response): Promise<void> => {
   // Get students in section
   const students = sectionId
     ? await prisma.student.findMany({
-        where: { sectionId: sectionId as string, deletedAt: null },
+        where: { sectionId, deletedAt: null },
         select: { id: true, enrollmentNo: true, firstName: true, lastName: true, semester: true },
         orderBy: { firstName: 'asc' },
       })
@@ -422,8 +439,8 @@ router.get('/marks', async (req: Request, res: Response): Promise<void> => {
 
   // Get existing marks
   const where: any = { gradedBy: staff.id };
-  if (courseId) where.courseId = courseId as string;
-  if (assessmentType) where.assessmentType = assessmentType as string;
+  if (courseId) where.courseId = courseId;
+  if (assessmentType) where.assessmentType = assessmentType;
   // If sectionId provided, filter by students in that section
   if (sectionId) {
     const studentIds = students.map((s) => s.id);
@@ -502,7 +519,7 @@ router.post('/marks/bulk', async (req: Request, res: Response): Promise<void> =>
 
 // DELETE /api/teacher/marks/:id
 router.delete('/marks/:id', async (req: Request, res: Response): Promise<void> => {
-  await prisma.mark.delete({ where: { id: req.params.id as string } });
+  await prisma.mark.delete({ where: { id: param(req.params.id) as string } });
   res.json({ message: 'Mark deleted' });
 });
 

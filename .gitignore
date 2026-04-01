@@ -28,6 +28,12 @@ desktop.ini
 .tmp/
 *.log
 
+# PM2 logs & runtime
+logs/
+
+# Uploads
+backend/uploads/
+
 # Python
 __pycache__/
 *.pyc
