@@ -20,16 +20,33 @@ export default function Login() {
   const login = useAuthStore((s) => s.login);
   const navigate = useNavigate();
 
+  // Convert DD-MM-YYYY → YYYY-MM-DD for the API
+  const parseDob = (raw) => {
+    const parts = raw.trim().split(/[-/]/);
+    if (parts.length !== 3) return null;
+    const [dd, mm, yyyy] = parts;
+    if (!dd || !mm || !yyyy || yyyy.length !== 4) return null;
+    return `${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     try {
-      const credentials =
-        role === 'student'
-          ? { role, enrollmentNo, dob }
-          : { role, email, password };
+      let credentials;
+      if (role === 'student') {
+        const isoDob = parseDob(dob);
+        if (!isoDob) {
+          setError('Enter date of birth in DD-MM-YYYY format.');
+          setLoading(false);
+          return;
+        }
+        credentials = { role, enrollmentNo, dob: isoDob };
+      } else {
+        credentials = { role, email, password };
+      }
 
       const user = await login(credentials);
       const dashMap = { admin: '/admin', teacher: '/teacher', student: '/student' };
@@ -89,8 +106,9 @@ export default function Login() {
                 <label className="form-label" htmlFor="dob">Date of Birth</label>
                 <input
                   id="dob"
-                  type="date"
+                  type="text"
                   className="form-input"
+                  placeholder="DD-MM-YYYY"
                   value={dob}
                   onChange={(e) => setDob(e.target.value)}
                   required

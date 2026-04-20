@@ -6,8 +6,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // ─── Enums ───────────────────────────────────────────
@@ -212,6 +213,7 @@ model Student {
   previousEducation   PreviousEducation[]
   hobbies             StudentHobby[]
   skillCourseEnrollments SkillCourseEnrollment[]
+  notificationLogs    NotificationLog[]
 
   @@index([batchId])
   @@index([sectionId])
@@ -258,7 +260,8 @@ model Parent {
   occupation   String
   annualIncome Decimal? @map("annual_income")
 
-  student Student @relation(fields: [studentId], references: [id])
+  student          Student           @relation(fields: [studentId], references: [id])
+  notificationLogs NotificationLog[]
 
   @@map("parents")
 }
@@ -418,4 +421,39 @@ model SkillCourseEnrollment {
   @@index([studentId])
   @@index([skillCourseId])
   @@map("skill_course_enrollments")
+}
+
+// ─── Notifications ──────────────────────────────────────
+
+enum NotificationChannel {
+  whatsapp
+  email
+}
+
+enum NotificationStatus {
+  pending
+  sent
+  failed
+}
+
+model NotificationLog {
+  id        String              @id @default(uuid())
+  studentId String              @map("student_id")
+  parentId  String              @map("parent_id")
+  channel   NotificationChannel
+  type      String              // e.g., "attendance_report"
+  status    NotificationStatus  @default(pending)
+  sentTo    String              @map("sent_to")
+  mediaType String?             @map("media_type")
+  errorMsg  String?             @map("error_msg")
+  sentBy    String              @map("sent_by")
+  sentAt    DateTime            @default(now()) @map("sent_at")
+
+  student Student @relation(fields: [studentId], references: [id])
+  parent  Parent  @relation(fields: [parentId], references: [id])
+
+  @@index([studentId])
+  @@index([parentId])
+  @@index([sentAt])
+  @@map("notification_logs")
 }

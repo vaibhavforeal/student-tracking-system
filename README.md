@@ -23,8 +23,13 @@ Make sure the following are installed on your machine:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/<your-username>/STS.git
-cd STS
+# Using GitHub CLI
+gh repo clone vaibhavforeal/student-tracking-system
+cd student-tracking-system
+
+# Or using Git
+git clone https://github.com/vaibhavforeal/student-tracking-system.git
+cd student-tracking-system
 ```
 
 ### 2. Install Dependencies

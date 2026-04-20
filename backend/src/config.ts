@@ -11,6 +11,12 @@ export const config = {
   jwtRefreshSecret: process.env.JWT_REFRESH_SECRET!,
   jwtAccessExpire: process.env.JWT_ACCESS_EXPIRE || '15m',
   jwtRefreshExpire: process.env.JWT_REFRESH_EXPIRE || '7d',
-  corsOrigins: (process.env.CORS_ORIGINS || 'http://localhost:5173').split(','),
+  corsOrigins: (process.env.CORS_ORIGINS || 'http://localhost:5173').split(',').map(s => s.trim()),
   geminiApiKey: process.env.GEMINI_API_KEY || '',
+  whatsapp: {
+    apiVersion: process.env.WHATSAPP_API_VERSION || 'v21.0',
+    phoneNumberId: process.env.WHATSAPP_PHONE_NUMBER_ID || '',
+    accessToken: process.env.WHATSAPP_ACCESS_TOKEN || '',
+    businessAccountId: process.env.WHATSAPP_BUSINESS_ACCOUNT_ID || '',
+  },
 };
