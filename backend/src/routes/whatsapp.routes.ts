@@ -50,7 +50,7 @@ router.get('/status', async (req: Request, res: Response): Promise<void> => {
 // Send attendance report PDF to a student's parents
 // ═══════════════════════════════════════════════════════
 router.post('/send-attendance/:studentId', async (req: Request, res: Response): Promise<void> => {
-  const { studentId } = req.params;
+  const studentId = req.params.studentId as string;
   const { parentIds } = req.body; // optional: specific parent IDs
 
   if (!isWhatsAppConfigured()) {
