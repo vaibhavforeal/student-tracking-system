@@ -30,7 +30,10 @@ const ENTITY_CONFIG = {
   departments: { icon: HiOutlineOfficeBuilding, label: 'Department', color: '#7c3aed', bg: '#f5f3ff', getName: (item) => `${item.code} — ${item.name}` },
   batches:     { icon: HiOutlineCollection, label: 'Batch', color: '#0284c7', bg: '#f0f9ff', getName: (item) => `${item.name} (${item.degree})` },
   sections:    { icon: HiOutlineClipboardList, label: 'Section', color: '#059669', bg: '#ecfdf5', getName: (item) => `${item.name}${item.batch ? ` — ${item.batch.name}` : ''}` },
-  courses:     { icon: HiOutlineBookOpen, label: 'Course', color: '#d97706', bg: '#fffbeb', getName: (item) => `${item.code} — ${item.name}` },
+  courses:     { icon: HiOutlineBookOpen, label: 'Course', color: '#d97706', bg: '#fffbeb', getName: (item) => {
+    const depts = (item.courseDepartments || []).map((cd) => cd.department?.code || cd.department?.name).filter(Boolean).join(', ');
+    return `${item.code} — ${item.name}${depts ? ` (${depts})` : ''}${item.isMandatory ? ' [Mandatory]' : ''}`;
+  } },
   staff:       { icon: HiOutlineUserGroup, label: 'Staff', color: '#dc2626', bg: '#fef2f2', getName: (item) => item.user?.name || item.employeeId },
   students:    { icon: HiOutlineAcademicCap, label: 'Student', color: '#7c3aed', bg: '#faf5ff', getName: (item) => `${item.firstName} ${item.lastName} (${item.enrollmentNo})` },
 };

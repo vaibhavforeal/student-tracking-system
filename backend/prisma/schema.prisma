@@ -102,9 +102,9 @@ model Department {
   updatedAt DateTime  @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
-  batches Batch[]
-  courses Course[]
-  staff   Staff[]
+  batches           Batch[]
+  courseDepartments CourseDepartment[]
+  staff             Staff[]
 
   @@map("departments")
 }
@@ -149,24 +149,68 @@ model Course {
   credits      Int
   semester     Int
   type         CourseType
+  isMandatory  Boolean   @default(false) @map("is_mandatory")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  deletedAt    DateTime? @map("deleted_at")
+
+  courseDepartments CourseDepartment[]
+  classAssignments  ClassAssignment[]
+  marks             Mark[]
+  attendance        Attendance[]
+
+  @@map("courses")
+}
+
+model CourseDepartment {
+  id           String    @id @default(uuid())
+  courseId     String    @map("course_id")
   departmentId String    @map("department_id")
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")
   deletedAt    DateTime? @map("deleted_at")
 
-  department       Department        @relation(fields: [departmentId], references: [id])
-  classAssignments ClassAssignment[]
-  marks            Mark[]
-  attendance       Attendance[]
+  course     Course     @relation(fields: [courseId], references: [id])
+  department Department @relation(fields: [departmentId], references: [id])
+  units      SyllabusUnit[]
 
-  @@map("courses")
+  @@unique([courseId, departmentId])
+  @@index([departmentId])
+  @@map("course_departments")
+}
+
+model SyllabusUnit {
+  id                 String @id @default(uuid())
+  courseDepartmentId String @map("course_department_id")
+  number             Int
+  title              String
+  hours              Int?
+
+  courseDepartment CourseDepartment @relation(fields: [courseDepartmentId], references: [id], onDelete: Cascade)
+  topics           SyllabusTopic[]
+
+  @@unique([courseDepartmentId, number])
+  @@map("syllabus_units")
+}
+
+model SyllabusTopic {
+  id          String  @id @default(uuid())
+  unitId      String  @map("unit_id")
+  order       Int
+  title       String
+  description String?
+
+  unit SyllabusUnit @relation(fields: [unitId], references: [id], onDelete: Cascade)
+
+  @@index([unitId])
+  @@map("syllabus_topics")
 }
 
 model Staff {
   id           String    @id @default(uuid())
   employeeId   String    @unique @map("employee_id")
   userId       String    @unique @map("user_id")
-  departmentId String    @map("department_id")
+  departmentId String?   @map("department_id")
   designation  String
   phone        String
   createdAt    DateTime  @default(now()) @map("created_at")
@@ -174,7 +218,7 @@ model Staff {
   deletedAt    DateTime? @map("deleted_at")
 
   user             User              @relation(fields: [userId], references: [id])
-  department       Department        @relation(fields: [departmentId], references: [id])
+  department       Department?       @relation(fields: [departmentId], references: [id])
   classAssignments ClassAssignment[]
   marksGraded      Mark[]
   attendanceMarked Attendance[]

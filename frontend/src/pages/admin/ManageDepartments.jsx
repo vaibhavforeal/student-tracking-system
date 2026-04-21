@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import client from '../../api/client';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import { HiOutlinePlus, HiOutlinePencil, HiOutlineTrash } from 'react-icons/hi';
@@ -13,6 +14,8 @@ export default function ManageDepartments() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState('');
+  const [toast, setToast] = useState('');
+  const navigate = useNavigate();
 
   const fetchDepartments = async () => {
     try {
@@ -31,6 +34,13 @@ export default function ManageDepartments() {
     }
   }, [error]);
 
+  useEffect(() => {
+    if (toast) {
+      const t = setTimeout(() => setToast(''), 6000);
+      return () => clearTimeout(t);
+    }
+  }, [toast]);
+
   const openCreate = () => { setEditing(null); setError(''); setForm({ name: '', code: '' }); setShowModal(true); };
   const openEdit = (dept) => { setEditing(dept); setError(''); setForm({ name: dept.name, code: dept.code }); setShowModal(true); };
 
@@ -41,7 +51,12 @@ export default function ManageDepartments() {
       if (editing) {
         await client.put(`/admin/departments/${editing.id}`, form);
       } else {
-        await client.post('/admin/departments', form);
+        const res = await client.post('/admin/departments', form);
+        const dept = res.data.department;
+        // Show toast if there are mandatory courses needing syllabus
+        if (dept._mandatoryCount && dept._mandatoryCount > 0) {
+          setToast(`${dept._mandatoryCount} mandatory course(s) need syllabus for "${dept.name}".`);
+        }
       }
       setShowModal(false);
       fetchDepartments();
@@ -79,6 +94,30 @@ export default function ManageDepartments() {
         </button>
       </div>
 
+      {/* Toast notification */}
+      {toast && (
+        <div style={{
+          position: 'fixed', bottom: '24px', right: '24px', zIndex: 9999,
+          padding: '12px 20px', borderRadius: '10px', maxWidth: '400px',
+          background: 'linear-gradient(135deg, #38bdf8, #818cf8)',
+          color: '#fff', fontSize: '0.88rem', fontWeight: 500,
+          boxShadow: '0 4px 20px rgba(56,189,248,0.3)',
+          display: 'flex', alignItems: 'center', gap: '10px',
+          animation: 'fadeIn 0.3s ease',
+        }}>
+          <span>📋 {toast}</span>
+          <button
+            onClick={() => navigate('/admin/courses')}
+            style={{
+              background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff',
+              padding: '4px 10px', borderRadius: '6px', cursor: 'pointer',
+              fontSize: '0.8rem', fontWeight: 600, whiteSpace: 'nowrap',
+            }}
+          >View Courses →</button>
+          <button onClick={() => setToast('')} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '16px', padding: '0 4px' }}>✕</button>
+        </div>
+      )}
+
       <div className="card">
         <div className="data-table-wrapper">
           <table className="data-table">
@@ -100,7 +139,7 @@ export default function ManageDepartments() {
                   <td><span className="badge badge-sky">{dept.code}</span></td>
                   <td style={{ fontWeight: 500 }}>{dept.name}</td>
                   <td>{dept._count?.batches || 0}</td>
-                  <td>{dept._count?.courses || 0}</td>
+                  <td>{dept._count?.courseDepartments || 0}</td>
                   <td>{dept._count?.staff || 0}</td>
                   <td className="actions">
                     <button className="btn btn-ghost btn-sm" onClick={() => openEdit(dept)} title="Edit">

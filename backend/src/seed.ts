@@ -61,8 +61,11 @@ async function seed() {
         credits: 4,
         semester: 1,
         type: 'theory',
-        departmentId: dept.id,
       },
+    });
+    // Link course to department
+    await prisma.courseDepartment.create({
+      data: { courseId: course.id, departmentId: dept.id },
     });
     console.log(`✅ Sample course created: ${course.code} - ${course.name}`);
   } else {

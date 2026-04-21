@@ -3,6 +3,8 @@ import client from '../../api/client';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import { HiOutlinePlus, HiOutlinePencil, HiOutlineTrash, HiOutlineSearch } from 'react-icons/hi';
 
+const DESIGNATION_OPTIONS = ['HOD', 'Professor', 'Assistant Professor', 'Teacher'];
+
 export default function ManageStaff() {
   const [staff, setStaff] = useState([]);
   const [departments, setDepartments] = useState([]);
@@ -29,14 +31,28 @@ export default function ManageStaff() {
 
   useEffect(() => { fetchData(); }, [filterDept]);
 
-  const openCreate = () => { setEditing(null); setForm({ employeeId: '', name: '', email: '', password: '', departmentId: departments[0]?.id || '', designation: '', phone: '' }); setShowModal(true); };
-  const openEdit = (s) => { setEditing(s); setForm({ employeeId: s.employeeId, name: s.user?.name || '', email: s.user?.email || '', password: '', departmentId: s.departmentId, designation: s.designation, phone: s.phone }); setShowModal(true); };
+  const openCreate = () => { setEditing(null); setForm({ employeeId: '', name: '', email: '', password: '', departmentId: '', designation: '', phone: '' }); setShowModal(true); };
+  const openEdit = (s) => { setEditing(s); setForm({ employeeId: s.employeeId, name: s.user?.name || '', email: s.user?.email || '', password: '', departmentId: s.departmentId || '', designation: s.designation, phone: s.phone }); setShowModal(true); };
+
+  const handleDesignationChange = (value) => {
+    setForm(prev => ({
+      ...prev,
+      designation: value,
+      // Clear departmentId when switching away from HOD
+      departmentId: value === 'HOD' ? prev.departmentId : '',
+    }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault(); setSaving(true);
     try {
-      if (editing) await client.put(`/admin/staff/${editing.id}`, form);
-      else await client.post('/admin/staff', form);
+      const payload = { ...form };
+      // Don't send departmentId for non-HOD designations
+      if (payload.designation !== 'HOD') {
+        delete payload.departmentId;
+      }
+      if (editing) await client.put(`/admin/staff/${editing.id}`, payload);
+      else await client.post('/admin/staff', payload);
       setShowModal(false); fetchData();
     } catch (err) { alert(err.response?.data?.error || err.response?.data?.message || 'Error'); }
     finally { setSaving(false); }
@@ -86,7 +102,7 @@ export default function ManageStaff() {
                   <td><span className="badge badge-purple">{s.employeeId}</span></td>
                   <td style={{ fontWeight: 500 }}>{s.user?.name}</td>
                   <td>{s.user?.email}</td>
-                  <td>{s.department?.name}</td>
+                  <td>{s.department?.name || '—'}</td>
                   <td>{s.designation}</td>
                   <td>{s.phone}</td>
                   <td className="actions">
@@ -130,16 +146,21 @@ export default function ManageStaff() {
                 </div>
                 <div className="form-row">
                   <div className="form-group">
-                    <label className="form-label">Department</label>
-                    <select className="form-select" value={form.departmentId} onChange={(e) => setForm({ ...form, departmentId: e.target.value })} required>
-                      <option value="">Select Department</option>
-                      {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+                    <label className="form-label">Designation</label>
+                    <select className="form-select" value={form.designation} onChange={(e) => handleDesignationChange(e.target.value)} required>
+                      <option value="">Select Designation</option>
+                      {DESIGNATION_OPTIONS.map((d) => <option key={d} value={d}>{d}</option>)}
                     </select>
                   </div>
-                  <div className="form-group">
-                    <label className="form-label">Designation</label>
-                    <input className="form-input" value={form.designation} onChange={(e) => setForm({ ...form, designation: e.target.value })} required placeholder="e.g. Professor" />
-                  </div>
+                  {form.designation === 'HOD' && (
+                    <div className="form-group">
+                      <label className="form-label">Department</label>
+                      <select className="form-select" value={form.departmentId} onChange={(e) => setForm({ ...form, departmentId: e.target.value })} required>
+                        <option value="">Select Department</option>
+                        {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+                      </select>
+                    </div>
+                  )}
                 </div>
                 <div className="form-group">
                   <label className="form-label">Phone</label>

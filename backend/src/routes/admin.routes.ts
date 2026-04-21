@@ -70,7 +70,15 @@ router.post('/upload/photo', upload.single('photo'), asyncHandler(async (req: Re
 router.get('/departments', asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const departments = await prisma.department.findMany({
     where: { deletedAt: null },
-    include: { _count: { select: { batches: true, courses: true, staff: true } } },
+    include: {
+      _count: {
+        select: {
+          batches: true,
+          courseDepartments: { where: { deletedAt: null } },
+          staff: true,
+        },
+      },
+    },
     orderBy: { name: 'asc' },
   });
   res.json({ departments });
@@ -96,7 +104,28 @@ router.post('/departments', asyncHandler(async (req: Request, res: Response): Pr
     await prisma.department.delete({ where: { id: existing.id } });
   }
 
-  const department = await prisma.department.create({ data: { name, code: upperCode } });
+  // Create department and backfill CourseDepartment rows for all mandatory courses
+  const department = await prisma.$transaction(async (tx) => {
+    const dept = await tx.department.create({ data: { name, code: upperCode } });
+
+    // Backfill: create empty CourseDepartment rows for every mandatory course
+    const mandatoryCourses = await tx.course.findMany({
+      where: { isMandatory: true, deletedAt: null },
+      select: { id: true },
+    });
+
+    if (mandatoryCourses.length > 0) {
+      await tx.courseDepartment.createMany({
+        data: mandatoryCourses.map((c) => ({
+          courseId: c.id,
+          departmentId: dept.id,
+        })),
+      });
+    }
+
+    return { ...dept, _mandatoryCount: mandatoryCourses.length };
+  });
+
   res.status(201).json({ department });
 }));
 
@@ -106,7 +135,10 @@ router.get('/departments/:id', asyncHandler(async (req: Request, res: Response):
     where: { id: param(req.params.id), deletedAt: null },
     include: {
       batches: { where: { deletedAt: null } },
-      courses: { where: { deletedAt: null } },
+      courseDepartments: {
+        where: { deletedAt: null },
+        include: { course: { select: { id: true, code: true, name: true, type: true, semester: true, credits: true, isMandatory: true } } },
+      },
       staff: { where: { deletedAt: null }, include: { user: { select: { name: true, email: true } } } },
     },
   });
@@ -248,25 +280,68 @@ router.delete('/sections/:id', asyncHandler(async (req: Request, res: Response):
 router.get('/courses', asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const departmentId = qs(req.query.departmentId);
   const semester = qs(req.query.semester);
+  const needsSyllabus = qs(req.query.needsSyllabus); // departmentId filter for "needs syllabus" view
+
+  const where: any = { deletedAt: null };
+  if (semester) where.semester = parseInt(semester);
+  if (departmentId) {
+    where.courseDepartments = { some: { departmentId, deletedAt: null } };
+  }
+
   const courses = await prisma.course.findMany({
-    where: {
-      deletedAt: null,
-      ...(departmentId && { departmentId }),
-      ...(semester && { semester: parseInt(semester) }),
+    where,
+    include: {
+      courseDepartments: {
+        where: { deletedAt: null },
+        include: {
+          department: { select: { id: true, name: true, code: true } },
+          _count: { select: { units: true } },
+        },
+      },
     },
-    include: { department: { select: { name: true, code: true } } },
     orderBy: [{ semester: 'asc' }, { name: 'asc' }],
   });
-  res.json({ courses });
+
+  // Enrich each course with department names and needsSyllabusCount
+  const enriched = courses.map((c) => {
+    const needsSyllabusCount = c.courseDepartments.filter((cd) => cd._count.units === 0).length;
+    return {
+      ...c,
+      departments: c.courseDepartments.map((cd) => cd.department),
+      needsSyllabusCount,
+    };
+  });
+
+  // Optional: filter to only courses that need syllabus for a specific department
+  const result = needsSyllabus
+    ? enriched.filter((c) =>
+        c.courseDepartments.some((cd) => cd.departmentId === needsSyllabus && cd._count.units === 0)
+      )
+    : enriched;
+
+  res.json({ courses: result });
 }));
 
 // POST /api/admin/courses
 router.post('/courses', asyncHandler(async (req: Request, res: Response): Promise<void> => {
-  const { code, name, credits, semester, type, departmentId } = req.body;
-  if (!code || !name || !credits || !semester || !type || !departmentId) {
-    res.status(400).json({ error: 'All fields are required' });
+  const { code, name, credits, semester, type, isMandatory, departments } = req.body;
+  if (!code || !name || !credits || !semester || !type) {
+    res.status(400).json({ error: 'code, name, credits, semester, and type are required' });
     return;
   }
+  if (!Array.isArray(departments) || departments.length === 0) {
+    res.status(400).json({ error: 'At least one department entry is required' });
+    return;
+  }
+
+  const mandatory = isMandatory === true || isMandatory === 'true';
+
+  // Department-specific: must have exactly one department entry
+  if (!mandatory && departments.length !== 1) {
+    res.status(400).json({ error: 'Department-specific courses must have exactly one department' });
+    return;
+  }
+
   const upperCode = code.toUpperCase();
 
   // Check if a non-deleted course with this code already exists
@@ -280,31 +355,200 @@ router.post('/courses', asyncHandler(async (req: Request, res: Response): Promis
     await prisma.course.delete({ where: { id: existing.id } });
   }
 
-  const course = await prisma.course.create({
-    data: { code: upperCode, name, credits: parseInt(credits), semester: parseInt(semester), type, departmentId },
+  const course = await prisma.$transaction(async (tx) => {
+    // Create the course
+    const newCourse = await tx.course.create({
+      data: {
+        code: upperCode,
+        name,
+        credits: parseInt(credits),
+        semester: parseInt(semester),
+        type,
+        isMandatory: mandatory,
+      },
+    });
+
+    // Build set of provided department IDs
+    const providedDeptIds = new Set(departments.map((d: any) => d.departmentId));
+
+    // If mandatory, find all departments and auto-create missing ones
+    if (mandatory) {
+      const allDepts = await tx.department.findMany({
+        where: { deletedAt: null },
+        select: { id: true },
+      });
+      for (const dept of allDepts) {
+        if (!providedDeptIds.has(dept.id)) {
+          // Auto-create empty CourseDepartment ("needs syllabus" state)
+          await tx.courseDepartment.create({
+            data: { courseId: newCourse.id, departmentId: dept.id },
+          });
+        }
+      }
+    }
+
+    // Create CourseDepartment rows for provided departments (with optional syllabus)
+    for (const dept of departments) {
+      const cd = await tx.courseDepartment.create({
+        data: { courseId: newCourse.id, departmentId: dept.departmentId },
+      });
+
+      // Create syllabus units + topics if provided
+      if (Array.isArray(dept.units)) {
+        for (const unit of dept.units) {
+          const su = await tx.syllabusUnit.create({
+            data: {
+              courseDepartmentId: cd.id,
+              number: parseInt(unit.number),
+              title: unit.title,
+              hours: unit.hours ? parseInt(unit.hours) : null,
+            },
+          });
+          if (Array.isArray(unit.topics)) {
+            await tx.syllabusTopic.createMany({
+              data: unit.topics.map((t: any, idx: number) => ({
+                unitId: su.id,
+                order: t.order ?? idx + 1,
+                title: t.title,
+                description: t.description || null,
+              })),
+            });
+          }
+        }
+      }
+    }
+
+    return newCourse;
   });
-  res.status(201).json({ course });
+
+  // Return the full course with departments
+  const full = await prisma.course.findUnique({
+    where: { id: course.id },
+    include: {
+      courseDepartments: {
+        where: { deletedAt: null },
+        include: {
+          department: { select: { id: true, name: true, code: true } },
+          units: { include: { topics: { orderBy: { order: 'asc' } } }, orderBy: { number: 'asc' } },
+        },
+      },
+    },
+  });
+
+  res.status(201).json({ course: full });
 }));
 
-// PUT /api/admin/courses/:id
+// PUT /api/admin/courses/:id — edit shared fields only
 router.put('/courses/:id', asyncHandler(async (req: Request, res: Response): Promise<void> => {
-  const { code, name, credits, semester, type, departmentId } = req.body;
+  const { code, name, credits, semester, type } = req.body;
+
+  // Reject attempts to change isMandatory
+  if (req.body.isMandatory !== undefined) {
+    res.status(400).json({ error: 'Cannot change isMandatory after course creation' });
+    return;
+  }
+
   const course = await prisma.course.update({
     where: { id: param(req.params.id) },
     data: {
-      ...(code && { code: code.toUpperCase() }), ...(name && { name }),
+      ...(code && { code: code.toUpperCase() }),
+      ...(name && { name }),
       ...(credits && { credits: parseInt(credits) }),
       ...(semester && { semester: parseInt(semester) }),
-      ...(type && { type }), ...(departmentId && { departmentId }),
+      ...(type && { type }),
+    },
+    include: {
+      courseDepartments: {
+        where: { deletedAt: null },
+        include: {
+          department: { select: { id: true, name: true, code: true } },
+          _count: { select: { units: true } },
+        },
+      },
     },
   });
   res.json({ course });
 }));
 
-// DELETE /api/admin/courses/:id
+// DELETE /api/admin/courses/:id (soft delete course + its CourseDepartment rows)
 router.delete('/courses/:id', asyncHandler(async (req: Request, res: Response): Promise<void> => {
-  await prisma.course.update({ where: { id: param(req.params.id) }, data: { deletedAt: new Date() } });
+  const now = new Date();
+  await prisma.$transaction(async (tx) => {
+    await tx.course.update({ where: { id: param(req.params.id) }, data: { deletedAt: now } });
+    await tx.courseDepartment.updateMany({
+      where: { courseId: param(req.params.id), deletedAt: null },
+      data: { deletedAt: now },
+    });
+  });
   res.json({ message: 'Course deleted' });
+}));
+
+// PUT /api/admin/courses/:courseId/departments/:departmentId/syllabus — full replace syllabus
+router.put('/courses/:courseId/departments/:departmentId/syllabus', asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const courseId = param(req.params.courseId);
+  const departmentId = param(req.params.departmentId);
+  const { units } = req.body;
+
+  if (!Array.isArray(units)) {
+    res.status(400).json({ error: 'units array is required' });
+    return;
+  }
+
+  // Find or create the CourseDepartment row
+  let cd = await prisma.courseDepartment.findFirst({
+    where: { courseId, departmentId, deletedAt: null },
+  });
+
+  if (!cd) {
+    // Verify both course and department exist
+    const [course, dept] = await Promise.all([
+      prisma.course.findFirst({ where: { id: courseId, deletedAt: null } }),
+      prisma.department.findFirst({ where: { id: departmentId, deletedAt: null } }),
+    ]);
+    if (!course) { res.status(404).json({ error: 'Course not found' }); return; }
+    if (!dept) { res.status(404).json({ error: 'Department not found' }); return; }
+
+    cd = await prisma.courseDepartment.create({
+      data: { courseId, departmentId },
+    });
+  }
+
+  // Full replace: delete all existing units (cascade deletes topics), then recreate
+  await prisma.$transaction(async (tx) => {
+    await tx.syllabusUnit.deleteMany({ where: { courseDepartmentId: cd!.id } });
+
+    for (const unit of units) {
+      const su = await tx.syllabusUnit.create({
+        data: {
+          courseDepartmentId: cd!.id,
+          number: parseInt(unit.number),
+          title: unit.title,
+          hours: unit.hours ? parseInt(unit.hours) : null,
+        },
+      });
+      if (Array.isArray(unit.topics)) {
+        await tx.syllabusTopic.createMany({
+          data: unit.topics.map((t: any, idx: number) => ({
+            unitId: su.id,
+            order: t.order ?? idx + 1,
+            title: t.title,
+            description: t.description || null,
+          })),
+        });
+      }
+    }
+  });
+
+  // Return updated syllabus
+  const updated = await prisma.courseDepartment.findUnique({
+    where: { id: cd.id },
+    include: {
+      department: { select: { id: true, name: true, code: true } },
+      units: { include: { topics: { orderBy: { order: 'asc' } } }, orderBy: { number: 'asc' } },
+    },
+  });
+
+  res.json({ courseDepartment: updated });
 }));
 
 // ─── STAFF ────────────────────────────────────────────
@@ -329,10 +573,20 @@ router.get('/staff', asyncHandler(async (req: Request, res: Response): Promise<v
 // POST /api/admin/staff
 router.post('/staff', asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { employeeId, name, email, password, departmentId, designation, phone } = req.body;
-  if (!employeeId || !name || !email || !password || !departmentId || !designation || !phone) {
+  const validDesignations = ['HOD', 'Professor', 'Assistant Professor', 'Teacher'];
+  if (!employeeId || !name || !email || !password || !designation || !phone) {
     res.status(400).json({ error: 'All fields are required' });
     return;
   }
+  if (!validDesignations.includes(designation)) {
+    res.status(400).json({ error: `Designation must be one of: ${validDesignations.join(', ')}` });
+    return;
+  }
+  if (designation === 'HOD' && !departmentId) {
+    res.status(400).json({ error: 'Department is required for HOD designation' });
+    return;
+  }
+  const finalDepartmentId = designation === 'HOD' ? departmentId : null;
 
   // Check for existing staff with same employee ID
   const existingStaffByEmpId = await prisma.staff.findUnique({ where: { employeeId } });
@@ -373,7 +627,7 @@ router.post('/staff', asyncHandler(async (req: Request, res: Response): Promise<
       },
     });
     const staff = await tx.staff.create({
-      data: { employeeId, userId: user.id, departmentId, designation, phone },
+      data: { employeeId, userId: user.id, departmentId: finalDepartmentId, designation, phone },
     });
     return { user, staff };
   });
@@ -386,9 +640,32 @@ router.post('/staff', asyncHandler(async (req: Request, res: Response): Promise<
 // PUT /api/admin/staff/:id
 router.put('/staff/:id', asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { name, email, departmentId, designation, phone } = req.body;
+  const validDesignations = ['HOD', 'Professor', 'Assistant Professor', 'Teacher'];
 
   const existingStaff = await prisma.staff.findUnique({ where: { id: param(req.params.id) } });
   if (!existingStaff) { res.status(404).json({ error: 'Staff not found' }); return; }
+
+  if (designation && !validDesignations.includes(designation)) {
+    res.status(400).json({ error: `Designation must be one of: ${validDesignations.join(', ')}` });
+    return;
+  }
+
+  // Determine the effective designation (new or existing)
+  const effectiveDesignation = designation || existingStaff.designation;
+  if (effectiveDesignation === 'HOD' && designation && !departmentId && !existingStaff.departmentId) {
+    res.status(400).json({ error: 'Department is required for HOD designation' });
+    return;
+  }
+
+  // If designation is changing away from HOD, clear department; if changing to HOD, require department
+  const staffUpdateData: any = {};
+  if (designation) staffUpdateData.designation = designation;
+  if (phone) staffUpdateData.phone = phone;
+  if (effectiveDesignation === 'HOD') {
+    if (departmentId) staffUpdateData.departmentId = departmentId;
+  } else {
+    staffUpdateData.departmentId = null;
+  }
 
   await prisma.$transaction(async (tx) => {
     if (name || email) {
@@ -399,7 +676,7 @@ router.put('/staff/:id', asyncHandler(async (req: Request, res: Response): Promi
     }
     await tx.staff.update({
       where: { id: param(req.params.id) },
-      data: { ...(departmentId && { departmentId }), ...(designation && { designation }), ...(phone && { phone }) },
+      data: staffUpdateData,
     });
   });
 
@@ -887,7 +1164,11 @@ router.get('/trash', asyncHandler(async (req: Request, res: Response): Promise<v
     }),
     prisma.course.findMany({
       where: { deletedAt: { not: null } },
-      include: { department: { select: { name: true } } },
+      include: {
+        courseDepartments: {
+          include: { department: { select: { name: true, code: true } } },
+        },
+      },
       orderBy: { deletedAt: 'desc' },
     }),
     prisma.staff.findMany({
@@ -938,9 +1219,16 @@ router.put('/sections/:id/restore', asyncHandler(async (req: Request, res: Respo
 
 // PUT /api/admin/courses/:id/restore
 router.put('/courses/:id/restore', asyncHandler(async (req: Request, res: Response): Promise<void> => {
-  await prisma.course.update({
-    where: { id: param(req.params.id) },
-    data: { deletedAt: null },
+  await prisma.$transaction(async (tx) => {
+    await tx.course.update({
+      where: { id: param(req.params.id) },
+      data: { deletedAt: null },
+    });
+    // Also restore related CourseDepartment rows
+    await tx.courseDepartment.updateMany({
+      where: { courseId: param(req.params.id) },
+      data: { deletedAt: null },
+    });
   });
   res.json({ message: 'Course restored' });
 }));
@@ -1093,7 +1381,7 @@ router.delete('/trash/clear', asyncHandler(async (req: Request, res: Response): 
         select: { departmentId: true },
         distinct: ['departmentId'],
       });
-      const deptsWithCourses = await tx.course.findMany({
+      const deptsWithCourses = await tx.courseDepartment.findMany({
         where: { departmentId: { in: deletedDepartmentIds } },
         select: { departmentId: true },
         distinct: ['departmentId'],
@@ -1106,7 +1394,7 @@ router.delete('/trash/clear', asyncHandler(async (req: Request, res: Response): 
       const blockedDeptIds = new Set([
         ...deptsWithBatches.map((b) => b.departmentId),
         ...deptsWithCourses.map((c) => c.departmentId),
-        ...deptsWithStaff.map((s) => s.departmentId),
+        ...deptsWithStaff.filter((s) => s.departmentId).map((s) => s.departmentId as string),
       ]);
       const safeDeptIds = deletedDepartmentIds.filter((id) => !blockedDeptIds.has(id));
 
@@ -1135,11 +1423,13 @@ router.delete('/trash/:type/:id', asyncHandler(async (req: Request, res: Respons
       case 'departments': {
         // Check for active children
         const activeBatches = await tx.batch.count({ where: { departmentId: id, deletedAt: null } });
-        const activeCourses = await tx.course.count({ where: { departmentId: id, deletedAt: null } });
+        const activeCourseDepts = await tx.courseDepartment.count({ where: { departmentId: id, deletedAt: null } });
         const activeStaff = await tx.staff.count({ where: { departmentId: id, deletedAt: null } });
-        if (activeBatches > 0 || activeCourses > 0 || activeStaff > 0) {
+        if (activeBatches > 0 || activeCourseDepts > 0 || activeStaff > 0) {
           throw new Error('Cannot delete department — it still has active batches, courses, or staff');
         }
+        // Clean up any soft-deleted courseDepartment rows for this department
+        await tx.courseDepartment.deleteMany({ where: { departmentId: id } });
         await tx.department.delete({ where: { id } });
         break;
       }

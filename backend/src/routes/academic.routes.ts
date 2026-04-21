@@ -313,4 +313,37 @@ router.get('/students/:studentId/attendance', async (req: Request, res: Response
   });
 });
 
+// ─── GET /api/academic/courses/:id ──────────────────────────
+// Course detail + syllabus for a given department
+router.get('/courses/:id', async (req: Request, res: Response): Promise<void> => {
+  const courseId = param(req.params.id);
+  const departmentId = qs(req.query.departmentId);
+
+  const course = await prisma.course.findFirst({
+    where: { id: courseId, deletedAt: null },
+    include: {
+      courseDepartments: {
+        where: {
+          deletedAt: null,
+          ...(departmentId && { departmentId }),
+        },
+        include: {
+          department: { select: { id: true, name: true, code: true } },
+          units: {
+            include: { topics: { orderBy: { order: 'asc' } } },
+            orderBy: { number: 'asc' },
+          },
+        },
+      },
+    },
+  });
+
+  if (!course) {
+    res.status(404).json({ error: 'Course not found' });
+    return;
+  }
+
+  res.json({ course });
+});
+
 export default router;
