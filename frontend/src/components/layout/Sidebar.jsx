@@ -5,7 +5,7 @@ import {
   HiOutlineOfficeBuilding, HiOutlineCollection, HiOutlineBookOpen,
   HiOutlineClipboardList, HiOutlineUsers, HiOutlineLogout, HiOutlineChartBar,
   HiOutlineDocumentReport, HiOutlineSparkles, HiOutlineTrash, HiOutlineLink,
-  HiOutlineLightBulb,
+  HiOutlineLightBulb, HiOutlineArrowUp, HiOutlineDocumentText,
 } from 'react-icons/hi';
 
 const adminLinks = [
@@ -18,6 +18,7 @@ const adminLinks = [
   { to: '/admin/courses', icon: HiOutlineBookOpen, label: 'Courses' },
   { to: '/admin/assignments', icon: HiOutlineLink, label: 'Assignments' },
   { to: '/admin/skill-courses', icon: HiOutlineLightBulb, label: 'Skill Courses' },
+  { to: '/admin/promotion', icon: HiOutlineArrowUp, label: 'Promotion' },
 
   { to: '/admin/users', icon: HiOutlineUsers, label: 'Users' },
   { to: '/admin/trash', icon: HiOutlineTrash, label: 'Trash' },
@@ -38,6 +39,7 @@ const studentLinks = [
   { to: '/student/marks', icon: HiOutlineChartBar, label: 'My Marks' },
   { to: '/student/attendance', icon: HiOutlineClipboardList, label: 'My Attendance' },
   { to: '/student/profile', icon: HiOutlineUsers, label: 'My Profile' },
+  { to: '/student/academic', icon: HiOutlineDocumentText, label: 'Academic Record' },
   { to: '/student/skill-courses', icon: HiOutlineLightBulb, label: 'Skill Courses' },
 ];
 

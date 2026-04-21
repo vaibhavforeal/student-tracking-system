@@ -24,6 +24,8 @@ import StudentMyMarks from './pages/student/MyMarks';
 import StudentMyAttendance from './pages/student/MyAttendance';
 import StudentProfile from './pages/student/Profile';
 import StudentSkillCourses from './pages/student/SkillCourses';
+import SemesterPromotion from './pages/admin/SemesterPromotion';
+import AcademicRecord from './pages/shared/AcademicRecord';
 import useAuthStore from './store/authStore';
 
 function App() {
@@ -55,6 +57,8 @@ function App() {
           <Route path="analytics" element={<Analytics />} />
           <Route path="trash" element={<Trash />} />
           <Route path="skill-courses" element={<ManageSkillCourses />} />
+          <Route path="promotion" element={<SemesterPromotion />} />
+          <Route path="students/:id/academic" element={<AcademicRecord />} />
         </Route>
 
         {/* Teacher Routes */}
@@ -69,6 +73,7 @@ function App() {
           <Route path="attendance" element={<TeacherAttendance />} />
           <Route path="marks" element={<TeacherMarks />} />
           <Route path="reports" element={<Reports />} />
+          <Route path="students/:id/academic" element={<AcademicRecord />} />
         </Route>
 
         {/* Student Routes */}
@@ -82,6 +87,7 @@ function App() {
           <Route path="attendance" element={<StudentMyAttendance />} />
           <Route path="profile" element={<StudentProfile />} />
           <Route path="skill-courses" element={<StudentSkillCourses />} />
+          <Route path="academic" element={<AcademicRecord />} />
         </Route>
 
         {/* Default redirect */}

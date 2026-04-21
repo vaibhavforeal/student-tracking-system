@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import client from '../../api/client';
 import useAuthStore from '../../store/authStore';
 import {
   HiOutlineArrowLeft, HiOutlinePlus, HiOutlineTrash,
   HiOutlineAcademicCap, HiOutlineHeart, HiOutlineUser,
-  HiOutlineLightBulb, HiOutlineCash, HiOutlineBookOpen,
+  HiOutlineLightBulb, HiOutlineCash, HiOutlineBookOpen, HiOutlineDocumentText,
 } from 'react-icons/hi';
 
 const TABS = [
@@ -64,6 +64,13 @@ export default function StudentDetail() {
             </p>
           </div>
         </div>
+        <Link
+          to={`${isTeacher ? '/teacher' : '/admin'}/students/${id}/academic`}
+          className="btn btn-primary btn-sm"
+          style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+        >
+          <HiOutlineDocumentText /> Academic Record
+        </Link>
       </div>
 
       {/* Tabs */}

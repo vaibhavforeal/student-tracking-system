@@ -13,6 +13,7 @@ import studentRoutes from './routes/student.routes';
 import reportRoutes from './routes/report.routes';
 import aiRoutes from './routes/ai.routes';
 import whatsappRoutes from './routes/whatsapp.routes';
+import academicRoutes from './routes/academic.routes';
 
 // ─── Auto-purge: permanently delete trash older than 30 days ───
 const RETENTION_DAYS = 30;
@@ -65,6 +66,7 @@ app.use('/api/student', studentRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/whatsapp', whatsappRoutes);
+app.use('/api/academic', academicRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

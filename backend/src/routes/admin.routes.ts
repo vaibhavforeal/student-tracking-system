@@ -1318,5 +1318,125 @@ router.get('/skill-courses/:id/enrollments', asyncHandler(async (req: Request, r
   res.json({ enrollments });
 }));
 
+// ─── SEMESTER PROMOTION ───────────────────────────────
+
+// POST /api/admin/students/promote — Bulk promote students
+router.post('/students/promote', asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const { batchId, sectionId, fromSemester, toSemester, autoGraduate } = req.body;
+  const dryRun = qs(req.query.dryRun) === 'true';
+
+  if (!batchId || !fromSemester || !toSemester) {
+    res.status(400).json({ error: 'batchId, fromSemester, and toSemester are required' });
+    return;
+  }
+
+  const from = parseInt(fromSemester);
+  const to = parseInt(toSemester);
+
+  if (to <= from) {
+    res.status(400).json({ error: 'toSemester must be greater than fromSemester' });
+    return;
+  }
+
+  const where: any = {
+    deletedAt: null,
+    status: 'active',
+    batchId,
+    semester: from,
+    ...(sectionId && { sectionId }),
+  };
+
+  // Find eligible students
+  const students = await prisma.student.findMany({
+    where,
+    select: {
+      id: true, enrollmentNo: true, firstName: true, lastName: true,
+      semester: true,
+      batch: { select: { name: true, degree: true } },
+      section: { select: { name: true } },
+    },
+    orderBy: { firstName: 'asc' },
+  });
+
+  if (students.length === 0) {
+    res.json({ message: 'No eligible students found', students: [], promoted: 0 });
+    return;
+  }
+
+  if (dryRun) {
+    res.json({
+      dryRun: true,
+      students,
+      eligible: students.length,
+      fromSemester: from,
+      toSemester: to,
+    });
+    return;
+  }
+
+  // Execute promotion
+  const studentIds = students.map((s) => s.id);
+
+  const updateData: any = { semester: to };
+
+  // If autoGraduate is true and toSemester > 8, mark as graduated
+  if (autoGraduate && to > 8) {
+    updateData.status = 'graduated';
+  }
+
+  await prisma.student.updateMany({
+    where: { id: { in: studentIds } },
+    data: updateData,
+  });
+
+  res.json({
+    message: `Successfully promoted ${students.length} student(s) from semester ${from} to ${to}`,
+    promoted: students.length,
+    studentIds,
+    fromSemester: from,
+    toSemester: to,
+    graduated: autoGraduate && to > 8,
+  });
+}));
+
+// POST /api/admin/students/:id/promote — Promote a single student
+router.post('/students/:id/promote', asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const student = await prisma.student.findFirst({
+    where: { id: param(req.params.id), deletedAt: null },
+  });
+
+  if (!student) {
+    res.status(404).json({ error: 'Student not found' });
+    return;
+  }
+
+  if (student.status !== 'active') {
+    res.status(400).json({ error: `Cannot promote student with status "${student.status}"` });
+    return;
+  }
+
+  const newSemester = student.semester + 1;
+  const autoGraduate = req.body.autoGraduate;
+  const updateData: any = { semester: newSemester };
+
+  if (autoGraduate && newSemester > 8) {
+    updateData.status = 'graduated';
+  }
+
+  const updated = await prisma.student.update({
+    where: { id: student.id },
+    data: updateData,
+    include: {
+      batch: { select: { name: true } },
+      section: { select: { name: true } },
+    },
+  });
+
+  res.json({
+    message: `Student promoted to semester ${newSemester}`,
+    student: updated,
+  });
+}));
+
 export default router;
 
