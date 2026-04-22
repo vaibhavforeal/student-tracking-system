@@ -468,8 +468,8 @@ function ParentsTab({ student, apiBase, refresh }) {
               <input className="form-input" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required />
             </div>
             <div className="form-group">
-              <label className="form-label">Email *</label>
-              <input className="form-input" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
+              <label className="form-label">Email</label>
+              <input className="form-input" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
             </div>
           </div>
           <div className="form-row" style={{ marginTop: 'var(--space-4)' }}>

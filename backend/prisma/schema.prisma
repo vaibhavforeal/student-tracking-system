@@ -300,7 +300,7 @@ model Parent {
   name         String
   relation     String
   phone        String
-  email        String
+  email        String?
   occupation   String
   annualIncome Decimal? @map("annual_income")
 
