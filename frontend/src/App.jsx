@@ -25,7 +25,9 @@ import StudentMyAttendance from './pages/student/MyAttendance';
 import StudentProfile from './pages/student/Profile';
 import StudentSkillCourses from './pages/student/SkillCourses';
 import SemesterPromotion from './pages/admin/SemesterPromotion';
+import ManageFeedback from './pages/admin/ManageFeedback';
 import AcademicRecord from './pages/shared/AcademicRecord';
+import StudentFeedback from './pages/student/Feedback';
 import useAuthStore from './store/authStore';
 
 function App() {
@@ -59,6 +61,7 @@ function App() {
           <Route path="skill-courses" element={<ManageSkillCourses />} />
           <Route path="promotion" element={<SemesterPromotion />} />
           <Route path="students/:id/academic" element={<AcademicRecord />} />
+          <Route path="feedback" element={<ManageFeedback />} />
         </Route>
 
         {/* Teacher Routes */}
@@ -88,6 +91,7 @@ function App() {
           <Route path="profile" element={<StudentProfile />} />
           <Route path="skill-courses" element={<StudentSkillCourses />} />
           <Route path="academic" element={<AcademicRecord />} />
+          <Route path="feedback" element={<StudentFeedback />} />
         </Route>
 
         {/* Default redirect */}

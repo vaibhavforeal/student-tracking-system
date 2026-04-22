@@ -6,6 +6,7 @@ import {
   HiOutlineClipboardList, HiOutlineUsers, HiOutlineLogout, HiOutlineChartBar,
   HiOutlineDocumentReport, HiOutlineSparkles, HiOutlineTrash, HiOutlineLink,
   HiOutlineLightBulb, HiOutlineArrowUp, HiOutlineDocumentText,
+  HiOutlineMail, HiOutlineChat,
 } from 'react-icons/hi';
 
 const adminLinks = [
@@ -24,6 +25,7 @@ const adminLinks = [
   { to: '/admin/trash', icon: HiOutlineTrash, label: 'Trash' },
   { to: '/admin/reports', icon: HiOutlineDocumentReport, label: 'Reports' },
   { to: '/admin/analytics', icon: HiOutlineSparkles, label: 'Analytics' },
+  { to: '/admin/feedback', icon: HiOutlineMail, label: 'Student Feedback' },
 ];
 
 const teacherLinks = [
@@ -41,6 +43,7 @@ const studentLinks = [
   { to: '/student/profile', icon: HiOutlineUsers, label: 'My Profile' },
   { to: '/student/academic', icon: HiOutlineDocumentText, label: 'Academic Record' },
   { to: '/student/skill-courses', icon: HiOutlineLightBulb, label: 'Skill Courses' },
+  { to: '/student/feedback', icon: HiOutlineChat, label: 'Space for Thought' },
 ];
 
 export default function Sidebar({ isOpen, onClose }) {

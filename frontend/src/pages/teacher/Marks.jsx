@@ -168,7 +168,7 @@ export default function TeacherMarks() {
                 <thead>
                   <tr>
                     <th>#</th>
-                    <th>Enrollment No</th>
+                    <th>Unique ID</th>
                     <th>Student Name</th>
                     <th style={{ width: '120px' }}>Marks (/{maxMarks})</th>
                     <th>Remarks</th>

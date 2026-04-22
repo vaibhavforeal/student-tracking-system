@@ -90,7 +90,7 @@ export default function Login() {
           {isStudent ? (
             <>
               <div className="form-group">
-                <label className="form-label" htmlFor="enrollmentNo">Enrollment Number</label>
+                <label className="form-label" htmlFor="enrollmentNo">Unique ID</label>
                 <input
                   id="enrollmentNo"
                   type="text"

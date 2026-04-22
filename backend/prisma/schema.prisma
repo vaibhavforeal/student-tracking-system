@@ -258,6 +258,7 @@ model Student {
   hobbies             StudentHobby[]
   skillCourseEnrollments SkillCourseEnrollment[]
   notificationLogs    NotificationLog[]
+  feedbacks           StudentFeedback[]
 
   @@index([batchId])
   @@index([sectionId])
@@ -500,4 +501,37 @@ model NotificationLog {
   @@index([parentId])
   @@index([sentAt])
   @@map("notification_logs")
+}
+
+// ─── Student Feedback / Space for Thought ───────────────
+
+enum FeedbackCategory {
+  general
+  academics
+  infrastructure
+  faculty
+  suggestion
+  complaint
+  other
+}
+
+model StudentFeedback {
+  id         String           @id @default(uuid())
+  studentId  String           @map("student_id")
+  subject    String
+  message    String
+  category   FeedbackCategory @default(general)
+  isRead     Boolean          @default(false) @map("is_read")
+  isArchived Boolean          @default(false) @map("is_archived")
+  adminReply String?          @map("admin_reply")
+  repliedAt  DateTime?        @map("replied_at")
+  createdAt  DateTime         @default(now()) @map("created_at")
+  updatedAt  DateTime         @updatedAt @map("updated_at")
+
+  student Student @relation(fields: [studentId], references: [id])
+
+  @@index([studentId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@map("student_feedback")
 }

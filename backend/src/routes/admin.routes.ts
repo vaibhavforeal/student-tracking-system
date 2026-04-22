@@ -1728,5 +1728,146 @@ router.post('/students/:id/promote', asyncHandler(async (req: Request, res: Resp
   });
 }));
 
+// ─── STUDENT FEEDBACK / SPACE FOR THOUGHT ────────────────
+
+// GET /api/admin/feedback — List all student feedback
+router.get('/feedback', asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const status = qs(req.query.status); // 'unread' | 'read' | 'archived' | 'all'
+  const category = qs(req.query.category);
+  const search = qs(req.query.search);
+  const page = parseInt(qs(req.query.page) || '1');
+  const limit = parseInt(qs(req.query.limit) || '20');
+  const skip = (page - 1) * limit;
+
+  const where: any = {};
+
+  if (status === 'unread') {
+    where.isRead = false;
+    where.isArchived = false;
+  } else if (status === 'read') {
+    where.isRead = true;
+    where.isArchived = false;
+  } else if (status === 'archived') {
+    where.isArchived = true;
+  } else {
+    // 'all' — no filter, but exclude archived by default
+    where.isArchived = false;
+  }
+
+  if (category && category !== 'all') {
+    where.category = category;
+  }
+
+  if (search) {
+    where.OR = [
+      { subject: { contains: search, mode: 'insensitive' } },
+      { message: { contains: search, mode: 'insensitive' } },
+      { student: { firstName: { contains: search, mode: 'insensitive' } } },
+      { student: { lastName: { contains: search, mode: 'insensitive' } } },
+      { student: { enrollmentNo: { contains: search, mode: 'insensitive' } } },
+    ];
+  }
+
+  const [feedbacks, total, unreadCount] = await Promise.all([
+    prisma.studentFeedback.findMany({
+      where,
+      include: {
+        student: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            enrollmentNo: true,
+            semester: true,
+            batch: { select: { name: true, department: { select: { name: true } } } },
+            section: { select: { name: true } },
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take: limit,
+    }),
+    prisma.studentFeedback.count({ where }),
+    prisma.studentFeedback.count({ where: { isRead: false, isArchived: false } }),
+  ]);
+
+  res.json({ feedbacks, total, page, totalPages: Math.ceil(total / limit), unreadCount });
+}));
+
+// GET /api/admin/feedback/:id — View single feedback
+router.get('/feedback/:id', asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const feedback = await prisma.studentFeedback.findUnique({
+    where: { id: param(req.params.id) },
+    include: {
+      student: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          enrollmentNo: true,
+          semester: true,
+          phone: true,
+          batch: { select: { name: true, department: { select: { name: true } } } },
+          section: { select: { name: true } },
+          user: { select: { email: true } },
+        },
+      },
+    },
+  });
+
+  if (!feedback) { res.status(404).json({ error: 'Feedback not found' }); return; }
+
+  // Auto-mark as read when admin views
+  if (!feedback.isRead) {
+    await prisma.studentFeedback.update({
+      where: { id: feedback.id },
+      data: { isRead: true },
+    });
+    feedback.isRead = true;
+  }
+
+  res.json({ feedback });
+}));
+
+// PUT /api/admin/feedback/:id/reply — Reply to feedback
+router.put('/feedback/:id/reply', asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const { reply } = req.body;
+  if (!reply) { res.status(400).json({ error: 'Reply message is required' }); return; }
+
+  const feedback = await prisma.studentFeedback.update({
+    where: { id: param(req.params.id) },
+    data: { adminReply: reply, repliedAt: new Date(), isRead: true },
+  });
+
+  res.json({ feedback });
+}));
+
+// PUT /api/admin/feedback/:id/archive — Archive / unarchive feedback
+router.put('/feedback/:id/archive', asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const existing = await prisma.studentFeedback.findUnique({ where: { id: param(req.params.id) } });
+  if (!existing) { res.status(404).json({ error: 'Feedback not found' }); return; }
+
+  const feedback = await prisma.studentFeedback.update({
+    where: { id: param(req.params.id) },
+    data: { isArchived: !existing.isArchived },
+  });
+
+  res.json({ feedback, message: feedback.isArchived ? 'Feedback archived' : 'Feedback unarchived' });
+}));
+
+// PUT /api/admin/feedback/:id/read — Toggle read status
+router.put('/feedback/:id/read', asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const existing = await prisma.studentFeedback.findUnique({ where: { id: param(req.params.id) } });
+  if (!existing) { res.status(404).json({ error: 'Feedback not found' }); return; }
+
+  const feedback = await prisma.studentFeedback.update({
+    where: { id: param(req.params.id) },
+    data: { isRead: !existing.isRead },
+  });
+
+  res.json({ feedback });
+}));
+
 export default router;
 

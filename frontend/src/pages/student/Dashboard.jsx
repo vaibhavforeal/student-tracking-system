@@ -6,6 +6,7 @@ import {
   HiOutlineAcademicCap, HiOutlineChartBar, HiOutlineClipboardList,
   HiOutlineUser, HiOutlineBookOpen, HiOutlineMail, HiOutlinePhone,
   HiOutlineCalendar, HiOutlineLocationMarker, HiOutlineLightBulb,
+  HiOutlineChat,
 } from 'react-icons/hi';
 
 export default function StudentDashboard() {
@@ -133,6 +134,13 @@ export default function StudentDashboard() {
             <h3 style={{ fontSize: 'var(--font-lg)', fontWeight: 600 }}>Skill Courses</h3>
           </div>
           <p style={{ fontSize: 'var(--font-sm)', color: 'var(--color-gray-500)' }}>Browse and enroll in skill enhancement courses</p>
+        </div>
+        <div className="card" style={{ padding: 'var(--space-6)', cursor: 'pointer', transition: 'all var(--transition-fast)' }} onClick={() => navigate('/student/feedback')}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', marginBottom: 'var(--space-3)' }}>
+            <HiOutlineChat size={28} style={{ color: 'var(--color-purple-500)' }} />
+            <h3 style={{ fontSize: 'var(--font-lg)', fontWeight: 600 }}>Space for Thought</h3>
+          </div>
+          <p style={{ fontSize: 'var(--font-sm)', color: 'var(--color-gray-500)' }}>Share your feedback, suggestions, or thoughts with the college</p>
         </div>
       </div>
 

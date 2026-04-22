@@ -150,7 +150,7 @@ export default function TeacherAttendance() {
                 <thead>
                   <tr>
                     <th>#</th>
-                    <th>Enrollment No</th>
+                    <th>Unique ID</th>
                     <th>Student Name</th>
                     <th style={{ textAlign: 'center' }}>Status</th>
                   </tr>

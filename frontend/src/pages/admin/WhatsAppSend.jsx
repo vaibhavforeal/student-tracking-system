@@ -187,7 +187,7 @@ export default function WhatsAppSend() {
                         onChange={toggleAll}
                       />
                     </th>
-                    <th>Enrollment</th>
+                    <th>Unique ID</th>
                     <th>Name</th>
                     <th>Semester</th>
                     <th>Parent Phones</th>
@@ -271,7 +271,7 @@ export default function WhatsAppSend() {
                 <thead>
                   <tr>
                     <th>Student</th>
-                    <th>Enrollment</th>
+                    <th>Unique ID</th>
                     <th>Sent</th>
                     <th>Failed</th>
                     <th>Status</th>

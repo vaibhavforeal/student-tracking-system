@@ -356,7 +356,7 @@ export default function ManageSkillCourses() {
               ) : (
                 <div className="data-table-wrapper">
                   <table className="data-table">
-                    <thead><tr><th>Student</th><th>Enrollment No</th><th>Batch</th><th>Status</th><th>Enrolled</th></tr></thead>
+                    <thead><tr><th>Student</th><th>Unique ID</th><th>Batch</th><th>Status</th><th>Enrolled</th></tr></thead>
                     <tbody>
                       {enrollments?.map((e) => (
                         <tr key={e.id}>

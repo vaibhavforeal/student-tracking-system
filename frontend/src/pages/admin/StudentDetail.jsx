@@ -87,7 +87,7 @@ function PersonalTab({ student }) {
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-4)' }}>
-      <Field label="Enrollment No" value={student.enrollmentNo} />
+      <Field label="Unique ID" value={student.enrollmentNo} />
       <Field label="Email" value={student.user?.email} />
       <Field label="First Name" value={student.firstName} />
       <Field label="Last Name" value={student.lastName} />

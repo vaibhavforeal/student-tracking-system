@@ -196,7 +196,7 @@ export default function SemesterPromotion() {
                 <thead>
                   <tr>
                     <th>#</th>
-                    <th>Enrollment No</th>
+                    <th>Unique ID</th>
                     <th>Name</th>
                     <th>Batch</th>
                     <th>Section</th>

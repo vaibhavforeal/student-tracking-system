@@ -333,7 +333,7 @@ export default function Analytics() {
                   <table className="data-table">
                     <thead>
                       <tr>
-                        <th>Enrollment No</th>
+                        <th>Unique ID</th>
                         <th>Name</th>
                         <th>Batch</th>
                         <th>Section</th>

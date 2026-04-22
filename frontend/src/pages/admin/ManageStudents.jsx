@@ -133,7 +133,7 @@ export default function ManageStudents() {
       <div className="card">
         <div className="data-table-wrapper">
           <table className="data-table">
-            <thead><tr><th>Enrollment</th><th>Name</th><th>Batch</th><th>Section</th><th>Semester</th><th>Status</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Unique ID</th><th>Name</th><th>Batch</th><th>Section</th><th>Semester</th><th>Status</th><th>Actions</th></tr></thead>
             <tbody>
               {students.length === 0 ? (
                 <tr><td colSpan="7"><div className="empty-state"><p>No students found.</p></div></td></tr>
@@ -214,7 +214,7 @@ export default function ManageStudents() {
 
                 <div className="form-row">
                   <div className="form-group">
-                    <label className="form-label">Enrollment No</label>
+                    <label className="form-label">Unique ID</label>
                     <input className="form-input" value={form.enrollmentNo} onChange={(e) => setForm({ ...form, enrollmentNo: e.target.value })} required placeholder="e.g. 2024CSE001" />
                   </div>
                   <div className="form-group">
@@ -375,7 +375,7 @@ function StudentPreviewModal({ student, onClose, onViewFull }) {
               </div>
             </div>
 
-            {/* Name & Enrollment */}
+            {/* Name & Unique ID */}
             <div>
               <h2 style={{
                 color: '#fff', fontSize: 'var(--font-xl)', fontWeight: 700,

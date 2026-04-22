@@ -434,5 +434,59 @@ router.put('/skill-courses/:id/complete', async (req: Request, res: Response): P
   res.json({ enrollment: updated });
 });
 
+// ─── FEEDBACK / SPACE FOR THOUGHT ──────────────────────
+
+// POST /api/student/feedback — Submit new feedback
+router.post('/feedback', async (req: Request, res: Response): Promise<void> => {
+  const student = await findStudent(req.user!.userId);
+  if (!student) { res.status(404).json({ error: 'Student profile not found' }); return; }
+
+  const { subject, message, category } = req.body;
+  if (!subject || !message) {
+    res.status(400).json({ error: 'Subject and message are required' });
+    return;
+  }
+
+  const validCategories = ['general', 'academics', 'infrastructure', 'faculty', 'suggestion', 'complaint', 'other'];
+  const feedbackCategory = category && validCategories.includes(category) ? category : 'general';
+
+  const feedback = await prisma.studentFeedback.create({
+    data: {
+      studentId: student.id,
+      subject,
+      message,
+      category: feedbackCategory,
+    },
+  });
+
+  res.status(201).json({ feedback });
+});
+
+// GET /api/student/feedback — List own feedback
+router.get('/feedback', async (req: Request, res: Response): Promise<void> => {
+  const student = await findStudent(req.user!.userId);
+  if (!student) { res.status(404).json({ error: 'Student profile not found' }); return; }
+
+  const feedbacks = await prisma.studentFeedback.findMany({
+    where: { studentId: student.id },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  res.json({ feedbacks });
+});
+
+// GET /api/student/feedback/:id — View single feedback detail
+router.get('/feedback/:id', async (req: Request, res: Response): Promise<void> => {
+  const student = await findStudent(req.user!.userId);
+  if (!student) { res.status(404).json({ error: 'Student profile not found' }); return; }
+
+  const feedback = await prisma.studentFeedback.findFirst({
+    where: { id: req.params.id as string, studentId: student.id },
+  });
+
+  if (!feedback) { res.status(404).json({ error: 'Feedback not found' }); return; }
+  res.json({ feedback });
+});
+
 export default router;
 
