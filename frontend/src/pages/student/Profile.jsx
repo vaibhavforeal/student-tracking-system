@@ -3,7 +3,7 @@ import client from '../../api/client';
 import {
   HiOutlineUser, HiOutlineMail, HiOutlinePhone, HiOutlineCalendar,
   HiOutlineLocationMarker, HiOutlineAcademicCap, HiOutlineHeart,
-  HiOutlineStar, HiOutlineCash, HiOutlineBookOpen, HiOutlineSparkles,
+  HiOutlineStar, HiOutlineBookOpen, HiOutlineSparkles,
 } from 'react-icons/hi';
 
 export default function Profile() {
@@ -161,26 +161,6 @@ export default function Profile() {
         </Section>
       )}
 
-      {/* Financial Aid */}
-      {student.financialAid?.length > 0 && (
-        <Section title="Financial Aid" icon={HiOutlineCash}>
-          <div className="data-table-wrapper">
-            <table className="data-table">
-              <thead><tr><th>Type</th><th>Amount</th><th>Academic Year</th><th>Status</th></tr></thead>
-              <tbody>
-                {student.financialAid.map((f) => (
-                  <tr key={f.id}>
-                    <td><span className={f.type === 'scholarship' ? 'badge badge-green' : 'badge badge-sky'} style={{ textTransform: 'capitalize' }}>{f.type}</span></td>
-                    <td style={{ fontWeight: 600 }}>₹{Number(f.amount).toLocaleString('en-IN')}</td>
-                    <td><span className="badge badge-gray">{f.academicYear}</span></td>
-                    <td><span className={f.status === 'active' ? 'badge badge-green' : f.status === 'completed' ? 'badge badge-sky' : 'badge badge-red'} style={{ textTransform: 'capitalize' }}>{f.status}</span></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Section>
-      )}
     </div>
   );
 }

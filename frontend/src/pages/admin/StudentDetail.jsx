@@ -5,17 +5,8 @@ import useAuthStore from '../../store/authStore';
 import {
   HiOutlineArrowLeft, HiOutlinePlus, HiOutlineTrash,
   HiOutlineAcademicCap, HiOutlineHeart, HiOutlineUser,
-  HiOutlineLightBulb, HiOutlineCash, HiOutlineBookOpen, HiOutlineDocumentText,
+  HiOutlineLightBulb, HiOutlineBookOpen, HiOutlineDocumentText,
 } from 'react-icons/hi';
-
-const TABS = [
-  { key: 'personal', label: 'Personal', icon: HiOutlineUser },
-  { key: 'education', label: 'Education', icon: HiOutlineAcademicCap },
-  { key: 'skills', label: 'Skills & Interests', icon: HiOutlineLightBulb },
-  { key: 'health', label: 'Health', icon: HiOutlineHeart },
-  { key: 'parents', label: 'Parents', icon: HiOutlineUser },
-  { key: 'financial', label: 'Financial Aid', icon: HiOutlineCash },
-];
 
 export default function StudentDetail() {
   const { id } = useParams();
@@ -27,8 +18,6 @@ export default function StudentDetail() {
 
   const [student, setStudent] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('personal');
-  const [saving, setSaving] = useState(false);
 
   const fetchStudent = async () => {
     try {
@@ -73,41 +62,13 @@ export default function StudentDetail() {
         </Link>
       </div>
 
-      {/* Tabs */}
-      <div className="detail-tabs" style={{
-        display: 'flex', gap: 'var(--space-1)', marginBottom: 'var(--space-6)',
-        borderBottom: '2px solid var(--color-gray-100)', paddingBottom: '0',
-      }}>
-        {TABS.map(({ key, label, icon: Icon }) => (
-          <button
-            key={key}
-            onClick={() => setActiveTab(key)}
-            className={`detail-tab-btn ${activeTab === key ? 'active' : ''}`}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 'var(--space-2)',
-              padding: 'var(--space-3) var(--space-4)',
-              border: 'none', background: 'none', cursor: 'pointer',
-              fontSize: 'var(--font-sm)', fontWeight: 500, fontFamily: 'var(--font-family)',
-              color: activeTab === key ? 'var(--color-sky-600)' : 'var(--color-gray-500)',
-              borderBottom: activeTab === key ? '2px solid var(--color-sky-500)' : '2px solid transparent',
-              marginBottom: '-2px', transition: 'all var(--transition-fast)',
-            }}
-          >
-            <Icon size={16} /> {label}
-          </button>
-        ))}
-      </div>
-
-      {/* Tab Content */}
-      <div className="card">
-        <div className="card-body">
-          {activeTab === 'personal' && <PersonalTab student={student} />}
-          {activeTab === 'education' && <EducationTab student={student} apiBase={apiBase} refresh={fetchStudent} />}
-          {activeTab === 'skills' && <SkillsTab student={student} apiBase={apiBase} refresh={fetchStudent} />}
-          {activeTab === 'health' && <HealthTab student={student} apiBase={apiBase} refresh={fetchStudent} />}
-          {activeTab === 'parents' && <ParentsTab student={student} apiBase={apiBase} refresh={fetchStudent} />}
-          {activeTab === 'financial' && <FinancialTab student={student} apiBase={apiBase} refresh={fetchStudent} />}
-        </div>
+      {/* All Sections */}
+      <div style={{ display: 'grid', gap: 'var(--space-5)' }}>
+        <div className="card"><div className="card-body"><PersonalTab student={student} /></div></div>
+        <div className="card"><div className="card-body"><EducationTab student={student} apiBase={apiBase} refresh={fetchStudent} /></div></div>
+        <div className="card"><div className="card-body"><SkillsTab student={student} apiBase={apiBase} refresh={fetchStudent} /></div></div>
+        <div className="card"><div className="card-body"><HealthTab student={student} apiBase={apiBase} refresh={fetchStudent} /></div></div>
+        <div className="card"><div className="card-body"><ParentsTab student={student} apiBase={apiBase} refresh={fetchStudent} /></div></div>
       </div>
     </div>
   );
@@ -553,100 +514,4 @@ function ParentsTab({ student, apiBase, refresh }) {
   );
 }
 
-/* ═══════════════════════════════════════════════════════
-   TAB: Financial Aid
-   ═══════════════════════════════════════════════════════ */
-function FinancialTab({ student, apiBase, refresh }) {
-  const [showForm, setShowForm] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ type: 'scholarship', amount: '', status: 'active', academicYear: '' });
 
-  const aids = student.financialAid || [];
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSaving(true);
-    try {
-      await client.post(`${apiBase}/students/${student.id}/financial-aid`, form);
-      setShowForm(false);
-      setForm({ type: 'scholarship', amount: '', status: 'active', academicYear: '' });
-      refresh();
-    } catch (err) { alert(err.response?.data?.error || 'Error'); }
-    finally { setSaving(false); }
-  };
-
-  const handleDelete = async (aidId) => {
-    if (!confirm('Delete this financial aid record?')) return;
-    await client.delete(`${apiBase}/students/${student.id}/financial-aid/${aidId}`);
-    refresh();
-  };
-
-  return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-5)' }}>
-        <h3 style={{ fontSize: 'var(--font-lg)', fontWeight: 600 }}>Financial Aid</h3>
-        <button className="btn btn-primary btn-sm" onClick={() => setShowForm(!showForm)}><HiOutlinePlus /> Add</button>
-      </div>
-
-      {showForm && (
-        <form onSubmit={handleSubmit} style={{ marginBottom: 'var(--space-6)', padding: 'var(--space-5)', background: 'var(--color-gray-50)', borderRadius: 'var(--radius-lg)' }}>
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label">Type</label>
-              <select className="form-select" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
-                <option value="scholarship">Scholarship</option>
-                <option value="loan">Loan</option>
-              </select>
-            </div>
-            <div className="form-group">
-              <label className="form-label">Amount *</label>
-              <input className="form-input" type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} required />
-            </div>
-          </div>
-          <div className="form-row" style={{ marginTop: 'var(--space-4)' }}>
-            <div className="form-group">
-              <label className="form-label">Status</label>
-              <select className="form-select" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
-                <option value="active">Active</option>
-                <option value="completed">Completed</option>
-                <option value="cancelled">Cancelled</option>
-              </select>
-            </div>
-            <div className="form-group">
-              <label className="form-label">Academic Year *</label>
-              <input className="form-input" value={form.academicYear} onChange={(e) => setForm({ ...form, academicYear: e.target.value })} required placeholder="e.g. 2024-25" />
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: 'var(--space-3)', marginTop: 'var(--space-4)', justifyContent: 'flex-end' }}>
-            <button type="button" className="btn btn-secondary btn-sm" onClick={() => setShowForm(false)}>Cancel</button>
-            <button type="submit" className="btn btn-primary btn-sm" disabled={saving}>{saving ? 'Saving...' : 'Save'}</button>
-          </div>
-        </form>
-      )}
-
-      {aids.length === 0 ? (
-        <div className="empty-state"><p>No financial aid records.</p></div>
-      ) : (
-        <div style={{ display: 'grid', gap: 'var(--space-3)' }}>
-          {aids.map((a) => (
-            <div key={a.id} style={{
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              padding: 'var(--space-4) var(--space-5)', border: '1px solid var(--color-gray-100)',
-              borderRadius: 'var(--radius-md)',
-            }}>
-              <div>
-                <div style={{ fontWeight: 600, color: 'var(--color-gray-800)', textTransform: 'capitalize' }}>
-                  {a.type} <span className={`badge ${a.status === 'active' ? 'badge-green' : a.status === 'completed' ? 'badge-sky' : 'badge-red'}`} style={{ marginLeft: 'var(--space-2)' }}>{a.status}</span>
-                </div>
-                <div style={{ fontSize: 'var(--font-sm)', color: 'var(--color-gray-500)', marginTop: 'var(--space-1)' }}>
-                  ₹{parseFloat(a.amount).toLocaleString()} • {a.academicYear}
-                </div>
-              </div>
-              <button className="btn btn-ghost btn-sm" onClick={() => handleDelete(a.id)} style={{ color: 'var(--color-danger)' }}><HiOutlineTrash /></button>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
