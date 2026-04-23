@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../../store/authStore';
-import { HiOutlineAcademicCap, HiOutlineUserGroup, HiOutlineShieldCheck } from 'react-icons/hi';
+import { HiOutlineAcademicCap, HiOutlineUserGroup, HiOutlineShieldCheck, HiOutlineEye, HiOutlineEyeOff } from 'react-icons/hi';
 
 const ROLES = [
   { key: 'student', label: 'Student', icon: HiOutlineAcademicCap },
@@ -16,6 +16,7 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const login = useAuthStore((s) => s.login);
   const navigate = useNavigate();
@@ -132,15 +133,26 @@ export default function Login() {
               </div>
               <div className="form-group">
                 <label className="form-label" htmlFor="password">Password</label>
-                <input
-                  id="password"
-                  type="password"
-                  className="form-input"
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
+                <div className="password-field">
+                  <input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    className="form-input"
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    onClick={() => setShowPassword((v) => !v)}
+                    tabIndex={-1}
+                    title={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <HiOutlineEyeOff /> : <HiOutlineEye />}
+                  </button>
+                </div>
               </div>
             </>
           )}
