@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+
+# Environment — never commit secrets
+.env
+.env.*
+!.env.example
+!frontend/.env.production
+!frontend/.env.development
+
+# Build output
+dist/
+build/
+
+# Prisma
+prisma/*.db
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temp
+.tmp/
+*.log
+
+# PM2 logs & runtime
+logs/
+
+# Uploads
+backend/uploads/
+
+# Python
+__pycache__/
+*.pyc
+venv/
+
+# Package lock (optional — remove this line if you want to lock deps)
+# package-lock.json

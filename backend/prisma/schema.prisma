@@ -1,0 +1,619 @@
+// Prisma Schema — Student Tracking System
+// All models use UUID PKs, timestamps, and soft deletes
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─── Enums ───────────────────────────────────────────
+
+enum Role {
+  admin
+  teacher
+  student
+}
+
+enum Gender {
+  male
+  female
+  other
+}
+
+enum StudentStatus {
+  active
+  inactive
+  graduated
+  dropped
+}
+
+enum CourseType {
+  theory
+  lab
+  elective
+}
+
+enum AssessmentType {
+  internal
+  midterm
+  final
+  assignment
+  lab
+}
+
+enum AttendanceStatus {
+  present
+  absent
+  late
+}
+
+enum SkillLevel {
+  beginner
+  intermediate
+  advanced
+}
+
+enum AidType {
+  scholarship
+  loan
+}
+
+enum AidStatus {
+  active
+  completed
+  cancelled
+}
+
+enum EducationLevel {
+  sslc_10th
+  pu_12th
+}
+
+enum StaffEducationLevel {
+  bachelors
+  masters
+  mphil
+  phd
+  diploma
+  other
+}
+
+enum DocumentType {
+  aadhaar
+  pan
+  passport
+  driving_license
+  voter_id
+  degree_certificate
+  experience_certificate
+  other
+}
+
+// ─── Core Models ─────────────────────────────────────
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  passwordHash  String    @map("password_hash")
+  role          Role
+  name          String
+  avatarUrl     String?   @map("avatar_url")
+  isActive      Boolean   @default(true) @map("is_active")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  deletedAt     DateTime? @map("deleted_at")
+
+  staff   Staff?
+  student Student?
+
+  @@map("users")
+}
+
+model Department {
+  id        String    @id @default(uuid())
+  name      String
+  code      String    @unique
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  batches           Batch[]
+  courseDepartments CourseDepartment[]
+  staff             Staff[]
+
+  @@map("departments")
+}
+
+model Batch {
+  id           String    @id @default(uuid())
+  name         String
+  departmentId String    @map("department_id")
+  degree       String
+  startYear    Int       @map("start_year")
+  endYear      Int       @map("end_year")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  deletedAt    DateTime? @map("deleted_at")
+
+  department Department @relation(fields: [departmentId], references: [id])
+  sections   Section[]
+  students   Student[]
+
+  @@map("batches")
+}
+
+model Section {
+  id        String    @id @default(uuid())
+  name      String
+  batchId   String    @map("batch_id")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  batch            Batch             @relation(fields: [batchId], references: [id])
+  students         Student[]
+  classAssignments ClassAssignment[]
+
+  @@map("sections")
+}
+
+model Course {
+  id           String    @id @default(uuid())
+  code         String    @unique
+  name         String
+  credits      Int
+  semester     Int
+  type         CourseType
+  isMandatory  Boolean   @default(false) @map("is_mandatory")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  deletedAt    DateTime? @map("deleted_at")
+
+  courseDepartments CourseDepartment[]
+  classAssignments  ClassAssignment[]
+  marks             Mark[]
+  attendance        Attendance[]
+
+  @@map("courses")
+}
+
+model CourseDepartment {
+  id           String    @id @default(uuid())
+  courseId     String    @map("course_id")
+  departmentId String    @map("department_id")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  deletedAt    DateTime? @map("deleted_at")
+
+  course     Course     @relation(fields: [courseId], references: [id])
+  department Department @relation(fields: [departmentId], references: [id])
+  units      SyllabusUnit[]
+
+  @@unique([courseId, departmentId])
+  @@index([departmentId])
+  @@map("course_departments")
+}
+
+model SyllabusUnit {
+  id                 String @id @default(uuid())
+  courseDepartmentId String @map("course_department_id")
+  number             Int
+  title              String
+  hours              Int?
+
+  courseDepartment CourseDepartment @relation(fields: [courseDepartmentId], references: [id], onDelete: Cascade)
+  topics           SyllabusTopic[]
+
+  @@unique([courseDepartmentId, number])
+  @@map("syllabus_units")
+}
+
+model SyllabusTopic {
+  id          String  @id @default(uuid())
+  unitId      String  @map("unit_id")
+  order       Int
+  title       String
+  description String?
+
+  unit SyllabusUnit @relation(fields: [unitId], references: [id], onDelete: Cascade)
+
+  @@index([unitId])
+  @@map("syllabus_topics")
+}
+
+model Staff {
+  id           String    @id @default(uuid())
+  employeeId   String    @unique @map("employee_id")
+  userId       String    @unique @map("user_id")
+  departmentId String?   @map("department_id")
+  designation  String
+  phone        String
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  deletedAt    DateTime? @map("deleted_at")
+
+  user             User              @relation(fields: [userId], references: [id])
+  department       Department?       @relation(fields: [departmentId], references: [id])
+  classAssignments ClassAssignment[]
+  marksGraded      Mark[]
+  attendanceMarked Attendance[]
+  personalDetails  StaffPersonalDetail?
+  education        StaffEducation[]
+  documents        StaffDocument[]
+
+  @@map("staff")
+}
+
+model Student {
+  id           String        @id @default(uuid())
+  enrollmentNo String        @unique @map("enrollment_no")
+  userId       String        @unique @map("user_id")
+  firstName    String        @map("first_name")
+  lastName     String        @map("last_name")
+  dob          DateTime      @db.Date
+  gender       Gender
+  phone        String
+  address      String
+  batchId      String        @map("batch_id")
+  sectionId    String        @map("section_id")
+  semester     Int
+  status       StudentStatus @default(active)
+  photoUrl     String?       @map("photo_url")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  deletedAt    DateTime?     @map("deleted_at")
+
+  user         User           @relation(fields: [userId], references: [id])
+  batch        Batch          @relation(fields: [batchId], references: [id])
+  section      Section        @relation(fields: [sectionId], references: [id])
+  health              StudentHealth?
+  skills              StudentSkill[]
+  parents             Parent[]
+  financialAid        FinancialAid[]
+  marks               Mark[]
+  attendance          Attendance[]
+  previousEducation   PreviousEducation[]
+  hobbies             StudentHobby[]
+  skillCourseEnrollments SkillCourseEnrollment[]
+  notificationLogs    NotificationLog[]
+  feedbacks           StudentFeedback[]
+
+  @@index([batchId])
+  @@index([sectionId])
+  @@index([semester])
+  @@index([status])
+  @@map("students")
+}
+
+// ─── Student Sub-Entities ────────────────────────────
+
+model StudentHealth {
+  id                    String @id @default(uuid())
+  studentId             String @unique @map("student_id")
+  bloodGroup            String @map("blood_group")
+  diseases              Json   @default("[]")
+  allergies             Json   @default("[]")
+  emergencyContactName  String @map("emergency_contact_name")
+  emergencyContactPhone String @map("emergency_contact_phone")
+
+  student Student @relation(fields: [studentId], references: [id])
+
+  @@map("student_health")
+}
+
+model StudentSkill {
+  id        String     @id @default(uuid())
+  studentId String     @map("student_id")
+  category  String
+  name      String
+  level     SkillLevel
+
+  student Student @relation(fields: [studentId], references: [id])
+
+  @@map("student_skills")
+}
+
+model Parent {
+  id           String   @id @default(uuid())
+  studentId    String   @map("student_id")
+  name         String
+  relation     String
+  phone        String
+  email        String?
+  occupation   String
+
+  student          Student           @relation(fields: [studentId], references: [id])
+  notificationLogs NotificationLog[]
+
+  @@map("parents")
+}
+
+model FinancialAid {
+  id           String    @id @default(uuid())
+  studentId    String    @map("student_id")
+  type         AidType
+  amount       Decimal
+  status       AidStatus @default(active)
+  academicYear String    @map("academic_year")
+
+  student Student @relation(fields: [studentId], references: [id])
+
+  @@map("financial_aid")
+}
+
+model PreviousEducation {
+  id          String         @id @default(uuid())
+  studentId   String         @map("student_id")
+  level       EducationLevel
+  institution String
+  board       String?
+  percentage  Decimal
+  yearOfPass  Int            @map("year_of_pass")
+
+  student Student @relation(fields: [studentId], references: [id])
+
+  @@map("previous_education")
+}
+
+model StudentHobby {
+  id        String @id @default(uuid())
+  studentId String @map("student_id")
+  type      String // "hobby" or "strength"
+  name      String
+
+  student Student @relation(fields: [studentId], references: [id])
+
+  @@map("student_hobbies")
+}
+
+// ─── Staff Sub-Entities ─────────────────────────────
+
+model StaffPersonalDetail {
+  id                    String    @id @default(uuid())
+  staffId               String    @unique @map("staff_id")
+  dob                   DateTime? @db.Date
+  gender                Gender?
+  bloodGroup            String?   @map("blood_group")
+  address               String?
+  city                  String?
+  state                 String?
+  pincode               String?
+  alternatePhone        String?   @map("alternate_phone")
+  joiningDate           DateTime? @map("joining_date") @db.Date
+  emergencyContactName  String?   @map("emergency_contact_name")
+  emergencyContactPhone String?   @map("emergency_contact_phone")
+  diseases              Json      @default("[]")
+  allergies             Json      @default("[]")
+
+  staff Staff @relation(fields: [staffId], references: [id])
+
+  @@map("staff_personal_details")
+}
+
+model StaffEducation {
+  id             String              @id @default(uuid())
+  staffId        String              @map("staff_id")
+  level          StaffEducationLevel
+  degree         String
+  specialization String?
+  institution    String
+  university     String?
+  yearOfPass     Int                 @map("year_of_pass")
+  percentage     Decimal?
+  grade          String?
+
+  staff Staff @relation(fields: [staffId], references: [id])
+
+  @@index([staffId])
+  @@map("staff_education")
+}
+
+model StaffDocument {
+  id             String       @id @default(uuid())
+  staffId        String       @map("staff_id")
+  type           DocumentType
+  title          String
+  documentNumber String?      @map("document_number")
+  fileUrl        String       @map("file_url")
+  fileName       String       @map("file_name")
+  fileSize       Int          @map("file_size")
+  mimeType       String       @map("mime_type")
+  uploadedAt     DateTime     @default(now()) @map("uploaded_at")
+
+  staff Staff @relation(fields: [staffId], references: [id])
+
+  @@index([staffId])
+  @@map("staff_documents")
+}
+
+// ─── Academic Entities ───────────────────────────────
+
+model ClassAssignment {
+  id           String @id @default(uuid())
+  staffId      String @map("staff_id")
+  courseId      String @map("course_id")
+  sectionId    String @map("section_id")
+  academicYear String @map("academic_year")
+
+  staff   Staff   @relation(fields: [staffId], references: [id])
+  course  Course  @relation(fields: [courseId], references: [id])
+  section Section @relation(fields: [sectionId], references: [id])
+
+  @@index([staffId])
+  @@index([courseId, sectionId])
+  @@map("class_assignments")
+}
+
+model Mark {
+  id             String         @id @default(uuid())
+  studentId      String         @map("student_id")
+  courseId        String         @map("course_id")
+  assessmentType AssessmentType @map("assessment_type")
+  marksObtained  Decimal        @map("marks_obtained")
+  maxMarks       Decimal        @map("max_marks")
+  semester       Int
+  academicYear   String         @map("academic_year")
+  gradedBy       String         @map("graded_by")
+  remarks        String?
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+
+  student Student @relation(fields: [studentId], references: [id])
+  course  Course  @relation(fields: [courseId], references: [id])
+  grader  Staff   @relation(fields: [gradedBy], references: [id])
+
+  @@index([studentId, courseId])
+  @@index([courseId, semester])
+  @@index([gradedBy])
+  @@index([academicYear])
+  @@map("marks")
+}
+
+model Attendance {
+  id        String           @id @default(uuid())
+  studentId String           @map("student_id")
+  courseId   String           @map("course_id")
+  date      DateTime         @db.Date
+  status    AttendanceStatus
+  markedBy  String           @map("marked_by")
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  student Student @relation(fields: [studentId], references: [id])
+  course  Course  @relation(fields: [courseId], references: [id])
+  marker  Staff   @relation(fields: [markedBy], references: [id])
+
+  @@index([studentId, courseId])
+  @@index([courseId, date])
+  @@index([markedBy])
+  @@index([date])
+  @@map("attendance")
+}
+
+// ─── Skill Enhancement Courses ──────────────────────────
+
+enum EnrollmentStatus {
+  enrolled
+  completed
+  dropped
+}
+
+model SkillCourseCategory {
+  id        String    @id @default(uuid())
+  name      String    @unique
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  skillCourses SkillCourse[]
+
+  @@map("skill_course_categories")
+}
+
+model SkillCourse {
+  id          String             @id @default(uuid())
+  title       String
+  description String
+  categoryId  String             @map("category_id")
+  difficulty  SkillLevel
+  duration    String
+  provider    String?
+  link        String?
+  isActive    Boolean            @default(true) @map("is_active")
+  createdAt   DateTime           @default(now()) @map("created_at")
+  updatedAt   DateTime           @updatedAt @map("updated_at")
+  deletedAt   DateTime?          @map("deleted_at")
+
+  category    SkillCourseCategory @relation(fields: [categoryId], references: [id])
+  enrollments SkillCourseEnrollment[]
+
+  @@index([categoryId])
+  @@map("skill_courses")
+}
+
+model SkillCourseEnrollment {
+  id            String           @id @default(uuid())
+  studentId     String           @map("student_id")
+  skillCourseId String           @map("skill_course_id")
+  status        EnrollmentStatus @default(enrolled)
+  enrolledAt    DateTime         @default(now()) @map("enrolled_at")
+  completedAt   DateTime?        @map("completed_at")
+
+  student     Student     @relation(fields: [studentId], references: [id])
+  skillCourse SkillCourse @relation(fields: [skillCourseId], references: [id])
+
+  @@unique([studentId, skillCourseId])
+  @@index([studentId])
+  @@index([skillCourseId])
+  @@map("skill_course_enrollments")
+}
+
+// ─── Notifications ──────────────────────────────────────
+
+enum NotificationChannel {
+  whatsapp
+  email
+}
+
+enum NotificationStatus {
+  pending
+  sent
+  failed
+}
+
+model NotificationLog {
+  id        String              @id @default(uuid())
+  studentId String              @map("student_id")
+  parentId  String              @map("parent_id")
+  channel   NotificationChannel
+  type      String              // e.g., "attendance_report"
+  status    NotificationStatus  @default(pending)
+  sentTo    String              @map("sent_to")
+  mediaType String?             @map("media_type")
+  errorMsg  String?             @map("error_msg")
+  sentBy    String              @map("sent_by")
+  sentAt    DateTime            @default(now()) @map("sent_at")
+
+  student Student @relation(fields: [studentId], references: [id])
+  parent  Parent  @relation(fields: [parentId], references: [id])
+
+  @@index([studentId])
+  @@index([parentId])
+  @@index([sentAt])
+  @@map("notification_logs")
+}
+
+// ─── Student Feedback / Space for Thought ───────────────
+
+enum FeedbackCategory {
+  general
+  academics
+  infrastructure
+  faculty
+  suggestion
+  complaint
+  other
+}
+
+model StudentFeedback {
+  id         String           @id @default(uuid())
+  studentId  String           @map("student_id")
+  subject    String
+  message    String
+  category   FeedbackCategory @default(general)
+  isRead     Boolean          @default(false) @map("is_read")
+  isArchived Boolean          @default(false) @map("is_archived")
+  adminReply String?          @map("admin_reply")
+  repliedAt  DateTime?        @map("replied_at")
+  createdAt  DateTime         @default(now()) @map("created_at")
+  updatedAt  DateTime         @updatedAt @map("updated_at")
+
+  student Student @relation(fields: [studentId], references: [id])
+
+  @@index([studentId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@map("student_feedback")
+}
