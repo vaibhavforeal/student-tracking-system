@@ -74,20 +74,26 @@ export default function Navbar({ onMenuToggle }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  const fetchNotifications = async () => {
-    try {
-      const { data } = await client.get('/notifications');
-      setNotifications(data.notifications || []);
-      setUnreadCount(data.unreadCount || 0);
-    } catch (err) {
-      console.error('Error fetching notifications:', err);
-    }
-  };
-
   useEffect(() => {
+    let active = true;
+    const fetchNotifications = async () => {
+      try {
+        const { data } = await client.get('/notifications');
+        if (active) {
+          setNotifications(data.notifications || []);
+          setUnreadCount(data.unreadCount || 0);
+        }
+      } catch (err) {
+        console.error('Error fetching notifications:', err);
+      }
+    };
+
     fetchNotifications();
     const interval = setInterval(fetchNotifications, 10000);
-    return () => clearInterval(interval);
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
   }, []);
 
   useEffect(() => {

@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import useAuthStore from '../../store/authStore';
 import {
   HiOutlineHome, HiOutlineAcademicCap, HiOutlineUserGroup,
@@ -71,18 +71,21 @@ export default function Sidebar({ isOpen, onClose }) {
       <nav className="sidebar-nav">
         <div className="nav-section">
           <div className="nav-section-title">{sectionTitle}</div>
-          {links.map(({ to, icon: Icon, label, end }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={end}
-              className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-              onClick={onClose}
-            >
-              <Icon className="nav-icon" />
-              {label}
-            </NavLink>
-          ))}
+          {links.map((link) => {
+            const Icon = link.icon;
+            return (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                end={link.end}
+                className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+                onClick={onClose}
+              >
+                <Icon className="nav-icon" />
+                {link.label}
+              </NavLink>
+            );
+          })}
         </div>
       </nav>
 

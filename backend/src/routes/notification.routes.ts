@@ -55,7 +55,7 @@ router.put('/read-all', async (req: Request, res: Response): Promise<void> => {
 router.put('/:id/read', async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.user!.userId;
-    const { id } = req.params;
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
 
     const notification = await prisma.notification.findFirst({
       where: { id, userId },
@@ -67,7 +67,7 @@ router.put('/:id/read', async (req: Request, res: Response): Promise<void> => {
     }
 
     const updated = await prisma.notification.update({
-      where: { id },
+      where: { id: id as string },
       data: { isRead: true },
     });
 
@@ -83,7 +83,7 @@ router.put('/:id/read', async (req: Request, res: Response): Promise<void> => {
 router.delete('/:id', async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.user!.userId;
-    const { id } = req.params;
+    const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
 
     const notification = await prisma.notification.findFirst({
       where: { id, userId },
@@ -95,7 +95,7 @@ router.delete('/:id', async (req: Request, res: Response): Promise<void> => {
     }
 
     await prisma.notification.delete({
-      where: { id },
+      where: { id: id as string },
     });
 
     res.json({ success: true, message: 'Notification dismissed' });
