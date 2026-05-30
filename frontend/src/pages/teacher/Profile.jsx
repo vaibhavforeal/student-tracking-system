@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import client from '../../api/client';
-import useAuthStore from '../../store/authStore';
 import {
   HiOutlineUserGroup, HiOutlineAcademicCap, HiOutlineDocumentText,
   HiOutlineDownload, HiOutlineBookOpen, HiOutlineHeart,
@@ -21,7 +20,6 @@ const DOCUMENT_TYPES = {
 const API_BASE_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
 
 export default function TeacherProfile() {
-  const user = useAuthStore((s) => s.user);
   const [staff, setStaff] = useState(null);
   const [loading, setLoading] = useState(true);
 
