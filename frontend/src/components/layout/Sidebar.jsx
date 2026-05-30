@@ -6,12 +6,13 @@ import {
   HiOutlineClipboardList, HiOutlineUsers, HiOutlineLogout, HiOutlineChartBar,
   HiOutlineDocumentReport, HiOutlineSparkles, HiOutlineTrash, HiOutlineLink,
   HiOutlineLightBulb, HiOutlineArrowUp, HiOutlineDocumentText,
-  HiOutlineMail, HiOutlineChat,
+  HiOutlineMail, HiOutlineChat, HiOutlineBriefcase,
 } from 'react-icons/hi';
 
 const adminLinks = [
   { to: '/admin', icon: HiOutlineHome, label: 'Dashboard', end: true },
   { to: '/admin/students', icon: HiOutlineAcademicCap, label: 'Students' },
+  { to: '/admin/alumni', icon: HiOutlineBriefcase, label: 'Alumni' },
   { to: '/admin/staff', icon: HiOutlineUserGroup, label: 'Staff' },
   { to: '/admin/departments', icon: HiOutlineOfficeBuilding, label: 'Departments' },
   { to: '/admin/batches', icon: HiOutlineCollection, label: 'Batches' },

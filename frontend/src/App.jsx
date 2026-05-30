@@ -4,6 +4,7 @@ import DashboardLayout from './components/layout/DashboardLayout';
 import Login from './pages/auth/Login';
 import AdminDashboard from './pages/admin/Dashboard';
 import ManageStudents from './pages/admin/ManageStudents';
+import AlumniDatabase from './pages/admin/AlumniDatabase';
 import ManageStaff from './pages/admin/ManageStaff';
 import ManageDepartments from './pages/admin/ManageDepartments';
 import ManageBatches from './pages/admin/ManageBatches';
@@ -50,6 +51,7 @@ function App() {
           <Route index element={<AdminDashboard />} />
           <Route path="students" element={<ManageStudents />} />
           <Route path="students/:id" element={<StudentDetail />} />
+          <Route path="alumni" element={<AlumniDatabase />} />
           <Route path="staff" element={<ManageStaff />} />
           <Route path="staff/:id" element={<StaffDetail />} />
           <Route path="departments" element={<ManageDepartments />} />

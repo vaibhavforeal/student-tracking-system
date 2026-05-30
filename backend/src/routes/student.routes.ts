@@ -459,6 +459,26 @@ router.post('/feedback', async (req: Request, res: Response): Promise<void> => {
     },
   });
 
+  // Create in-app notifications for all active admin users
+  try {
+    const admins = await prisma.user.findMany({
+      where: { role: 'admin', isActive: true, deletedAt: null },
+    });
+    if (admins.length > 0) {
+      await prisma.notification.createMany({
+        data: admins.map((admin) => ({
+          userId: admin.id,
+          title: 'New Student Feedback',
+          message: `${student.firstName} ${student.lastName} (${student.enrollmentNo}) submitted feedback on "${subject}"`,
+          type: 'feedback_submitted',
+          link: '/admin/feedback',
+        })),
+      });
+    }
+  } catch (err) {
+    console.error('Failed to create feedback notifications for admins:', err);
+  }
+
   res.status(201).json({ feedback });
 });
 

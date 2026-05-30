@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import client from '../../api/client';
 import {
   HiOutlineAcademicCap, HiOutlineUserGroup,
-  HiOutlineOfficeBuilding, HiOutlineBookOpen,
+  HiOutlineOfficeBuilding, HiOutlineBookOpen, HiOutlineBriefcase,
 } from 'react-icons/hi';
 
 export default function AdminDashboard() {
@@ -36,6 +36,7 @@ export default function AdminDashboard() {
     { label: 'Sections', value: stats?.totalSections || 0, icon: HiOutlineUserGroup, color: 'sky' },
     { label: 'Active Students', value: stats?.activeStudents || 0, icon: HiOutlineAcademicCap, color: 'green' },
     { label: 'Inactive Students', value: stats?.inactiveStudents || 0, icon: HiOutlineAcademicCap, color: 'amber' },
+    { label: 'Total Alumni', value: stats?.totalAlumni || 0, icon: HiOutlineBriefcase, color: 'purple' },
   ];
 
   return (

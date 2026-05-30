@@ -5,6 +5,7 @@ import { hashPassword } from '../utils/password';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import { isWhatsAppConfigured, formatPhoneNumber, sendTextMessage } from '../services/whatsapp.service';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -1282,7 +1283,7 @@ router.get('/dashboard/stats', asyncHandler(async (req: Request, res: Response):
   const [
     totalStudents, totalStaff, totalDepartments,
     totalBatches, totalCourses, totalSections,
-    activeStudents, inactiveStudents,
+    activeStudents, inactiveStudents, totalAlumni,
   ] = await Promise.all([
     prisma.student.count({ where: { deletedAt: null } }),
     prisma.staff.count({ where: { deletedAt: null } }),
@@ -1292,13 +1293,14 @@ router.get('/dashboard/stats', asyncHandler(async (req: Request, res: Response):
     prisma.section.count({ where: { deletedAt: null } }),
     prisma.student.count({ where: { deletedAt: null, status: 'active' } }),
     prisma.student.count({ where: { deletedAt: null, status: { not: 'active' } } }),
+    prisma.student.count({ where: { deletedAt: null, status: 'graduated' } }),
   ]);
 
   res.json({
     stats: {
       totalStudents, totalStaff, totalDepartments,
       totalBatches, totalCourses, totalSections,
-      activeStudents, inactiveStudents,
+      activeStudents, inactiveStudents, totalAlumni,
     },
   });
 }));
@@ -1889,6 +1891,26 @@ router.post('/students/promote', asyncHandler(async (req: Request, res: Response
     data: updateData,
   });
 
+  // If autoGraduate is true and toSemester > 8, create AlumniProfiles
+  if (autoGraduate && to > 8) {
+    const graduationYear = new Date().getFullYear();
+    const graduationDate = new Date();
+    await prisma.$transaction(
+      studentIds.map(studentId => 
+        prisma.alumniProfile.upsert({
+          where: { studentId },
+          create: {
+            studentId,
+            graduationDate,
+            graduationYear,
+            notes: 'Automatically graduated via bulk semester promotion'
+          },
+          update: {}
+        })
+      )
+    );
+  }
+
   res.json({
     message: `Successfully promoted ${students.length} student(s) from semester ${from} to ${to}`,
     promoted: students.length,
@@ -1931,6 +1953,21 @@ router.post('/students/:id/promote', asyncHandler(async (req: Request, res: Resp
       section: { select: { name: true } },
     },
   });
+
+  if (autoGraduate && newSemester > 8) {
+    const graduationYear = new Date().getFullYear();
+    const graduationDate = new Date();
+    await prisma.alumniProfile.upsert({
+      where: { studentId: student.id },
+      create: {
+        studentId: student.id,
+        graduationDate,
+        graduationYear,
+        notes: 'Automatically graduated via single student promotion'
+      },
+      update: {}
+    });
+  }
 
   res.json({
     message: `Student promoted to semester ${newSemester}`,
@@ -2045,10 +2082,89 @@ router.put('/feedback/:id/reply', asyncHandler(async (req: Request, res: Respons
   const { reply } = req.body;
   if (!reply) { res.status(400).json({ error: 'Reply message is required' }); return; }
 
+  const feedbackId = param(req.params.id);
+  const existingFeedback = await prisma.studentFeedback.findUnique({
+    where: { id: feedbackId },
+    include: {
+      student: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          phone: true,
+          userId: true,
+        },
+      },
+    },
+  });
+
+  if (!existingFeedback) {
+    res.status(404).json({ error: 'Feedback not found' });
+    return;
+  }
+
   const feedback = await prisma.studentFeedback.update({
-    where: { id: param(req.params.id) },
+    where: { id: feedbackId },
     data: { adminReply: reply, repliedAt: new Date(), isRead: true },
   });
+
+  // 1. Create in-app notification for the student
+  try {
+    await prisma.notification.create({
+      data: {
+        userId: existingFeedback.student.userId,
+        title: 'Feedback Response Received',
+        message: `Admin replied to your feedback: "${existingFeedback.subject}"`,
+        type: 'feedback_replied',
+        link: '/student/feedback',
+      },
+    });
+  } catch (err) {
+    console.error('Failed to create in-app notification for student:', err);
+  }
+
+  // 2. Send WhatsApp notification if configured
+  if (isWhatsAppConfigured() && existingFeedback.student.phone) {
+    const phone = formatPhoneNumber(existingFeedback.student.phone);
+    const textMessage = `Hello ${existingFeedback.student.firstName},\n\nThe college administration has responded to your feedback on "${existingFeedback.subject}".\n\nReply:\n"${reply}"\n\nLogin to the portal to view full details.`;
+
+    try {
+      await sendTextMessage(phone, textMessage);
+
+      // Log WhatsApp notification
+      await prisma.notificationLog.create({
+        data: {
+          studentId: existingFeedback.student.id,
+          parentId: null,
+          channel: 'whatsapp',
+          type: 'feedback_reply',
+          status: 'sent',
+          sentTo: phone,
+          sentBy: req.user!.userId,
+        },
+      });
+    } catch (err: any) {
+      console.error('Failed to send feedback WhatsApp notification:', err);
+
+      // Log failed WhatsApp notification
+      try {
+        await prisma.notificationLog.create({
+          data: {
+            studentId: existingFeedback.student.id,
+            parentId: null,
+            channel: 'whatsapp',
+            type: 'feedback_reply',
+            status: 'failed',
+            sentTo: phone,
+            errorMsg: err.message || String(err),
+            sentBy: req.user!.userId,
+          },
+        });
+      } catch (logErr) {
+        console.error('Failed to log WhatsApp failure:', logErr);
+      }
+    }
+  }
 
   res.json({ feedback });
 }));
@@ -2077,6 +2193,264 @@ router.put('/feedback/:id/read', asyncHandler(async (req: Request, res: Response
   });
 
   res.json({ feedback });
+}));
+
+// ─── ALUMNI MODULE ─────────────────────────────────────
+
+// GET /api/admin/alumni — List all graduated students with alumni profiles
+router.get('/alumni', asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const departmentId = qs(req.query.departmentId);
+  const batchId = qs(req.query.batchId);
+  const graduationYear = qs(req.query.graduationYear);
+  const search = qs(req.query.search);
+  const page = parseInt(qs(req.query.page) || '1');
+  const limit = parseInt(qs(req.query.limit) || '20');
+  const skip = (page - 1) * limit;
+
+  const where: any = {
+    deletedAt: null,
+    status: 'graduated',
+    ...(batchId && { batchId }),
+    ...(departmentId && {
+      batch: {
+        departmentId,
+      },
+    }),
+    ...(graduationYear && {
+      alumniProfile: {
+        graduationYear: parseInt(graduationYear),
+      },
+    }),
+    ...(search && {
+      OR: [
+        { firstName: { contains: search, mode: 'insensitive' } },
+        { lastName: { contains: search, mode: 'insensitive' } },
+        { enrollmentNo: { contains: search, mode: 'insensitive' } },
+        {
+          alumniProfile: {
+            OR: [
+              { currentEmployer: { contains: search, mode: 'insensitive' } },
+              { currentJobTitle: { contains: search, mode: 'insensitive' } },
+            ],
+          },
+        },
+      ],
+    }),
+  };
+
+  const [alumni, total] = await Promise.all([
+    prisma.student.findMany({
+      where,
+      include: {
+        user: { select: { email: true } },
+        batch: { select: { name: true, degree: true, department: { select: { name: true, id: true } } } },
+        section: { select: { name: true } },
+        alumniProfile: true,
+      },
+      orderBy: { alumniProfile: { graduationDate: 'desc' } },
+      skip,
+      take: limit,
+    }),
+    prisma.student.count({ where }),
+  ]);
+
+  res.json({ alumni, total, page, totalPages: Math.ceil(total / limit) });
+}));
+
+// GET /api/admin/alumni/stats — Alumni stats
+router.get('/alumni/stats', asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const totalAlumni = await prisma.student.count({
+    where: { deletedAt: null, status: 'graduated' }
+  });
+
+  // Group by graduation year
+  const rawByYear = await prisma.alumniProfile.groupBy({
+    by: ['graduationYear'],
+    _count: {
+      studentId: true,
+    },
+    orderBy: {
+      graduationYear: 'desc',
+    },
+  });
+
+  const byYear = rawByYear.map((item) => ({
+    year: item.graduationYear,
+    count: item._count.studentId,
+  }));
+
+  // Group by department
+  const departmentsWithAlumni = await prisma.department.findMany({
+    where: { deletedAt: null },
+    select: {
+      id: true,
+      name: true,
+      code: true,
+      batches: {
+        where: { deletedAt: null },
+        select: {
+          students: {
+            where: { deletedAt: null, status: 'graduated' },
+            select: { id: true }
+          }
+        }
+      }
+    }
+  });
+
+  const byDepartment = departmentsWithAlumni.map(dept => {
+    let alumniCount = 0;
+    for (const batch of dept.batches) {
+      alumniCount += batch.students.length;
+    }
+    return {
+      departmentId: dept.id,
+      name: dept.name,
+      code: dept.code,
+      count: alumniCount
+    };
+  }).filter(d => d.count > 0);
+
+  // Group by employment status
+  const [employed, unemployed] = await Promise.all([
+    prisma.alumniProfile.count({
+      where: {
+        OR: [
+          { currentEmployer: { not: null, notIn: [''] } },
+          { currentJobTitle: { not: null, notIn: [''] } }
+        ]
+      }
+    }),
+    prisma.alumniProfile.count({
+      where: {
+        AND: [
+          { OR: [{ currentEmployer: null }, { currentEmployer: '' }] },
+          { OR: [{ currentJobTitle: null }, { currentJobTitle: '' }] }
+        ]
+      }
+    })
+  ]);
+
+  res.json({
+    stats: {
+      totalAlumni,
+      byYear,
+      byDepartment,
+      employment: {
+        employed,
+        unemployed,
+      }
+    }
+  });
+}));
+
+// POST /api/admin/students/:id/graduate — Manually graduate student
+router.post('/students/:id/graduate', asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const { graduationDate, graduationYear, currentEmployer, currentJobTitle, linkedInUrl, alumniEmail, notes } = req.body;
+  
+  if (!graduationDate || !graduationYear) {
+    res.status(400).json({ error: 'graduationDate and graduationYear are required' });
+    return;
+  }
+
+  const studentId = param(req.params.id);
+  const student = await prisma.student.findFirst({
+    where: { id: studentId, deletedAt: null },
+  });
+
+  if (!student) {
+    res.status(404).json({ error: 'Student not found' });
+    return;
+  }
+
+  // Update status to graduated
+  await prisma.student.update({
+    where: { id: studentId },
+    data: { status: 'graduated' },
+  });
+
+  // Create or update AlumniProfile
+  const profile = await prisma.alumniProfile.upsert({
+    where: { studentId },
+    create: {
+      studentId,
+      graduationDate: new Date(graduationDate),
+      graduationYear: parseInt(graduationYear),
+      currentEmployer: currentEmployer || null,
+      currentJobTitle: currentJobTitle || null,
+      linkedInUrl: linkedInUrl || null,
+      alumniEmail: alumniEmail || null,
+      notes: notes || 'Manually graduated',
+    },
+    update: {
+      graduationDate: new Date(graduationDate),
+      graduationYear: parseInt(graduationYear),
+      currentEmployer: currentEmployer || null,
+      currentJobTitle: currentJobTitle || null,
+      linkedInUrl: linkedInUrl || null,
+      alumniEmail: alumniEmail || null,
+      notes: notes || 'Manually graduated',
+    },
+  });
+
+  res.json({ message: 'Student graduated successfully', profile });
+}));
+
+// PUT /api/admin/alumni/:id — Update alumni profile
+router.put('/alumni/:id', asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const studentId = param(req.params.id);
+  const { graduationDate, graduationYear, currentEmployer, currentJobTitle, linkedInUrl, alumniEmail, notes } = req.body;
+
+  const profile = await prisma.alumniProfile.upsert({
+    where: { studentId },
+    create: {
+      studentId,
+      graduationDate: graduationDate ? new Date(graduationDate) : new Date(),
+      graduationYear: graduationYear ? parseInt(graduationYear) : new Date().getFullYear(),
+      currentEmployer: currentEmployer || null,
+      currentJobTitle: currentJobTitle || null,
+      linkedInUrl: linkedInUrl || null,
+      alumniEmail: alumniEmail || null,
+      notes: notes || null,
+    },
+    update: {
+      ...(graduationDate && { graduationDate: new Date(graduationDate) }),
+      ...(graduationYear && { graduationYear: parseInt(graduationYear) }),
+      currentEmployer: currentEmployer !== undefined ? currentEmployer : undefined,
+      currentJobTitle: currentJobTitle !== undefined ? currentJobTitle : undefined,
+      linkedInUrl: linkedInUrl !== undefined ? linkedInUrl : undefined,
+      alumniEmail: alumniEmail !== undefined ? alumniEmail : undefined,
+      notes: notes !== undefined ? notes : undefined,
+    },
+  });
+
+  res.json({ message: 'Alumni profile updated successfully', profile });
+}));
+
+// POST /api/admin/alumni/:id/revert — Revert alumni back to active student
+router.post('/alumni/:id/revert', asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const studentId = param(req.params.id);
+  const student = await prisma.student.findFirst({
+    where: { id: studentId, deletedAt: null },
+  });
+
+  if (!student) {
+    res.status(404).json({ error: 'Student not found' });
+    return;
+  }
+
+  // Update status back to active
+  await prisma.student.update({
+    where: { id: studentId },
+    data: { status: 'active' },
+  });
+
+  // Delete AlumniProfile
+  await prisma.alumniProfile.deleteMany({
+    where: { studentId },
+  });
+
+  res.json({ message: 'Alumni status reverted back to active student successfully' });
 }));
 
 export default router;

@@ -14,6 +14,7 @@ import reportRoutes from './routes/report.routes';
 import aiRoutes from './routes/ai.routes';
 import whatsappRoutes from './routes/whatsapp.routes';
 import academicRoutes from './routes/academic.routes';
+import notificationRoutes from './routes/notification.routes';
 
 // ─── Auto-purge: permanently delete trash older than 30 days ───
 const RETENTION_DAYS = 30;
@@ -25,24 +26,28 @@ async function purgeOldTrash() {
 
   try {
     const models: Array<{ name: string; delegate: any }> = [
-      { name: 'department', delegate: prisma.department },
-      { name: 'batch', delegate: prisma.batch },
-      { name: 'section', delegate: prisma.section },
-      { name: 'course', delegate: prisma.course },
-      { name: 'staff', delegate: prisma.staff },
       { name: 'student', delegate: prisma.student },
+      { name: 'staff', delegate: prisma.staff },
+      { name: 'section', delegate: prisma.section },
+      { name: 'batch', delegate: prisma.batch },
+      { name: 'department', delegate: prisma.department },
+      { name: 'course', delegate: prisma.course },
     ];
 
     for (const { name, delegate } of models) {
-      const result = await delegate.deleteMany({
-        where: { deletedAt: { not: null, lt: cutoff } },
-      });
-      if (result.count > 0) {
-        console.log(`🗑️  Purged ${result.count} expired ${name}(s) from trash`);
+      try {
+        const result = await delegate.deleteMany({
+          where: { deletedAt: { not: null, lt: cutoff } },
+        });
+        if (result.count > 0) {
+          console.log(`🗑️  Purged ${result.count} expired ${name}(s) from trash`);
+        }
+      } catch (err: any) {
+        console.warn(`⚠️  Skipped auto-purging expired ${name}(s) due to active relations`);
       }
     }
   } catch (err) {
-    console.error('❌ Trash auto-purge failed:', err);
+    console.error('❌ Trash auto-purge setup failed:', err);
   }
 }
 
@@ -67,6 +72,7 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/whatsapp', whatsappRoutes);
 app.use('/api/academic', academicRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
