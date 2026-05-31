@@ -32,7 +32,7 @@ export default function TeacherAttendance() {
   const courses = [...new Map(assignments.map((a) => [a.course.id, a.course])).values()];
   const sectionsForCourse = assignments.filter((a) => a.course.id === selectedCourse);
 
-  const fetchAttendance = async () => {
+  const fetchAttendance = useCallback(async () => {
     if (!selectedCourse || !selectedSection || !date) return;
     setFetching(true);
     try {
@@ -52,11 +52,11 @@ export default function TeacherAttendance() {
       setShowSummary(false);
     } catch (err) { console.error(err); }
     finally { setFetching(false); }
-  };
+  }, [selectedCourse, selectedSection, date]);
 
   useEffect(() => {
     if (selectedCourse && selectedSection && date) fetchAttendance();
-  }, [selectedCourse, selectedSection, date]);
+  }, [selectedCourse, selectedSection, date, fetchAttendance]);
 
   const markStatus = useCallback((studentId, status) => {
     setEntries((prev) => ({ ...prev, [studentId]: status }));

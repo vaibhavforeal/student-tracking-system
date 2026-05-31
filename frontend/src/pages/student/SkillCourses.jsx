@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import client from '../../api/client';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import {
@@ -19,7 +19,7 @@ export default function SkillCourses() {
   const [actionLoading, setActionLoading] = useState('');
   const [confirmDrop, setConfirmDrop] = useState(null);
 
-  const fetchBrowse = async () => {
+  const fetchBrowse = useCallback(async () => {
     setLoading(true);
     try {
       const params = {};
@@ -31,18 +31,18 @@ export default function SkillCourses() {
       setCategories(res.data.categories);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
-  };
+  }, [filterCat, filterDiff, search]);
 
-  const fetchMy = async () => {
+  const fetchMy = useCallback(async () => {
     setLoading(true);
     try {
       const res = await client.get('/student/skill-courses/my');
       setMyEnrollments(res.data.enrollments);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
-  };
+  }, []);
 
-  useEffect(() => { if (tab === 'browse') fetchBrowse(); else fetchMy(); }, [tab, filterCat, filterDiff]);
+  useEffect(() => { if (tab === 'browse') fetchBrowse(); else fetchMy(); }, [tab, fetchBrowse, fetchMy]);
 
   const handleSearch = (e) => {
     e.preventDefault();

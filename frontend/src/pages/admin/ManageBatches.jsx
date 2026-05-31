@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import client from '../../api/client';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import { HiOutlinePlus, HiOutlinePencil, HiOutlineTrash } from 'react-icons/hi';
@@ -15,7 +15,7 @@ export default function ManageBatches() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [batchRes, deptRes] = await Promise.all([
         client.get('/admin/batches', { params: filterDept ? { departmentId: filterDept } : {} }),
@@ -25,9 +25,9 @@ export default function ManageBatches() {
       setDepartments(deptRes.data.departments);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
-  };
+  }, [filterDept]);
 
-  useEffect(() => { fetchData(); }, [filterDept]);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   const openCreate = () => {
     setEditing(null);

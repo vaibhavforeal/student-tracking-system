@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import client from '../../api/client';
 import useAuthStore from '../../store/authStore';
 
@@ -9,15 +9,15 @@ export default function ManageUsers() {
   const [error, setError] = useState('');
   const currentUser = useAuthStore((s) => s.user);
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       const { data } = await client.get('/admin/users', { params: filterRole ? { role: filterRole } : {} });
       setUsers(data.users);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
-  };
+  }, [filterRole]);
 
-  useEffect(() => { fetchUsers(); }, [filterRole]);
+  useEffect(() => { fetchUsers(); }, [fetchUsers]);
 
   // Auto-dismiss error after 4 seconds
   useEffect(() => {

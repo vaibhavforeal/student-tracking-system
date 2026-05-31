@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import client from '../../api/client';
 import { HiOutlineClipboardList, HiOutlineCheck, HiOutlineX, HiOutlineClock } from 'react-icons/hi';
 
@@ -14,7 +14,7 @@ export default function MyAttendance() {
   const [month, setMonth] = useState('');
   const [loading, setLoading] = useState(true);
 
-  const fetchAttendance = async () => {
+  const fetchAttendance = useCallback(async () => {
     setLoading(true);
     try {
       const params = {};
@@ -24,9 +24,9 @@ export default function MyAttendance() {
       setData(d);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
-  };
+  }, [courseId, month]);
 
-  useEffect(() => { fetchAttendance(); }, [courseId, month]);
+  useEffect(() => { fetchAttendance(); }, [fetchAttendance]);
 
   if (loading && !data) return <div className="loading-container"><div className="spinner spinner-lg" /></div>;
 

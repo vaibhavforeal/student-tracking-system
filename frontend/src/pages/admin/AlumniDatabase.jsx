@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import client from '../../api/client';
 import ConfirmDialog from '../../components/ConfirmDialog';
@@ -42,7 +42,7 @@ export default function AlumniDatabase() {
 
   const navigate = useNavigate();
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const params = {
         search,
@@ -72,11 +72,11 @@ export default function AlumniDatabase() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [search, selectedDept, selectedBatch, selectedYear, page]);
 
   useEffect(() => {
     fetchData();
-  }, [search, selectedDept, selectedBatch, selectedYear, page]);
+  }, [fetchData]);
 
   const handleRevert = async () => {
     if (!revertTarget) return;

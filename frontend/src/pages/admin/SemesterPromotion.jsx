@@ -78,7 +78,6 @@ export default function SemesterPromotion() {
     }
   };
 
-  const selectedBatch = batches.find(b => b.id === batchId);
 
   return (
     <div className="page-container">

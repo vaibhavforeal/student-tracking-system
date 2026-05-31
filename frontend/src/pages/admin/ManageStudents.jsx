@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import client from '../../api/client';
 import ConfirmDialog from '../../components/ConfirmDialog';
@@ -28,7 +28,7 @@ export default function ManageStudents() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const params = { page, limit: 15, ...(search && { search }), ...(filterBatch && { batchId: filterBatch }) };
       const isTeacherView = basePath === '/teacher';
@@ -43,9 +43,9 @@ export default function ManageStudents() {
       setSections(secRes.data.sections);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
-  };
+  }, [page, filterBatch, search, basePath]);
 
-  useEffect(() => { fetchData(); }, [page, filterBatch]);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   const handleSearch = () => { setPage(1); fetchData(); };
 
@@ -73,7 +73,7 @@ export default function ManageStudents() {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       setForm((prev) => ({ ...prev, photoUrl: data.photoUrl }));
-    } catch (err) {
+    } catch {
       alert('Failed to upload photo. Please try again.');
       setPhotoPreview(null);
     } finally {

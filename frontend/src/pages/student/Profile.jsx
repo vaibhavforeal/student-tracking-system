@@ -5,6 +5,31 @@ import {
   HiOutlineLocationMarker, HiOutlineAcademicCap, HiOutlineHeart,
   HiOutlineStar, HiOutlineBookOpen, HiOutlineSparkles,
 } from 'react-icons/hi';
+const InfoItem = (props) => {
+  const Icon = props.icon;
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-3)' }}>
+      <Icon size={18} style={{ color: 'var(--color-gray-400)', flexShrink: 0, marginTop: 2 }} />
+      <div>
+        <div style={{ fontSize: 'var(--font-xs)', color: 'var(--color-gray-400)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{props.label}</div>
+        <div style={{ fontWeight: 500, color: 'var(--color-gray-800)' }}>{props.value || '—'}</div>
+      </div>
+    </div>
+  );
+};
+
+const Section = (props) => {
+  const Icon = props.icon;
+  return (
+    <div className="card" style={{ marginBottom: 'var(--space-5)' }}>
+      <div style={{ padding: 'var(--space-4) var(--space-5)', borderBottom: '1px solid var(--color-gray-100)', display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+        <Icon size={20} style={{ color: 'var(--color-sky-500)' }} />
+        <h3 style={{ fontSize: 'var(--font-lg)', fontWeight: 600 }}>{props.title}</h3>
+      </div>
+      <div style={{ padding: 'var(--space-5)' }}>{props.children}</div>
+    </div>
+  );
+};
 
 export default function Profile() {
   const [student, setStudent] = useState(null);
@@ -21,26 +46,6 @@ export default function Profile() {
   if (!student) return <div className="card"><div className="card-body"><div className="empty-state"><p>Profile not found.</p></div></div></div>;
 
   const fmt = (d) => d ? new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
-
-  const InfoItem = ({ icon: Icon, label, value }) => (
-    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-3)' }}>
-      <Icon size={18} style={{ color: 'var(--color-gray-400)', flexShrink: 0, marginTop: 2 }} />
-      <div>
-        <div style={{ fontSize: 'var(--font-xs)', color: 'var(--color-gray-400)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</div>
-        <div style={{ fontWeight: 500, color: 'var(--color-gray-800)' }}>{value || '—'}</div>
-      </div>
-    </div>
-  );
-
-  const Section = ({ title, icon: Icon, children }) => (
-    <div className="card" style={{ marginBottom: 'var(--space-5)' }}>
-      <div style={{ padding: 'var(--space-4) var(--space-5)', borderBottom: '1px solid var(--color-gray-100)', display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-        <Icon size={20} style={{ color: 'var(--color-sky-500)' }} />
-        <h3 style={{ fontSize: 'var(--font-lg)', fontWeight: 600 }}>{title}</h3>
-      </div>
-      <div style={{ padding: 'var(--space-5)' }}>{children}</div>
-    </div>
-  );
 
   const levelBadge = { beginner: 'badge badge-gray', intermediate: 'badge badge-sky', advanced: 'badge badge-purple' };
 

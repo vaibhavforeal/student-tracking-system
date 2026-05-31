@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
+import { useParams, useLocation, Link } from 'react-router-dom';
 import client from '../../api/client';
-import useAuthStore from '../../store/authStore';
 import {
   HiOutlinePlus, HiOutlineTrash,
   HiOutlineAcademicCap, HiOutlineHeart, HiOutlineUser,
@@ -11,9 +10,7 @@ import {
 
 export default function StudentDetail() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const location = useLocation();
-  const user = useAuthStore((s) => s.user);
   const isTeacher = location.pathname.startsWith('/teacher');
   const apiBase = isTeacher ? '/teacher' : '/admin';
 
@@ -21,19 +18,19 @@ export default function StudentDetail() {
   const [loading, setLoading] = useState(true);
   const [showGraduateModal, setShowGraduateModal] = useState(false);
 
-  const fetchStudent = async () => {
+  const fetchStudent = useCallback(async () => {
     try {
       const { data } = await client.get(`${apiBase}/students/${id}`);
       setStudent(data.student);
-    } catch (err) {
-      console.error(err);
+    } catch (e) {
+      console.error(e);
       alert('Failed to load student details');
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, apiBase]);
 
-  useEffect(() => { fetchStudent(); }, [id]);
+  useEffect(() => { fetchStudent(); }, [fetchStudent]);
 
   if (loading) return <div className="loading-container"><div className="spinner spinner-lg" /></div>;
   if (!student) return <div className="empty-state"><p>Student not found.</p></div>;
@@ -100,33 +97,38 @@ export default function StudentDetail() {
 }
 
 /* ═══════════════════════════════════════════════════════
-   TAB: Personal Details
+   Shared Field component (used in PersonalTab & AlumniProfileTab)
    ═══════════════════════════════════════════════════════ */
-function PersonalTab({ student }) {
-  const Field = ({ label, value }) => (
+function DetailField({ label, value }) {
+  return (
     <div style={{ marginBottom: 'var(--space-4)' }}>
       <div style={{ fontSize: 'var(--font-xs)', fontWeight: 600, color: 'var(--color-gray-400)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 'var(--space-1)' }}>{label}</div>
       <div style={{ fontSize: 'var(--font-base)', color: 'var(--color-gray-800)', fontWeight: 500 }}>{value || '—'}</div>
     </div>
   );
+}
 
+/* ═══════════════════════════════════════════════════════
+   TAB: Personal Details
+   ═══════════════════════════════════════════════════════ */
+function PersonalTab({ student }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-4)' }}>
-      <Field label="Unique ID" value={student.enrollmentNo} />
-      <Field label="Email" value={student.user?.email} />
-      <Field label="First Name" value={student.firstName} />
-      <Field label="Last Name" value={student.lastName} />
-      <Field label="Date of Birth" value={student.dob ? new Date(student.dob).toLocaleDateString() : '—'} />
-      <Field label="Gender" value={student.gender} />
-      <Field label="Phone" value={student.phone} />
-      <Field label="Address" value={student.address} />
-      <Field label="Blood Group" value={student.health?.bloodGroup} />
-      <Field label="Batch" value={student.batch?.name} />
-      <Field label="Section" value={student.section?.name} />
-      <Field label="Semester" value={student.semester} />
-      <Field label="Department" value={student.batch?.department?.name} />
-      <Field label="Degree" value={student.batch?.degree} />
-      <Field label="Status" value={<span className={`badge ${student.status === 'active' ? 'badge-green' : student.status === 'graduated' ? 'badge-purple' : 'badge-gray'}`}>{student.status}</span>} />
+      <DetailField label="Unique ID" value={student.enrollmentNo} />
+      <DetailField label="Email" value={student.user?.email} />
+      <DetailField label="First Name" value={student.firstName} />
+      <DetailField label="Last Name" value={student.lastName} />
+      <DetailField label="Date of Birth" value={student.dob ? new Date(student.dob).toLocaleDateString() : '—'} />
+      <DetailField label="Gender" value={student.gender} />
+      <DetailField label="Phone" value={student.phone} />
+      <DetailField label="Address" value={student.address} />
+      <DetailField label="Blood Group" value={student.health?.bloodGroup} />
+      <DetailField label="Batch" value={student.batch?.name} />
+      <DetailField label="Section" value={student.section?.name} />
+      <DetailField label="Semester" value={student.semester} />
+      <DetailField label="Department" value={student.batch?.department?.name} />
+      <DetailField label="Degree" value={student.batch?.degree} />
+      <DetailField label="Status" value={<span className={`badge ${student.status === 'active' ? 'badge-green' : student.status === 'graduated' ? 'badge-purple' : 'badge-gray'}`}>{student.status}</span>} />
     </div>
   );
 }
@@ -158,7 +160,7 @@ function EducationTab({ student, apiBase, refresh }) {
     try {
       await client.delete(`${apiBase}/students/${student.id}/previous-education/${eduId}`);
       refresh();
-    } catch (err) { alert('Error deleting record'); }
+    } catch { alert('Error deleting record'); }
   };
 
   const levelLabel = (level) => level === 'sslc_10th' ? '10th / SSLC' : '12th / PU';
@@ -580,13 +582,6 @@ function AlumniProfileTab({ student, refresh }) {
     }
   };
 
-  const Field = ({ label, value }) => (
-    <div style={{ marginBottom: 'var(--space-4)' }}>
-      <div style={{ fontSize: 'var(--font-xs)', fontWeight: 600, color: 'var(--color-gray-400)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 'var(--space-1)' }}>{label}</div>
-      <div style={{ fontSize: 'var(--font-base)', color: 'var(--color-gray-800)', fontWeight: 500 }}>{value || '—'}</div>
-    </div>
-  );
-
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-5)' }}>
@@ -642,13 +637,13 @@ function AlumniProfileTab({ student, refresh }) {
         </form>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-4)' }}>
-          <Field label="Graduation Date" value={profile.graduationDate ? new Date(profile.graduationDate).toLocaleDateString() : '—'} />
-          <Field label="Graduation Year" value={profile.graduationYear} />
-          <Field label="Current Employer" value={profile.currentEmployer} />
-          <Field label="Current Job Title" value={profile.currentJobTitle} />
-          <Field label="Alumni Email" value={profile.alumniEmail} />
-          <Field label="LinkedIn Profile" value={profile.linkedInUrl ? <a href={profile.linkedInUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--color-primary)' }}>View Profile</a> : '—'} />
-          <Field label="Notes" value={profile.notes} />
+          <DetailField label="Graduation Date" value={profile.graduationDate ? new Date(profile.graduationDate).toLocaleDateString() : '—'} />
+          <DetailField label="Graduation Year" value={profile.graduationYear} />
+          <DetailField label="Current Employer" value={profile.currentEmployer} />
+          <DetailField label="Current Job Title" value={profile.currentJobTitle} />
+          <DetailField label="Alumni Email" value={profile.alumniEmail} />
+          <DetailField label="LinkedIn Profile" value={profile.linkedInUrl ? <a href={profile.linkedInUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--color-primary)' }}>View Profile</a> : '—'} />
+          <DetailField label="Notes" value={profile.notes} />
         </div>
       )}
     </div>

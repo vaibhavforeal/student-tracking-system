@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import client from '../../api/client';
 import {
@@ -37,19 +37,19 @@ export default function StaffDetail() {
   const [staff, setStaff] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchStaff = async () => {
+  const fetchStaff = useCallback(async () => {
     try {
       const { data } = await client.get(`/admin/staff/${id}`);
       setStaff(data.staff);
-    } catch (err) {
-      console.error(err);
+    } catch (e) {
+      console.error(e);
       alert('Failed to load staff details');
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
-  useEffect(() => { fetchStaff(); }, [id]);
+  useEffect(() => { fetchStaff(); }, [fetchStaff]);
 
   if (loading) return <div className="loading-container"><div className="spinner spinner-lg" /></div>;
   if (!staff) return <div className="empty-state"><p>Staff member not found.</p></div>;
@@ -346,7 +346,7 @@ function EducationSection({ staff, refresh }) {
     try {
       await client.delete(`/admin/staff/${staff.id}/education/${eduId}`);
       refresh();
-    } catch (err) { alert('Error deleting record'); }
+    } catch { alert('Error deleting record'); }
   };
 
   return (
@@ -492,7 +492,7 @@ function DocumentsSection({ staff, refresh }) {
     try {
       await client.delete(`/admin/staff/${staff.id}/documents/${docId}`);
       refresh();
-    } catch (err) { alert('Error deleting document'); }
+    } catch { alert('Error deleting document'); }
   };
 
   return (
