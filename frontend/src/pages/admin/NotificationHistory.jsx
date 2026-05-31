@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import client from '../../api/client';
 import { HiOutlineBell, HiOutlineCheck, HiOutlineExclamation, HiOutlineRefresh } from 'react-icons/hi';
 
@@ -10,7 +10,7 @@ export default function NotificationHistory() {
   const [statusFilter, setStatusFilter] = useState('');
   const [loading, setLoading] = useState(true);
 
-  const fetchLogs = async () => {
+  const fetchLogs = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({ page: String(page), limit: '20' });
@@ -24,9 +24,9 @@ export default function NotificationHistory() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, statusFilter]);
 
-  useEffect(() => { fetchLogs(); }, [page, statusFilter]);
+  useEffect(() => { fetchLogs(); }, [fetchLogs]);
 
   const formatDate = (dateStr) => {
     return new Date(dateStr).toLocaleString('en-IN', {

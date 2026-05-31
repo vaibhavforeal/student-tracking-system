@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import client from '../../api/client';
-import useAuthStore from '../../store/authStore';
 import {
   HiOutlineUserGroup, HiOutlineAcademicCap, HiOutlineDocumentText,
   HiOutlineDownload, HiOutlineBookOpen, HiOutlineHeart,
@@ -20,8 +19,16 @@ const DOCUMENT_TYPES = {
 
 const API_BASE_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
 
+function ProfileField({ label, value }) {
+  return (
+    <div style={{ marginBottom: 'var(--space-4)' }}>
+      <div style={{ fontSize: 'var(--font-xs)', fontWeight: 600, color: 'var(--color-gray-400)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 'var(--space-1)' }}>{label}</div>
+      <div style={{ fontSize: 'var(--font-base)', color: 'var(--color-gray-800)', fontWeight: 500 }}>{value || '—'}</div>
+    </div>
+  );
+}
+
 export default function TeacherProfile() {
-  const user = useAuthStore((s) => s.user);
   const [staff, setStaff] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -44,12 +51,7 @@ export default function TeacherProfile() {
   const documents = staff.documents || [];
   const assignments = staff.classAssignments || [];
 
-  const Field = ({ label, value }) => (
-    <div style={{ marginBottom: 'var(--space-4)' }}>
-      <div style={{ fontSize: 'var(--font-xs)', fontWeight: 600, color: 'var(--color-gray-400)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 'var(--space-1)' }}>{label}</div>
-      <div style={{ fontSize: 'var(--font-base)', color: 'var(--color-gray-800)', fontWeight: 500 }}>{value || '—'}</div>
-    </div>
-  );
+
 
   const formatFileSize = (bytes) => {
     if (bytes < 1024) return `${bytes} B`;
@@ -80,23 +82,23 @@ export default function TeacherProfile() {
               <h3 style={{ fontSize: 'var(--font-lg)', fontWeight: 600 }}>Personal Details</h3>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-4)' }}>
-              <Field label="Full Name" value={staff.user?.name} />
-              <Field label="Employee ID" value={staff.employeeId} />
-              <Field label="Email" value={staff.user?.email} />
-              <Field label="Phone" value={staff.phone} />
-              <Field label="Alternate Phone" value={pd.alternatePhone} />
-              <Field label="Date of Birth" value={pd.dob ? new Date(pd.dob).toLocaleDateString() : null} />
-              <Field label="Gender" value={pd.gender} />
-              <Field label="Blood Group" value={pd.bloodGroup} />
-              <Field label="Joining Date" value={pd.joiningDate ? new Date(pd.joiningDate).toLocaleDateString() : null} />
-              <Field label="Address" value={pd.address} />
-              <Field label="City" value={pd.city} />
-              <Field label="State" value={pd.state} />
-              <Field label="Pincode" value={pd.pincode} />
-              <Field label="Emergency Contact" value={pd.emergencyContactName} />
-              <Field label="Emergency Phone" value={pd.emergencyContactPhone} />
-              <Field label="Designation" value={staff.designation} />
-              <Field label="Department" value={staff.department?.name} />
+              <ProfileField label="Full Name" value={staff.user?.name} />
+              <ProfileField label="Employee ID" value={staff.employeeId} />
+              <ProfileField label="Email" value={staff.user?.email} />
+              <ProfileField label="Phone" value={staff.phone} />
+              <ProfileField label="Alternate Phone" value={pd.alternatePhone} />
+              <ProfileField label="Date of Birth" value={pd.dob ? new Date(pd.dob).toLocaleDateString() : null} />
+              <ProfileField label="Gender" value={pd.gender} />
+              <ProfileField label="Blood Group" value={pd.bloodGroup} />
+              <ProfileField label="Joining Date" value={pd.joiningDate ? new Date(pd.joiningDate).toLocaleDateString() : null} />
+              <ProfileField label="Address" value={pd.address} />
+              <ProfileField label="City" value={pd.city} />
+              <ProfileField label="State" value={pd.state} />
+              <ProfileField label="Pincode" value={pd.pincode} />
+              <ProfileField label="Emergency Contact" value={pd.emergencyContactName} />
+              <ProfileField label="Emergency Phone" value={pd.emergencyContactPhone} />
+              <ProfileField label="Designation" value={staff.designation} />
+              <ProfileField label="Department" value={staff.department?.name} />
             </div>
           </div>
         </div>
@@ -109,9 +111,9 @@ export default function TeacherProfile() {
               <h3 style={{ fontSize: 'var(--font-lg)', fontWeight: 600 }}>Health & Conditions</h3>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-4)' }}>
-              <Field label="Blood Group" value={pd.bloodGroup} />
-              <Field label="Emergency Contact" value={pd.emergencyContactName} />
-              <Field label="Emergency Phone" value={pd.emergencyContactPhone} />
+              <ProfileField label="Blood Group" value={pd.bloodGroup} />
+              <ProfileField label="Emergency Contact" value={pd.emergencyContactName} />
+              <ProfileField label="Emergency Phone" value={pd.emergencyContactPhone} />
             </div>
             {/* Diseases */}
             {Array.isArray(pd.diseases) && pd.diseases.length > 0 && (

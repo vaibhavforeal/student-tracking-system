@@ -24,7 +24,7 @@ export default function AcademicRecord() {
   useEffect(() => {
     if (params.id) {
       // Admin or teacher viewing a specific student
-      setStudentId(params.id);
+      Promise.resolve().then(() => setStudentId(params.id));
     } else if (user?.role === 'student') {
       // Student viewing own record — need to fetch own student id
       client.get('/student/profile')
@@ -36,7 +36,7 @@ export default function AcademicRecord() {
   // Load summary
   useEffect(() => {
     if (!studentId) return;
-    setLoading(true);
+    Promise.resolve().then(() => setLoading(true));
     client.get(`/academic/students/${studentId}/summary`)
       .then(r => {
         setSummary(r.data);

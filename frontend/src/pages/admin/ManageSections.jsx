@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import client from '../../api/client';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import { HiOutlinePlus, HiOutlinePencil, HiOutlineTrash } from 'react-icons/hi';
@@ -15,7 +15,7 @@ export default function ManageSections() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [secRes, batchRes] = await Promise.all([
         client.get('/admin/sections', { params: filterBatch ? { batchId: filterBatch } : {} }),
@@ -25,9 +25,9 @@ export default function ManageSections() {
       setBatches(batchRes.data.batches);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
-  };
+  }, [filterBatch]);
 
-  useEffect(() => { fetchData(); }, [filterBatch]);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   const openCreate = () => { setEditing(null); setForm({ name: '', batchId: batches[0]?.id || '' }); setShowModal(true); };
   const openEdit = (s) => { setEditing(s); setForm({ name: s.name, batchId: s.batchId }); setShowModal(true); };

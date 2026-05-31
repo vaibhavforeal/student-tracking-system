@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import client from '../../api/client';
 import { HiOutlineSave } from 'react-icons/hi';
 
@@ -44,7 +44,7 @@ export default function TeacherMarks() {
     return years;
   };
 
-  const fetchMarks = async () => {
+  const fetchMarks = useCallback(async () => {
     if (!selectedCourse || !selectedSection) return;
     setFetching(true);
     try {
@@ -63,11 +63,11 @@ export default function TeacherMarks() {
       setEntries(map);
     } catch (err) { console.error(err); }
     finally { setFetching(false); }
-  };
+  }, [selectedCourse, selectedSection, assessmentType]);
 
   useEffect(() => {
     if (selectedCourse && selectedSection && assessmentType) fetchMarks();
-  }, [selectedCourse, selectedSection, assessmentType]);
+  }, [selectedCourse, selectedSection, assessmentType, fetchMarks]);
 
   const updateEntry = (studentId, field, value) => {
     setEntries((prev) => ({

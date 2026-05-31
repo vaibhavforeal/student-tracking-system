@@ -2,16 +2,16 @@ import { useState, useEffect } from 'react';
 import { HiOutlineSun, HiOutlineMoon } from 'react-icons/hi';
 
 export default function ThemeToggle() {
-  const [theme, setTheme] = useState('light');
+  const [theme, setTheme] = useState(() => {
+    // Read theme from DOM (in case index.html script ran first) or localStorage
+    return document.documentElement.getAttribute('data-theme') || 
+           localStorage.getItem('sts-theme') || 
+           'light';
+  });
 
   useEffect(() => {
-    // Read theme from DOM (in case index.html script ran first) or localStorage
-    const currentTheme = document.documentElement.getAttribute('data-theme') || 
-                         localStorage.getItem('sts-theme') || 
-                         'light';
-    setTheme(currentTheme);
-    document.documentElement.setAttribute('data-theme', currentTheme);
-  }, []);
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
 
   const toggleTheme = () => {
     const nextTheme = theme === 'light' ? 'dark' : 'light';

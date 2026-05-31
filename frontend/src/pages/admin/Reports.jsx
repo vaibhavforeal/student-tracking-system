@@ -65,7 +65,7 @@ export default function Reports() {
       setBatches(bRes.data.batches || []);
       setSections(sRes.data.sections || []);
       setCourses(cRes.data.courses || []);
-    } catch (err) {
+    } catch {
       // Filters will be empty, that's fine
     }
   };

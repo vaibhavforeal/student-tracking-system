@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import client from '../../api/client';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import {
@@ -28,14 +28,14 @@ export default function ManageSkillCourses() {
   const [catName, setCatName] = useState('');
   const [catSaving, setCatSaving] = useState(false);
   const [catError, setCatError] = useState('');
-  const [catDeleteTarget, setCatDeleteTarget] = useState(null);
+
 
   // Enrollment viewer
   const [enrollments, setEnrollments] = useState(null);
   const [enrollCourse, setEnrollCourse] = useState(null);
   const [loadingEnroll, setLoadingEnroll] = useState(false);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const params = {};
       if (filterCat) params.categoryId = filterCat;
@@ -48,9 +48,9 @@ export default function ManageSkillCourses() {
       setCategories(catRes.data.categories);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
-  };
+  }, [filterCat, filterDiff]);
 
-  useEffect(() => { fetchData(); }, [filterCat, filterDiff]);
+  useEffect(() => { fetchData(); }, [fetchData]);
   useEffect(() => { if (error) { const t = setTimeout(() => setError(''), 4000); return () => clearTimeout(t); } }, [error]);
   useEffect(() => { if (catError) { const t = setTimeout(() => setCatError(''), 4000); return () => clearTimeout(t); } }, [catError]);
 

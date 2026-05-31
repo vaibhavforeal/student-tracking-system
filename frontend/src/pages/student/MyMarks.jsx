@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import client from '../../api/client';
 import { HiOutlineChartBar, HiOutlineAcademicCap } from 'react-icons/hi';
 
@@ -21,7 +21,7 @@ export default function MyMarks() {
   const [semester, setSemester] = useState('');
   const [loading, setLoading] = useState(true);
 
-  const fetchMarks = async (sem) => {
+  const fetchMarks = useCallback(async (sem) => {
     setLoading(true);
     try {
       const params = sem ? { semester: sem } : {};
@@ -29,9 +29,9 @@ export default function MyMarks() {
       setData(d);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
-  };
+  }, []);
 
-  useEffect(() => { fetchMarks(semester); }, [semester]);
+  useEffect(() => { fetchMarks(semester); }, [semester, fetchMarks]);
 
   if (loading && !data) return <div className="loading-container"><div className="spinner spinner-lg" /></div>;
 
@@ -140,7 +140,6 @@ export default function MyMarks() {
                     </thead>
                     <tbody>
                       {cm.assessments.map((a) => {
-                        const aBadge = perfBadge(a.percentage);
                         return (
                           <tr key={a.id}>
                             <td>

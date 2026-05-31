@@ -72,17 +72,20 @@ export default function Login() {
 
         {/* ── Role Switcher ── */}
         <div className="role-switcher">
-          {ROLES.map(({ key, label, icon: Icon }) => (
-            <button
-              key={key}
-              type="button"
-              className={`role-tab ${role === key ? 'active' : ''}`}
-              onClick={() => { setRole(key); setError(''); }}
-            >
-              <Icon className="role-tab-icon" />
-              <span>{label}</span>
-            </button>
-          ))}
+          {ROLES.map((r) => {
+            const RoleIcon = r.icon;
+            return (
+              <button
+                key={r.key}
+                type="button"
+                className={`role-tab ${role === r.key ? 'active' : ''}`}
+                onClick={() => { setRole(r.key); setError(''); }}
+              >
+                <RoleIcon className="role-tab-icon" />
+                <span>{r.label}</span>
+              </button>
+            );
+          })}
         </div>
 
         {error && <div className="login-error">{error}</div>}

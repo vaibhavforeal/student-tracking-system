@@ -15,7 +15,6 @@ export default function WhatsAppSend() {
   const [sending, setSending] = useState(false);
   const [results, setResults] = useState(null);
   const [waStatus, setWaStatus] = useState(null);
-  const [progress, setProgress] = useState({ current: 0, total: 0 });
 
   // Check WhatsApp status on mount
   useEffect(() => {
@@ -62,7 +61,6 @@ export default function WhatsAppSend() {
 
     setSending(true);
     setResults(null);
-    setProgress({ current: 0, total: selectedStudents.length });
 
     try {
       const { data } = await client.post('/whatsapp/send-attendance-bulk', {

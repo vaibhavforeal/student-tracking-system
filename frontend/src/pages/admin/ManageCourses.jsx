@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import client from '../../api/client';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import SyllabusEditor from '../../components/SyllabusEditor';
@@ -28,7 +28,7 @@ export default function ManageCourses() {
   const [syllabusModal, setSyllabusModal] = useState(null); // { courseId, departmentId, departmentName, units }
   const [savingSyllabus, setSavingSyllabus] = useState(false);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [courseRes, deptRes] = await Promise.all([
         client.get('/admin/courses', { params: filterDept ? { departmentId: filterDept } : {} }),
@@ -38,9 +38,9 @@ export default function ManageCourses() {
       setDepartments(deptRes.data.departments);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
-  };
+  }, [filterDept]);
 
-  useEffect(() => { fetchData(); }, [filterDept]);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   useEffect(() => {
     if (error) {

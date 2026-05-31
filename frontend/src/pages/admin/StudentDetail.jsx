@@ -1,37 +1,36 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
+import { useParams, useLocation, Link } from 'react-router-dom';
 import client from '../../api/client';
-import useAuthStore from '../../store/authStore';
 import {
   HiOutlinePlus, HiOutlineTrash,
   HiOutlineAcademicCap, HiOutlineHeart, HiOutlineUser,
   HiOutlineLightBulb, HiOutlineBookOpen, HiOutlineDocumentText,
+  HiOutlineBriefcase,
 } from 'react-icons/hi';
 
 export default function StudentDetail() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const location = useLocation();
-  const user = useAuthStore((s) => s.user);
   const isTeacher = location.pathname.startsWith('/teacher');
   const apiBase = isTeacher ? '/teacher' : '/admin';
 
   const [student, setStudent] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showGraduateModal, setShowGraduateModal] = useState(false);
 
-  const fetchStudent = async () => {
+  const fetchStudent = useCallback(async () => {
     try {
       const { data } = await client.get(`${apiBase}/students/${id}`);
       setStudent(data.student);
-    } catch (err) {
-      console.error(err);
+    } catch (e) {
+      console.error(e);
       alert('Failed to load student details');
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, apiBase]);
 
-  useEffect(() => { fetchStudent(); }, [id]);
+  useEffect(() => { fetchStudent(); }, [fetchStudent]);
 
   if (loading) return <div className="loading-container"><div className="spinner spinner-lg" /></div>;
   if (!student) return <div className="empty-state"><p>Student not found.</p></div>;
@@ -51,23 +50,60 @@ export default function StudentDetail() {
             </p>
           </div>
         </div>
-        <Link
-          to={`${isTeacher ? '/teacher' : '/admin'}/students/${id}/academic`}
-          className="btn btn-primary btn-sm"
-          style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
-        >
-          <HiOutlineDocumentText /> Academic Record
-        </Link>
+        <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
+          {!isTeacher && student.status === 'active' && (
+            <button
+              className="btn btn-secondary btn-sm"
+              onClick={() => setShowGraduateModal(true)}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+            >
+              <HiOutlineBriefcase /> Move to Alumni
+            </button>
+          )}
+          <Link
+            to={`${isTeacher ? '/teacher' : '/admin'}/students/${id}/academic`}
+            className="btn btn-primary btn-sm"
+            style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+          >
+            <HiOutlineDocumentText /> Academic Record
+          </Link>
+        </div>
       </div>
 
       {/* All Sections */}
       <div style={{ display: 'grid', gap: 'var(--space-5)' }}>
         <div className="card"><div className="card-body"><PersonalTab student={student} /></div></div>
+        {!isTeacher && student.status === 'graduated' && (
+          <div className="card"><div className="card-body"><AlumniProfileTab student={student} refresh={fetchStudent} /></div></div>
+        )}
         <div className="card"><div className="card-body"><EducationTab student={student} apiBase={apiBase} refresh={fetchStudent} /></div></div>
         <div className="card"><div className="card-body"><SkillsTab student={student} apiBase={apiBase} refresh={fetchStudent} /></div></div>
         <div className="card"><div className="card-body"><HealthTab student={student} apiBase={apiBase} refresh={fetchStudent} /></div></div>
         <div className="card"><div className="card-body"><ParentsTab student={student} apiBase={apiBase} refresh={fetchStudent} /></div></div>
       </div>
+
+      {showGraduateModal && (
+        <GraduateModal
+          student={student}
+          onClose={() => setShowGraduateModal(false)}
+          onSuccess={() => {
+            setShowGraduateModal(false);
+            fetchStudent();
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
+   Shared Field component (used in PersonalTab & AlumniProfileTab)
+   ═══════════════════════════════════════════════════════ */
+function DetailField({ label, value }) {
+  return (
+    <div style={{ marginBottom: 'var(--space-4)' }}>
+      <div style={{ fontSize: 'var(--font-xs)', fontWeight: 600, color: 'var(--color-gray-400)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 'var(--space-1)' }}>{label}</div>
+      <div style={{ fontSize: 'var(--font-base)', color: 'var(--color-gray-800)', fontWeight: 500 }}>{value || '—'}</div>
     </div>
   );
 }
@@ -76,30 +112,23 @@ export default function StudentDetail() {
    TAB: Personal Details
    ═══════════════════════════════════════════════════════ */
 function PersonalTab({ student }) {
-  const Field = ({ label, value }) => (
-    <div style={{ marginBottom: 'var(--space-4)' }}>
-      <div style={{ fontSize: 'var(--font-xs)', fontWeight: 600, color: 'var(--color-gray-400)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 'var(--space-1)' }}>{label}</div>
-      <div style={{ fontSize: 'var(--font-base)', color: 'var(--color-gray-800)', fontWeight: 500 }}>{value || '—'}</div>
-    </div>
-  );
-
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-4)' }}>
-      <Field label="Unique ID" value={student.enrollmentNo} />
-      <Field label="Email" value={student.user?.email} />
-      <Field label="First Name" value={student.firstName} />
-      <Field label="Last Name" value={student.lastName} />
-      <Field label="Date of Birth" value={student.dob ? new Date(student.dob).toLocaleDateString() : '—'} />
-      <Field label="Gender" value={student.gender} />
-      <Field label="Phone" value={student.phone} />
-      <Field label="Address" value={student.address} />
-      <Field label="Blood Group" value={student.health?.bloodGroup} />
-      <Field label="Batch" value={student.batch?.name} />
-      <Field label="Section" value={student.section?.name} />
-      <Field label="Semester" value={student.semester} />
-      <Field label="Department" value={student.batch?.department?.name} />
-      <Field label="Degree" value={student.batch?.degree} />
-      <Field label="Status" value={<span className={`badge ${student.status === 'active' ? 'badge-green' : 'badge-gray'}`}>{student.status}</span>} />
+      <DetailField label="Unique ID" value={student.enrollmentNo} />
+      <DetailField label="Email" value={student.user?.email} />
+      <DetailField label="First Name" value={student.firstName} />
+      <DetailField label="Last Name" value={student.lastName} />
+      <DetailField label="Date of Birth" value={student.dob ? new Date(student.dob).toLocaleDateString() : '—'} />
+      <DetailField label="Gender" value={student.gender} />
+      <DetailField label="Phone" value={student.phone} />
+      <DetailField label="Address" value={student.address} />
+      <DetailField label="Blood Group" value={student.health?.bloodGroup} />
+      <DetailField label="Batch" value={student.batch?.name} />
+      <DetailField label="Section" value={student.section?.name} />
+      <DetailField label="Semester" value={student.semester} />
+      <DetailField label="Department" value={student.batch?.department?.name} />
+      <DetailField label="Degree" value={student.batch?.degree} />
+      <DetailField label="Status" value={<span className={`badge ${student.status === 'active' ? 'badge-green' : student.status === 'graduated' ? 'badge-purple' : 'badge-gray'}`}>{student.status}</span>} />
     </div>
   );
 }
@@ -131,7 +160,7 @@ function EducationTab({ student, apiBase, refresh }) {
     try {
       await client.delete(`${apiBase}/students/${student.id}/previous-education/${eduId}`);
       refresh();
-    } catch (err) { alert('Error deleting record'); }
+    } catch { alert('Error deleting record'); }
   };
 
   const levelLabel = (level) => level === 'sslc_10th' ? '10th / SSLC' : '12th / PU';
@@ -504,6 +533,210 @@ function ParentsTab({ student, apiBase, refresh }) {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
+   TAB: Alumni Profile (Admin Only)
+   ═══════════════════════════════════════════════════════ */
+function AlumniProfileTab({ student, refresh }) {
+  const profile = student.alumniProfile || {};
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    graduationDate: profile.graduationDate ? new Date(profile.graduationDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+    graduationYear: profile.graduationYear || new Date().getFullYear(),
+    currentEmployer: profile.currentEmployer || '',
+    currentJobTitle: profile.currentJobTitle || '',
+    linkedInUrl: profile.linkedInUrl || '',
+    alumniEmail: profile.alumniEmail || '',
+    notes: profile.notes || '',
+  });
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await client.put(`/admin/alumni/${student.id}`, form);
+      setEditing(false);
+      refresh();
+      alert('Alumni details updated successfully!');
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.error || 'Failed to update alumni profile');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleRevert = async () => {
+    if (!confirm('Are you sure you want to revert this alumnus back to active student status? This will delete the post-graduation details.')) return;
+    try {
+      await client.post(`/admin/alumni/${student.id}/revert`);
+      refresh();
+      alert('Student status reverted to active!');
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.error || 'Failed to revert status');
+    }
+  };
+
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-5)' }}>
+        <h3 style={{ fontSize: 'var(--font-lg)', fontWeight: 600 }}>Alumni Profile</h3>
+        {!editing && (
+          <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+            <button className="btn btn-ghost btn-sm" style={{ color: 'var(--color-danger)' }} onClick={handleRevert}>Revert to Active</button>
+            <button className="btn btn-secondary btn-sm" onClick={() => setEditing(true)}>Edit Details</button>
+          </div>
+        )}
+      </div>
+
+      {editing ? (
+        <form onSubmit={handleUpdate}>
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">Graduation Date *</label>
+              <input type="date" className="form-input" value={form.graduationDate} onChange={(e) => setForm({ ...form, graduationDate: e.target.value })} required />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Graduation Year *</label>
+              <input type="number" className="form-input" value={form.graduationYear} onChange={(e) => setForm({ ...form, graduationYear: parseInt(e.target.value) })} required />
+            </div>
+          </div>
+          <div className="form-row" style={{ marginTop: 'var(--space-4)' }}>
+            <div className="form-group">
+              <label className="form-label">Current Employer</label>
+              <input className="form-input" value={form.currentEmployer} onChange={(e) => setForm({ ...form, currentEmployer: e.target.value })} placeholder="e.g. Google" />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Current Job Title</label>
+              <input className="form-input" value={form.currentJobTitle} onChange={(e) => setForm({ ...form, currentJobTitle: e.target.value })} placeholder="e.g. Software Engineer" />
+            </div>
+          </div>
+          <div className="form-row" style={{ marginTop: 'var(--space-4)' }}>
+            <div className="form-group">
+              <label className="form-label">Alumni Email</label>
+              <input type="email" className="form-input" value={form.alumniEmail} onChange={(e) => setForm({ ...form, alumniEmail: e.target.value })} placeholder="e.g. name@alumni.com" />
+            </div>
+            <div className="form-group">
+              <label className="form-label">LinkedIn URL</label>
+              <input type="url" className="form-input" value={form.linkedInUrl} onChange={(e) => setForm({ ...form, linkedInUrl: e.target.value })} placeholder="e.g. https://linkedin.com/in/username" />
+            </div>
+          </div>
+          <div className="form-group" style={{ marginTop: 'var(--space-4)' }}>
+            <label className="form-label">Notes</label>
+            <textarea className="form-input" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Any extra information..." rows={2} />
+          </div>
+          <div style={{ display: 'flex', gap: 'var(--space-3)', marginTop: 'var(--space-5)', justifyContent: 'flex-end' }}>
+            <button type="button" className="btn btn-secondary btn-sm" onClick={() => setEditing(false)}>Cancel</button>
+            <button type="submit" className="btn btn-primary btn-sm" disabled={saving}>{saving ? 'Saving...' : 'Save Changes'}</button>
+          </div>
+        </form>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-4)' }}>
+          <DetailField label="Graduation Date" value={profile.graduationDate ? new Date(profile.graduationDate).toLocaleDateString() : '—'} />
+          <DetailField label="Graduation Year" value={profile.graduationYear} />
+          <DetailField label="Current Employer" value={profile.currentEmployer} />
+          <DetailField label="Current Job Title" value={profile.currentJobTitle} />
+          <DetailField label="Alumni Email" value={profile.alumniEmail} />
+          <DetailField label="LinkedIn Profile" value={profile.linkedInUrl ? <a href={profile.linkedInUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--color-primary)' }}>View Profile</a> : '—'} />
+          <DetailField label="Notes" value={profile.notes} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
+   MODAL: Move to Alumni (Graduate Student)
+   ═══════════════════════════════════════════════════════ */
+function GraduateModal({ student, onClose, onSuccess }) {
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    graduationDate: new Date().toISOString().split('T')[0],
+    graduationYear: new Date().getFullYear(),
+    currentEmployer: '',
+    currentJobTitle: '',
+    linkedInUrl: '',
+    alumniEmail: '',
+    notes: '',
+  });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await client.post(`/admin/students/${student.id}/graduate`, form);
+      alert('Student graduated successfully!');
+      onSuccess();
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.error || 'Failed to graduate student');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '550px' }}>
+        <div className="modal-header">
+          <h2>Graduate Student</h2>
+          <button className="btn btn-ghost" onClick={onClose}>✕</button>
+        </div>
+        <form onSubmit={handleSubmit}>
+          <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+            <p style={{ color: 'var(--color-gray-500)', fontSize: 'var(--font-sm)' }}>
+              Moving <strong>{student.firstName} {student.lastName}</strong> to Alumni. This will change their status to <strong>graduated</strong> and create an Alumni Profile.
+            </p>
+            
+            <div className="form-row">
+              <div className="form-group">
+                <label className="form-label">Graduation Date *</label>
+                <input type="date" className="form-input" value={form.graduationDate} onChange={(e) => setForm({ ...form, graduationDate: e.target.value })} required />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Graduation Year *</label>
+                <input type="number" className="form-input" value={form.graduationYear} onChange={(e) => setForm({ ...form, graduationYear: parseInt(e.target.value) })} required />
+              </div>
+            </div>
+
+            <div className="form-row" style={{ marginTop: 'var(--space-2)' }}>
+              <div className="form-group">
+                <label className="form-label">Current Employer (Optional)</label>
+                <input className="form-input" value={form.currentEmployer} onChange={(e) => setForm({ ...form, currentEmployer: e.target.value })} placeholder="e.g. Google" />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Current Job Title (Optional)</label>
+                <input className="form-input" value={form.currentJobTitle} onChange={(e) => setForm({ ...form, currentJobTitle: e.target.value })} placeholder="e.g. Software Engineer" />
+              </div>
+            </div>
+
+            <div className="form-row" style={{ marginTop: 'var(--space-2)' }}>
+              <div className="form-group">
+                <label className="form-label">Alumni Email (Optional)</label>
+                <input type="email" className="form-input" value={form.alumniEmail} onChange={(e) => setForm({ ...form, alumniEmail: e.target.value })} placeholder="e.g. name@alumni.com" />
+              </div>
+              <div className="form-group">
+                <label className="form-label">LinkedIn URL (Optional)</label>
+                <input type="url" className="form-input" value={form.linkedInUrl} onChange={(e) => setForm({ ...form, linkedInUrl: e.target.value })} placeholder="e.g. https://linkedin.com/..." />
+              </div>
+            </div>
+
+            <div className="form-group" style={{ marginTop: 'var(--space-2)' }}>
+              <label className="form-label">Notes</label>
+              <textarea className="form-input" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes about post-graduation status..." rows={2} />
+            </div>
+          </div>
+          <div className="modal-footer">
+            <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+            <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? 'Graduating...' : 'Graduate Student'}</button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

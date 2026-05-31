@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import client from '../../api/client';
 import ConfirmDialog from '../../components/ConfirmDialog';
@@ -18,7 +18,7 @@ export default function ManageStaff() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [staffRes, deptRes] = await Promise.all([
         client.get('/admin/staff', { params: filterDept ? { departmentId: filterDept } : {} }),
@@ -28,9 +28,9 @@ export default function ManageStaff() {
       setDepartments(deptRes.data.departments);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
-  };
+  }, [filterDept]);
 
-  useEffect(() => { fetchData(); }, [filterDept]);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   const openCreate = () => { setEditing(null); setForm({ employeeId: '', name: '', email: '', password: '', departmentId: '', designation: '', phone: '' }); setShowModal(true); };
   const openEdit = (s) => { setEditing(s); setForm({ employeeId: s.employeeId, name: s.user?.name || '', email: s.user?.email || '', password: '', departmentId: s.departmentId || '', designation: s.designation, phone: s.phone }); setShowModal(true); };

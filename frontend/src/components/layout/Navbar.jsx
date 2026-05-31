@@ -1,7 +1,9 @@
+import { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { HiOutlineMenu, HiOutlineBell, HiOutlineArrowLeft } from 'react-icons/hi';
+import { HiOutlineMenu, HiOutlineBell, HiOutlineArrowLeft, HiOutlineMail, HiOutlineChat } from 'react-icons/hi';
 import useAuthStore from '../../store/authStore';
 import ThemeToggle from './ThemeToggle';
+import client from '../../api/client';
 
 const pageTitles = {
   '/admin': 'Dashboard',
@@ -36,18 +38,26 @@ const pageTitles = {
 };
 
 const getPageTitle = (pathname) => {
-  // Exact matches first
   if (pageTitles[pathname]) {
     return pageTitles[pathname];
   }
 
-  // Dynamic/nested matches
   if (pathname.match(/^\/admin\/students\/[^/]+\/academic$/)) return 'Academic Record';
   if (pathname.match(/^\/admin\/students\/[^/]+$/)) return 'Student Details';
   if (pathname.match(/^\/teacher\/students\/[^/]+\/academic$/)) return 'Academic Record';
   if (pathname.match(/^\/teacher\/students\/[^/]+$/)) return 'Student Details';
 
   return 'Dashboard';
+};
+
+const formatTimeAgo = (dateStr) => {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diff = now - date;
+  if (diff < 60 * 1000) return 'Just now';
+  if (diff < 60 * 60 * 1000) return `${Math.floor(diff / 60000)}m ago`;
+  if (diff < 24 * 60 * 60 * 1000) return `${Math.floor(diff / 3600000)}h ago`;
+  return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
 };
 
 export default function Navbar({ onMenuToggle }) {
@@ -57,15 +67,75 @@ export default function Navbar({ onMenuToggle }) {
 
   const title = getPageTitle(location.pathname);
   
-  // A page is a dashboard root if it's the role's base dashboard index
   const isDashboardRoot = ['/admin', '/teacher', '/student'].includes(location.pathname);
 
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    let active = true;
+    const fetchNotifications = async () => {
+      try {
+        const { data } = await client.get('/notifications');
+        if (active) {
+          setNotifications(data.notifications || []);
+          setUnreadCount(data.unreadCount || 0);
+        }
+      } catch (err) {
+        console.error('Error fetching notifications:', err);
+      }
+    };
+
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 10000);
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, []);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleMarkAllRead = async () => {
+    try {
+      await client.put('/notifications/read-all');
+      setNotifications(notifications.map(n => ({ ...n, isRead: true })));
+      setUnreadCount(0);
+    } catch (err) {
+      console.error('Failed to mark all as read:', err);
+    }
+  };
+
+  const handleNotificationClick = async (notif) => {
+    setDropdownOpen(false);
+    if (!notif.isRead) {
+      try {
+        await client.put(`/notifications/${notif.id}/read`);
+        setNotifications(notifications.map(n => n.id === notif.id ? { ...n, isRead: true } : n));
+        setUnreadCount(prev => Math.max(0, prev - 1));
+      } catch (err) {
+        console.error('Failed to mark notification as read:', err);
+      }
+    }
+    if (notif.link) {
+      navigate(notif.link);
+    }
+  };
+
   const goBack = () => {
-    // If there is SPA navigation history, go back in history
     if (window.history.state && window.history.state.idx > 0) {
       navigate(-1);
     } else {
-      // Fallback: navigate to the appropriate dashboard root for their role
       const role = user?.role;
       if (role === 'admin') navigate('/admin');
       else if (role === 'teacher') navigate('/teacher');
@@ -103,11 +173,180 @@ export default function Navbar({ onMenuToggle }) {
         <h1 className="page-title">{title}</h1>
       </div>
       
-      <div className="nav-actions">
+      <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
         <ThemeToggle />
-        <button className="btn btn-ghost" title="Notifications">
-          <HiOutlineBell style={{ fontSize: '1.25rem' }} />
-        </button>
+        
+        <div style={{ position: 'relative', display: 'inline-block' }} ref={dropdownRef}>
+          <button 
+            className="btn btn-ghost" 
+            title="Notifications"
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+            style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <HiOutlineBell style={{ fontSize: '1.25rem' }} />
+            {unreadCount > 0 && (
+              <span style={{
+                position: 'absolute',
+                top: '-4px',
+                right: '-4px',
+                background: 'var(--color-danger)',
+                color: '#fff',
+                borderRadius: '50%',
+                width: '18px',
+                height: '18px',
+                fontSize: '9px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 700,
+                border: '2px solid #fff',
+                boxShadow: 'var(--shadow-sm)',
+              }}>
+                {unreadCount}
+              </span>
+            )}
+          </button>
+
+          {dropdownOpen && (
+            <div style={{
+              position: 'absolute',
+              right: 0,
+              top: '100%',
+              marginTop: '0.75rem',
+              width: '360px',
+              maxHeight: '480px',
+              background: 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(16px)',
+              borderRadius: 'var(--radius-lg)',
+              boxShadow: 'var(--shadow-lg)',
+              border: '1px solid var(--color-gray-200)',
+              zIndex: 1000,
+              display: 'flex',
+              flexDirection: 'column',
+              animation: 'fadeIn 0.2s ease',
+            }}>
+              <div style={{
+                padding: 'var(--space-3) var(--space-4)',
+                borderBottom: '1px solid var(--color-gray-100)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                background: 'rgba(79, 70, 229, 0.02)',
+              }}>
+                <span style={{ fontWeight: 650, color: 'var(--color-gray-800)', fontSize: 'var(--font-sm)' }}>
+                  Notifications
+                </span>
+                {unreadCount > 0 && (
+                  <button 
+                    onClick={handleMarkAllRead}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--color-purple-600)',
+                      fontSize: 'var(--font-xs)',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      padding: 0,
+                      transition: 'color var(--transition-fast)',
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.color = 'var(--color-purple-700)'}
+                    onMouseOut={(e) => e.currentTarget.style.color = 'var(--color-purple-600)'}
+                  >
+                    Mark all read
+                  </button>
+                )}
+              </div>
+
+              <div style={{
+                overflowY: 'auto',
+                flex: 1,
+                padding: '4px 0',
+              }}>
+                {notifications.length === 0 ? (
+                  <div style={{
+                    padding: 'var(--space-8) var(--space-4)',
+                    textAlign: 'center',
+                    color: 'var(--color-gray-400)',
+                  }}>
+                    <HiOutlineBell size={32} style={{ marginBottom: 'var(--space-2)', opacity: 0.5, margin: '0 auto 8px' }} />
+                    <p style={{ fontSize: 'var(--font-sm)', fontWeight: 600 }}>All caught up!</p>
+                    <p style={{ fontSize: 'var(--font-xs)', color: 'var(--color-gray-400)' }}>No new notifications.</p>
+                  </div>
+                ) : (
+                  notifications.map((notif) => (
+                    <div
+                      key={notif.id}
+                      onClick={() => handleNotificationClick(notif)}
+                      style={{
+                        padding: 'var(--space-3) var(--space-4)',
+                        borderBottom: '1px solid var(--color-gray-100)',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        gap: 'var(--space-3)',
+                        transition: 'background var(--transition-fast)',
+                        background: !notif.isRead ? 'rgba(139, 92, 246, 0.04)' : 'transparent',
+                      }}
+                      onMouseOver={(e) => e.currentTarget.style.background = 'var(--color-gray-50)'}
+                      onMouseOut={(e) => e.currentTarget.style.background = !notif.isRead ? 'rgba(139, 92, 246, 0.04)' : 'transparent'}
+                    >
+                      <div style={{
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        background: notif.type === 'feedback_submitted' ? 'rgba(139, 92, 246, 0.1)' : 'rgba(16, 185, 129, 0.1)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: notif.type === 'feedback_submitted' ? 'var(--color-purple-600)' : 'var(--color-success)',
+                        flexShrink: 0,
+                      }}>
+                        {notif.type === 'feedback_submitted' ? <HiOutlineMail size={16} /> : <HiOutlineChat size={16} />}
+                      </div>
+
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ 
+                          fontSize: 'var(--font-xs)', 
+                          fontWeight: 600, 
+                          color: 'var(--color-gray-800)',
+                          marginBottom: '2px',
+                        }}>
+                          {notif.title}
+                        </div>
+                        <div style={{ 
+                          fontSize: 'var(--font-xs)', 
+                          color: 'var(--color-gray-600)',
+                          lineHeight: '1.4',
+                          wordBreak: 'break-word',
+                        }}>
+                          {notif.message}
+                        </div>
+                        <div style={{ 
+                          fontSize: '10px', 
+                          color: 'var(--color-gray-400)',
+                          marginTop: '4px',
+                        }}>
+                          {formatTimeAgo(notif.createdAt)}
+                        </div>
+                      </div>
+
+                      {!notif.isRead && (
+                        <div style={{
+                          width: '6px',
+                          height: '6px',
+                          borderRadius: '50%',
+                          background: 'var(--color-purple-500)',
+                          alignSelf: 'center',
+                          flexShrink: 0,
+                        }} />
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
         <div style={{
           display: 'flex',
           alignItems: 'center',

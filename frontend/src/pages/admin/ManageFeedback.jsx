@@ -330,10 +330,12 @@ export default function ManageFeedback() {
         padding: 'var(--space-1)',
         width: 'fit-content',
       }}>
-        {STATUS_TABS.map(({ value, label, icon: Icon }) => (
+        {STATUS_TABS.map((tab) => {
+          const TabIcon = tab.icon;
+          return (
           <button
-            key={value}
-            onClick={() => { setStatusFilter(value); setPage(1); }}
+            key={tab.value}
+            onClick={() => { setStatusFilter(tab.value); setPage(1); }}
             style={{
               padding: 'var(--space-2) var(--space-4)',
               borderRadius: 'var(--radius-md)',
@@ -343,16 +345,16 @@ export default function ManageFeedback() {
               alignItems: 'center',
               gap: 'var(--space-2)',
               fontSize: 'var(--font-sm)',
-              fontWeight: statusFilter === value ? 600 : 400,
-              background: statusFilter === value ? '#fff' : 'transparent',
-              color: statusFilter === value ? 'var(--color-purple-600)' : 'var(--color-gray-500)',
-              boxShadow: statusFilter === value ? 'var(--shadow-sm)' : 'none',
+              fontWeight: statusFilter === tab.value ? 600 : 400,
+              background: statusFilter === tab.value ? '#fff' : 'transparent',
+              color: statusFilter === tab.value ? 'var(--color-purple-600)' : 'var(--color-gray-500)',
+              boxShadow: statusFilter === tab.value ? 'var(--shadow-sm)' : 'none',
               transition: 'all var(--transition-fast)',
             }}
           >
-            <Icon size={16} />
-            {label}
-            {value === 'unread' && unreadCount > 0 && (
+            <TabIcon size={16} />
+            {tab.label}
+            {tab.value === 'unread' && unreadCount > 0 && (
               <span style={{
                 background: 'var(--color-danger)',
                 color: '#fff',
@@ -365,7 +367,8 @@ export default function ManageFeedback() {
               </span>
             )}
           </button>
-        ))}
+          );
+        })}
       </div>
 
       {/* Filters */}

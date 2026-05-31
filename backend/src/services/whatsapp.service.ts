@@ -143,6 +143,30 @@ export async function sendTemplateWithDocument(
 }
 
 /**
+ * Send a simple text message to a WhatsApp number.
+ */
+export async function sendTextMessage(
+  to: string,
+  text: string,
+): Promise<{ messageId: string }> {
+  const response = await axios.post(
+    `${BASE_URL}/messages`,
+    {
+      messaging_product: 'whatsapp',
+      recipient_type: 'individual',
+      to,
+      type: 'text',
+      text: {
+        body: text,
+      },
+    },
+    { headers: { ...authHeaders(), 'Content-Type': 'application/json' } },
+  );
+
+  return { messageId: response.data.messages?.[0]?.id || 'unknown' };
+}
+
+/**
  * Parse a WhatsApp API error into a human-readable message.
  */
 export function parseWhatsAppError(error: unknown): string {
