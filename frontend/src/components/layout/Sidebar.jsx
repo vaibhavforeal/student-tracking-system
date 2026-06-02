@@ -1,51 +1,52 @@
 import { NavLink } from 'react-router-dom';
 import useAuthStore from '../../store/authStore';
 import {
-  HiOutlineHome, HiOutlineAcademicCap, HiOutlineUserGroup,
-  HiOutlineOfficeBuilding, HiOutlineCollection, HiOutlineBookOpen,
-  HiOutlineClipboardList, HiOutlineUsers, HiOutlineLogout, HiOutlineChartBar,
-  HiOutlineDocumentReport, HiOutlineSparkles, HiOutlineTrash, HiOutlineLink,
-  HiOutlineLightBulb, HiOutlineArrowUp, HiOutlineDocumentText,
-  HiOutlineMail, HiOutlineChat, HiOutlineBriefcase,
-} from 'react-icons/hi';
+  Home, GraduationCap, Briefcase, Users, Building2,
+  Layers, ClipboardList, BookOpen, Link2, Lightbulb,
+  ArrowUp, Trash2, FileText, Sparkles, Mail,
+  MessageSquare, FileSpreadsheet, LogOut, BarChart3,
+  ScanBarcode,
+} from 'lucide-react';
 
 const adminLinks = [
-  { to: '/admin', icon: HiOutlineHome, label: 'Dashboard', end: true },
-  { to: '/admin/students', icon: HiOutlineAcademicCap, label: 'Students' },
-  { to: '/admin/alumni', icon: HiOutlineBriefcase, label: 'Alumni' },
-  { to: '/admin/staff', icon: HiOutlineUserGroup, label: 'Staff' },
-  { to: '/admin/departments', icon: HiOutlineOfficeBuilding, label: 'Departments' },
-  { to: '/admin/batches', icon: HiOutlineCollection, label: 'Batches' },
-  { to: '/admin/sections', icon: HiOutlineClipboardList, label: 'Sections' },
-  { to: '/admin/courses', icon: HiOutlineBookOpen, label: 'Courses' },
-  { to: '/admin/assignments', icon: HiOutlineLink, label: 'Assignments' },
-  { to: '/admin/skill-courses', icon: HiOutlineLightBulb, label: 'Skill Courses' },
-  { to: '/admin/promotion', icon: HiOutlineArrowUp, label: 'Promotion' },
+  { to: '/admin', icon: Home, label: 'Dashboard', end: true },
+  { to: '/admin/students', icon: GraduationCap, label: 'Students' },
+  { to: '/admin/verify', icon: ScanBarcode, label: 'Verify Student' },
+  { to: '/admin/alumni', icon: Briefcase, label: 'Alumni' },
+  { to: '/admin/staff', icon: Users, label: 'Staff' },
+  { to: '/admin/departments', icon: Building2, label: 'Departments' },
+  { to: '/admin/batches', icon: Layers, label: 'Batches' },
+  { to: '/admin/sections', icon: ClipboardList, label: 'Sections' },
+  { to: '/admin/courses', icon: BookOpen, label: 'Courses' },
+  { to: '/admin/assignments', icon: Link2, label: 'Assignments' },
+  { to: '/admin/skill-courses', icon: Lightbulb, label: 'Skill Courses' },
+  { to: '/admin/promotion', icon: ArrowUp, label: 'Promotion' },
 
-  { to: '/admin/users', icon: HiOutlineUsers, label: 'Users' },
-  { to: '/admin/trash', icon: HiOutlineTrash, label: 'Trash' },
-  { to: '/admin/reports', icon: HiOutlineDocumentReport, label: 'Reports' },
-  { to: '/admin/analytics', icon: HiOutlineSparkles, label: 'Analytics' },
-  { to: '/admin/feedback', icon: HiOutlineMail, label: 'Student Feedback' },
+  { to: '/admin/users', icon: Users, label: 'Users' },
+  { to: '/admin/reports', icon: FileText, label: 'Reports' },
+  { to: '/admin/analytics', icon: Sparkles, label: 'Analytics' },
+  { to: '/admin/feedback', icon: Mail, label: 'Student Feedback' },
+  { to: '/admin/trash', icon: Trash2, label: 'Trash' },
 ];
 
 const teacherLinks = [
-  { to: '/teacher', icon: HiOutlineHome, label: 'Dashboard', end: true },
-  { to: '/teacher/students', icon: HiOutlineAcademicCap, label: 'Students' },
-  { to: '/teacher/attendance', icon: HiOutlineClipboardList, label: 'Attendance' },
-  { to: '/teacher/marks', icon: HiOutlineChartBar, label: 'Marks' },
-  { to: '/teacher/profile', icon: HiOutlineUsers, label: 'My Profile' },
-  { to: '/teacher/reports', icon: HiOutlineDocumentReport, label: 'Reports' },
+  { to: '/teacher', icon: Home, label: 'Dashboard', end: true },
+  { to: '/teacher/students', icon: GraduationCap, label: 'Students' },
+  { to: '/teacher/verify', icon: ScanBarcode, label: 'Verify Student' },
+  { to: '/teacher/attendance', icon: ClipboardList, label: 'Attendance' },
+  { to: '/teacher/marks', icon: BarChart3, label: 'Marks' },
+  { to: '/teacher/profile', icon: Users, label: 'My Profile' },
+  { to: '/teacher/reports', icon: FileText, label: 'Reports' },
 ];
 
 const studentLinks = [
-  { to: '/student', icon: HiOutlineHome, label: 'Dashboard', end: true },
-  { to: '/student/marks', icon: HiOutlineChartBar, label: 'My Marks' },
-  { to: '/student/attendance', icon: HiOutlineClipboardList, label: 'My Attendance' },
-  { to: '/student/profile', icon: HiOutlineUsers, label: 'My Profile' },
-  { to: '/student/academic', icon: HiOutlineDocumentText, label: 'Academic Record' },
-  { to: '/student/skill-courses', icon: HiOutlineLightBulb, label: 'Skill Courses' },
-  { to: '/student/feedback', icon: HiOutlineChat, label: 'Space for Thought' },
+  { to: '/student', icon: Home, label: 'Dashboard', end: true },
+  { to: '/student/marks', icon: BarChart3, label: 'My Marks' },
+  { to: '/student/attendance', icon: ClipboardList, label: 'My Attendance' },
+  { to: '/student/profile', icon: Users, label: 'My Profile' },
+  { to: '/student/academic', icon: FileSpreadsheet, label: 'Academic Record' },
+  { to: '/student/skill-courses', icon: Lightbulb, label: 'Skill Courses' },
+  { to: '/student/feedback', icon: MessageSquare, label: 'Space for Thought' },
 ];
 
 export default function Sidebar({ isOpen, onClose }) {
@@ -81,7 +82,7 @@ export default function Sidebar({ isOpen, onClose }) {
                 className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
                 onClick={onClose}
               >
-                <Icon className="nav-icon" />
+                <Icon className="idata nav-icon" />
                 {link.label}
               </NavLink>
             );
@@ -99,7 +100,7 @@ export default function Sidebar({ isOpen, onClose }) {
           <div className="user-role">{user?.role || 'Guest'}</div>
         </div>
         <button className="btn btn-ghost" onClick={logout} title="Logout">
-          <HiOutlineLogout />
+          <LogOut className="idata" />
         </button>
       </div>
     </aside>

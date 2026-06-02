@@ -5,6 +5,7 @@ import { hashPassword } from '../utils/password';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import * as XLSX from 'xlsx';
 import { isWhatsAppConfigured, formatPhoneNumber, sendTextMessage } from '../services/whatsapp.service';
 
 const router = Router();
@@ -1030,6 +1031,383 @@ router.post('/students', asyncHandler(async (req: Request, res: Response): Promi
   });
 
   res.status(201).json({ student: result.student });
+}));
+
+// ─── BULK IMPORT MULTER CONFIG ────────────────────────
+const bulkUploadStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = path.join(__dirname, '../../uploads/bulk');
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    cb(null, dir);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    const uniqueName = `bulk-${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
+    cb(null, uniqueName);
+  },
+});
+const bulkUpload = multer({
+  storage: bulkUploadStorage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max
+  fileFilter: (req, file, cb) => {
+    const allowed = /csv|xlsx|xls|vnd\.openxmlformats-officedocument\.spreadsheetml\.sheet|vnd\.ms-excel|comma-separated-values/;
+    const ext = /\.(csv|xlsx|xls)$/i.test(file.originalname);
+    const mime = allowed.test(file.mimetype) || file.mimetype === 'text/csv' || file.mimetype === 'application/octet-stream';
+    if (ext && mime) cb(null, true);
+    else cb(new Error('Only CSV, XLS, and XLSX files are allowed'));
+  },
+});
+
+// GET /api/admin/students/sample-template — Download sample import template
+router.get('/students/sample-template', asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const format = (qs(req.query.format) || 'xlsx').toLowerCase();
+
+  // Fetch batches and sections for reference sheet
+  const batches = await prisma.batch.findMany({
+    where: { deletedAt: null },
+    include: { department: { select: { name: true, code: true } }, sections: { where: { deletedAt: null }, select: { name: true } } },
+    orderBy: { name: 'asc' },
+  });
+
+  // Build sample data rows
+  const sampleBatch = batches[0];
+  const sampleSection = sampleBatch?.sections?.[0];
+  const sampleRows = [
+    {
+      enrollmentNo: '2024CSE001',
+      email: 'john.doe@college.edu',
+      firstName: 'John',
+      lastName: 'Doe',
+      dob: '2005-06-15',
+      gender: 'male',
+      phone: '9876543210',
+      address: '123 Main Street, City',
+      batchName: sampleBatch ? `${sampleBatch.degree} - ${sampleBatch.name}` : 'BCA - 2024-27',
+      sectionName: sampleSection?.name || 'A',
+      semester: 1,
+    },
+    {
+      enrollmentNo: '2024CSE002',
+      email: 'jane.smith@college.edu',
+      firstName: 'Jane',
+      lastName: 'Smith',
+      dob: '2005-03-22',
+      gender: 'female',
+      phone: '9876543211',
+      address: '456 Oak Avenue, Town',
+      batchName: sampleBatch ? `${sampleBatch.degree} - ${sampleBatch.name}` : 'BCA - 2024-27',
+      sectionName: sampleSection?.name || 'A',
+      semester: 1,
+    },
+  ];
+
+  // Build reference data for batches & sections
+  const refRows = batches.flatMap((b) =>
+    b.sections.map((s) => ({
+      batchName: `${b.degree} - ${b.name}`,
+      department: `${b.department.name} (${b.department.code})`,
+      sectionName: s.name,
+      years: `${b.startYear}-${b.endYear}`,
+    }))
+  );
+
+  const wb = XLSX.utils.book_new();
+
+  // Main "Students" sheet
+  const ws = XLSX.utils.json_to_sheet(sampleRows);
+  // Set column widths
+  ws['!cols'] = [
+    { wch: 16 }, { wch: 28 }, { wch: 14 }, { wch: 14 },
+    { wch: 12 }, { wch: 8 }, { wch: 14 }, { wch: 30 },
+    { wch: 22 }, { wch: 12 }, { wch: 10 },
+  ];
+  XLSX.utils.book_append_sheet(wb, ws, 'Students');
+
+  // Reference "Batches & Sections" sheet
+  if (refRows.length > 0) {
+    const refWs = XLSX.utils.json_to_sheet(refRows);
+    refWs['!cols'] = [{ wch: 22 }, { wch: 24 }, { wch: 14 }, { wch: 12 }];
+    XLSX.utils.book_append_sheet(wb, refWs, 'Batches & Sections');
+  }
+
+  if (format === 'csv') {
+    const csv = XLSX.utils.sheet_to_csv(ws);
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="student_import_template.csv"');
+    res.send(csv);
+  } else {
+    const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename="student_import_template.xlsx"');
+    res.send(buf);
+  }
+}));
+
+// POST /api/admin/students/bulk-import — Bulk import students from CSV/XLSX
+router.post('/students/bulk-import', bulkUpload.single('file'), asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  if (!req.file) {
+    res.status(400).json({ error: 'No file provided' });
+    return;
+  }
+
+  const MAX_ROWS = 500;
+
+  try {
+    // Parse the uploaded file
+    const workbook = XLSX.readFile(req.file.path);
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const rawRows: any[] = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+
+    // Clean up uploaded file
+    fs.unlinkSync(req.file.path);
+
+    if (rawRows.length === 0) {
+      res.status(400).json({ error: 'The uploaded file contains no data rows' });
+      return;
+    }
+
+    if (rawRows.length > MAX_ROWS) {
+      res.status(400).json({ error: `Too many rows (${rawRows.length}). Maximum allowed is ${MAX_ROWS} students per import.` });
+      return;
+    }
+
+    // Fetch all batches and sections for name-based lookup
+    const allBatches = await prisma.batch.findMany({
+      where: { deletedAt: null },
+      include: { sections: { where: { deletedAt: null } } },
+    });
+
+    // Build lookup maps: "degree — name" -> batchId, "sectionName|batchId" -> sectionId
+    const batchMap = new Map<string, { id: string; sections: Map<string, string> }>();
+    for (const b of allBatches) {
+      const key = `${b.degree} — ${b.name}`.toLowerCase().trim();
+      // Also try without em-dash
+      const keyAlt = `${b.degree} - ${b.name}`.toLowerCase().trim();
+      const sectionMap = new Map<string, string>();
+      for (const s of b.sections) {
+        sectionMap.set(s.name.toLowerCase().trim(), s.id);
+      }
+      batchMap.set(key, { id: b.id, sections: sectionMap });
+      batchMap.set(keyAlt, { id: b.id, sections: sectionMap });
+      // Also support just the batch name without degree
+      batchMap.set(b.name.toLowerCase().trim(), { id: b.id, sections: sectionMap });
+    }
+
+    // Validate all rows
+    const errors: Array<{ row: number; field: string; message: string }> = [];
+    const validGenders = ['male', 'female', 'other'];
+    const requiredFields = ['enrollmentNo', 'email', 'firstName', 'lastName', 'dob', 'gender', 'phone', 'address', 'batchName', 'sectionName', 'semester'];
+
+    // Track duplicates within the file itself
+    const seenEnrollments = new Set<string>();
+    const seenEmails = new Set<string>();
+
+    interface ParsedRow {
+      enrollmentNo: string;
+      email: string;
+      firstName: string;
+      lastName: string;
+      dob: string;
+      gender: string;
+      phone: string;
+      address: string;
+      batchId: string;
+      sectionId: string;
+      semester: number;
+    }
+    const parsedRows: ParsedRow[] = [];
+
+    for (let i = 0; i < rawRows.length; i++) {
+      const row = rawRows[i];
+      const rowNum = i + 2; // +2 because row 1 is header, data starts at row 2
+
+      // Normalize field names (trim whitespace, case-insensitive match)
+      const normalizedRow: Record<string, string> = {};
+      for (const key of Object.keys(row)) {
+        normalizedRow[key.trim()] = String(row[key]).trim();
+      }
+
+      // Check required fields
+      for (const field of requiredFields) {
+        if (!normalizedRow[field] || normalizedRow[field] === '') {
+          errors.push({ row: rowNum, field, message: `${field} is required` });
+        }
+      }
+
+      // Skip further validation if required fields missing
+      if (errors.some((e) => e.row === rowNum)) {
+        parsedRows.push(null as any); // placeholder
+        continue;
+      }
+
+      const enrollmentNo = normalizedRow.enrollmentNo;
+      const email = normalizedRow.email.toLowerCase();
+      const firstName = normalizedRow.firstName;
+      const lastName = normalizedRow.lastName;
+      const dob = normalizedRow.dob;
+      const gender = normalizedRow.gender.toLowerCase();
+      const phone = normalizedRow.phone;
+      const address = normalizedRow.address;
+      const batchName = normalizedRow.batchName;
+      const sectionName = normalizedRow.sectionName;
+      const semester = parseInt(normalizedRow.semester);
+
+      // Validate gender
+      if (!validGenders.includes(gender)) {
+        errors.push({ row: rowNum, field: 'gender', message: `Invalid gender "${gender}". Must be: male, female, or other` });
+      }
+
+      // Validate semester
+      if (isNaN(semester) || semester < 1 || semester > 8) {
+        errors.push({ row: rowNum, field: 'semester', message: `Invalid semester "${normalizedRow.semester}". Must be 1-8` });
+      }
+
+      // Validate DOB format
+      const dobDate = new Date(dob);
+      if (isNaN(dobDate.getTime())) {
+        errors.push({ row: rowNum, field: 'dob', message: `Invalid date format "${dob}". Use YYYY-MM-DD` });
+      }
+
+      // Validate email format
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        errors.push({ row: rowNum, field: 'email', message: `Invalid email format "${email}"` });
+      }
+
+      // Check in-file duplicates
+      if (seenEnrollments.has(enrollmentNo.toLowerCase())) {
+        errors.push({ row: rowNum, field: 'enrollmentNo', message: `Duplicate enrollment number "${enrollmentNo}" within the file` });
+      }
+      seenEnrollments.add(enrollmentNo.toLowerCase());
+
+      if (seenEmails.has(email)) {
+        errors.push({ row: rowNum, field: 'email', message: `Duplicate email "${email}" within the file` });
+      }
+      seenEmails.add(email);
+
+      // Lookup batch by name
+      const batchLookup = batchMap.get(batchName.toLowerCase().trim());
+      if (!batchLookup) {
+        errors.push({ row: rowNum, field: 'batchName', message: `Batch "${batchName}" not found. Check the "Batches & Sections" reference sheet.` });
+        parsedRows.push(null as any);
+        continue;
+      }
+
+      // Lookup section by name within the batch
+      const sectionId = batchLookup.sections.get(sectionName.toLowerCase().trim());
+      if (!sectionId) {
+        errors.push({ row: rowNum, field: 'sectionName', message: `Section "${sectionName}" not found in batch "${batchName}".` });
+        parsedRows.push(null as any);
+        continue;
+      }
+
+      parsedRows.push({
+        enrollmentNo, email, firstName, lastName, dob,
+        gender, phone, address,
+        batchId: batchLookup.id, sectionId, semester,
+      });
+    }
+
+    // Check for DB-level duplicates (enrollment numbers and emails)
+    const allEnrollments = [...seenEnrollments];
+    const allEmails = [...seenEmails];
+
+    const [existingStudents, existingUsers] = await Promise.all([
+      prisma.student.findMany({
+        where: { enrollmentNo: { in: allEnrollments.map(e => e.toUpperCase()).concat(allEnrollments) }, deletedAt: null },
+        select: { enrollmentNo: true },
+      }),
+      prisma.user.findMany({
+        where: { email: { in: allEmails }, deletedAt: null },
+        select: { email: true },
+      }),
+    ]);
+
+    const existingEnrollmentSet = new Set(existingStudents.map((s) => s.enrollmentNo.toLowerCase()));
+    const existingEmailSet = new Set(existingUsers.map((u) => u.email.toLowerCase()));
+
+    for (let i = 0; i < rawRows.length; i++) {
+      const parsed = parsedRows[i];
+      if (!parsed) continue;
+      const rowNum = i + 2;
+
+      if (existingEnrollmentSet.has(parsed.enrollmentNo.toLowerCase())) {
+        errors.push({ row: rowNum, field: 'enrollmentNo', message: `Enrollment number "${parsed.enrollmentNo}" already exists in the database` });
+      }
+      if (existingEmailSet.has(parsed.email.toLowerCase())) {
+        errors.push({ row: rowNum, field: 'email', message: `Email "${parsed.email}" already exists in the database` });
+      }
+    }
+
+    // If any errors, return them all without importing
+    if (errors.length > 0) {
+      // Sort errors by row number
+      errors.sort((a, b) => a.row - b.row || a.field.localeCompare(b.field));
+      res.status(400).json({
+        error: 'Validation failed',
+        totalRows: rawRows.length,
+        errorCount: errors.length,
+        errors,
+      });
+      return;
+    }
+
+    // All rows valid — insert in a single transaction
+    const validRows = parsedRows.filter(Boolean);
+    const imported = await prisma.$transaction(async (tx) => {
+      const results: Array<{ enrollmentNo: string; name: string }> = [];
+
+      for (const row of validRows) {
+        // Generate password from DOB (DDMMYYYY)
+        const dobDate = new Date(row.dob);
+        const dd = String(dobDate.getDate()).padStart(2, '0');
+        const mm = String(dobDate.getMonth() + 1).padStart(2, '0');
+        const yyyy = String(dobDate.getFullYear());
+        const autoPassword = `${dd}${mm}${yyyy}`;
+
+        const user = await tx.user.create({
+          data: {
+            email: row.email,
+            name: `${row.firstName} ${row.lastName}`,
+            passwordHash: await hashPassword(autoPassword),
+            role: 'student',
+          },
+        });
+
+        await tx.student.create({
+          data: {
+            enrollmentNo: row.enrollmentNo,
+            userId: user.id,
+            firstName: row.firstName,
+            lastName: row.lastName,
+            dob: new Date(row.dob),
+            gender: row.gender as any,
+            phone: row.phone,
+            address: row.address,
+            batchId: row.batchId,
+            sectionId: row.sectionId,
+            semester: row.semester,
+          },
+        });
+
+        results.push({ enrollmentNo: row.enrollmentNo, name: `${row.firstName} ${row.lastName}` });
+      }
+
+      return results;
+    });
+
+    res.status(201).json({
+      message: `Successfully imported ${imported.length} students`,
+      imported: imported.length,
+      students: imported,
+    });
+  } catch (err: any) {
+    // Clean up file if it still exists
+    if (req.file?.path && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    throw err;
+  }
 }));
 
 // GET /api/admin/students/:id

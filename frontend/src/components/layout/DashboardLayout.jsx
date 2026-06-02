@@ -2,9 +2,12 @@ import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
+import AiAssistant from '../AiAssistant';
+import useAuthStore from '../../store/authStore';
 
 export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const user = useAuthStore((s) => s.user);
 
   return (
     <div className="dashboard-layout">
@@ -26,6 +29,9 @@ export default function DashboardLayout() {
           onClick={() => setSidebarOpen(false)}
         />
       )}
+      {/* AI Assistant — admin only */}
+      {user?.role === 'admin' && <AiAssistant />}
     </div>
   );
 }
+

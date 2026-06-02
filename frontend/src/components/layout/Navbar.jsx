@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { HiOutlineMenu, HiOutlineBell, HiOutlineArrowLeft, HiOutlineMail, HiOutlineChat } from 'react-icons/hi';
+import { Menu, Bell, ArrowLeft, Mail, MessageSquare, ScanBarcode } from 'lucide-react';
 import useAuthStore from '../../store/authStore';
 import ThemeToggle from './ThemeToggle';
 import client from '../../api/client';
@@ -148,7 +148,7 @@ export default function Navbar({ onMenuToggle }) {
     <header className="navbar">
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
         <button className="menu-toggle" onClick={onMenuToggle} title="Toggle Sidebar">
-          <HiOutlineMenu />
+          <Menu className="idata" />
         </button>
         
         {!isDashboardRoot && (
@@ -166,7 +166,7 @@ export default function Navbar({ onMenuToggle }) {
               transition: 'all var(--transition-fast)',
             }}
           >
-            <HiOutlineArrowLeft style={{ fontSize: '1.25rem' }} />
+            <ArrowLeft className="idata" />
           </button>
         )}
         
@@ -174,6 +174,16 @@ export default function Navbar({ onMenuToggle }) {
       </div>
       
       <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        {user?.role && ['admin', 'teacher'].includes(user.role) && (
+          <button 
+            className="btn btn-ghost" 
+            title="Scan Barcode / Verify Student"
+            onClick={() => navigate(user.role === 'admin' ? '/admin/verify' : '/teacher/verify')}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <ScanBarcode className="idata" />
+          </button>
+        )}
         <ThemeToggle />
         
         <div style={{ position: 'relative', display: 'inline-block' }} ref={dropdownRef}>
@@ -183,7 +193,7 @@ export default function Navbar({ onMenuToggle }) {
             onClick={() => setDropdownOpen(!dropdownOpen)}
             style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
-            <HiOutlineBell style={{ fontSize: '1.25rem' }} />
+            <Bell className="idata" />
             {unreadCount > 0 && (
               <span style={{
                 position: 'absolute',
@@ -268,7 +278,7 @@ export default function Navbar({ onMenuToggle }) {
                     textAlign: 'center',
                     color: 'var(--color-gray-400)',
                   }}>
-                    <HiOutlineBell size={32} style={{ marginBottom: 'var(--space-2)', opacity: 0.5, margin: '0 auto 8px' }} />
+                    <Bell className="idata" style={{ width: '32px', height: '32px', marginBottom: 'var(--space-2)', opacity: 0.5, margin: '0 auto 8px' }} />
                     <p style={{ fontSize: 'var(--font-sm)', fontWeight: 600 }}>All caught up!</p>
                     <p style={{ fontSize: 'var(--font-xs)', color: 'var(--color-gray-400)' }}>No new notifications.</p>
                   </div>
@@ -300,7 +310,7 @@ export default function Navbar({ onMenuToggle }) {
                         color: notif.type === 'feedback_submitted' ? 'var(--color-purple-600)' : 'var(--color-success)',
                         flexShrink: 0,
                       }}>
-                        {notif.type === 'feedback_submitted' ? <HiOutlineMail size={16} /> : <HiOutlineChat size={16} />}
+                        {notif.type === 'feedback_submitted' ? <Mail className="idata" style={{ width: '16px', height: '16px' }} /> : <MessageSquare className="idata" style={{ width: '16px', height: '16px' }} />}
                       </div>
 
                       <div style={{ flex: 1, minWidth: 0 }}>
@@ -347,7 +357,7 @@ export default function Navbar({ onMenuToggle }) {
           )}
         </div>
 
-        <div style={{
+        <div className="navbar-user-pill" style={{
           display: 'flex',
           alignItems: 'center',
           gap: '0.5rem',

@@ -402,4 +402,556 @@ IMPORTANT: Only reference section names that appear in the JSON. Only quote perc
   }
 });
 
+// ═══════════════════════════════════════════════════════
+// POST /api/ai/chat
+// Natural-language assistant: answers questions about
+// students, attendance, marks, batches, and at-risk data
+// ═══════════════════════════════════════════════════════
+
+const CHAT_SYSTEM_INSTRUCTION = `You are a helpful college management assistant embedded in a student tracking system.
+You answer questions about students, attendance, marks, batches, departments, and academic performance.
+
+CRITICAL RULES:
+1. ONLY reference data that is explicitly provided to you. NEVER invent student names, numbers, or statistics.
+2. When you mention a specific student, ALWAYS include a markdown link in this exact format: [Student Full Name](/admin/students/STUDENT_ID)
+3. Format responses in clean, concise markdown. Use bullet points, bold, and headers where helpful.
+4. Keep responses focused and actionable — admins are busy.
+5. If the data provided is empty or insufficient, say so clearly instead of guessing.
+6. When showing percentages or numbers, use the exact values from the provided data.
+7. For attendance, "present" and "late" both count as attended; only "absent" is missed.`;
+
+const INTENT_SYSTEM_INSTRUCTION = `You are an intent classifier for a college management system. Given a user's question, output ONLY valid JSON (no markdown fences, no explanation) with this structure:
+{
+  "intent": "student_lookup" | "attendance_query" | "marks_query" | "batch_stats" | "at_risk" | "general",
+  "entities": {
+    "studentName": string | null,
+    "enrollmentNo": string | null,
+    "batchName": string | null,
+    "departmentName": string | null,
+    "sectionName": string | null,
+    "courseName": string | null,
+    "semester": number | null,
+    "degreeName": string | null
+  }
+}
+
+Examples:
+- "How's the attendance of BCOM class" → intent: "attendance_query", degreeName: "BCOM"
+- "Tell me about student Rahul" → intent: "student_lookup", studentName: "Rahul"
+- "Top students in semester 3" → intent: "marks_query", semester: 3
+- "Which students have low attendance?" → intent: "at_risk"
+- "How many students in Commerce?" → intent: "batch_stats", departmentName: "Commerce"`;
+
+/** Levenshtein distance for fuzzy name matching */
+function levenshtein(a: string, b: string): number {
+  const la = a.length, lb = b.length;
+  const dp: number[][] = Array.from({ length: la + 1 }, () => Array(lb + 1).fill(0));
+  for (let i = 0; i <= la; i++) dp[i][0] = i;
+  for (let j = 0; j <= lb; j++) dp[0][j] = j;
+  for (let i = 1; i <= la; i++) {
+    for (let j = 1; j <= lb; j++) {
+      dp[i][j] = a[i - 1] === b[j - 1]
+        ? dp[i - 1][j - 1]
+        : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+    }
+  }
+  return dp[la][lb];
+}
+
+/** Compute similarity score (0-1) between a query and a full name */
+function nameSimilarity(query: string, fullName: string): number {
+  const q = query.toLowerCase().trim();
+  const n = fullName.toLowerCase().trim();
+  // Exact substring match gets a high boost
+  if (n.includes(q) || q.includes(n)) return 0.9;
+  const dist = levenshtein(q, n);
+  const maxLen = Math.max(q.length, n.length);
+  if (maxLen === 0) return 0;
+  // Also check each word in the name individually
+  const words = n.split(/\s+/);
+  const qWords = q.split(/\s+/);
+  let bestWordScore = 0;
+  for (const qw of qWords) {
+    for (const w of words) {
+      const wordDist = levenshtein(qw, w);
+      const wordMax = Math.max(qw.length, w.length);
+      const wordScore = wordMax > 0 ? 1 - wordDist / wordMax : 0;
+      bestWordScore = Math.max(bestWordScore, wordScore);
+    }
+  }
+  const fullScore = 1 - dist / maxLen;
+  return Math.max(fullScore, bestWordScore);
+}
+
+router.post('/chat', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { message } = req.body;
+
+    if (!message || typeof message !== 'string' || message.trim().length === 0) {
+      res.status(400).json({ error: 'Message is required' });
+      return;
+    }
+
+    if (!genAI) {
+      res.json({ reply: '⚠️ **AI Not Configured**\n\nGemini API key is not set. Please add `GEMINI_API_KEY` to your `.env` file to enable the assistant.' });
+      return;
+    }
+
+    console.log(`[AI Chat] Question: "${message}"`);
+
+    // ── Step 1: Classify intent ─────────────────────────
+    let intent = 'general';
+    let entities: any = {};
+
+    try {
+      const intentModel = genAI.getGenerativeModel({
+        model: 'gemini-2.5-flash',
+        systemInstruction: INTENT_SYSTEM_INSTRUCTION,
+      });
+      const intentResult = await intentModel.generateContent(message);
+      const intentText = intentResult.response.text().trim();
+      // Strip markdown code fences if present
+      const cleanJson = intentText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+      const parsed = JSON.parse(cleanJson);
+      intent = parsed.intent || 'general';
+      entities = parsed.entities || {};
+      console.log(`[AI Chat] Intent: ${intent}, Entities:`, JSON.stringify(entities));
+    } catch (parseErr: any) {
+      console.warn('[AI Chat] Intent parse failed, falling back to general:', parseErr.message);
+      intent = 'general';
+    }
+
+    // ── Step 2: Fetch relevant data ─────────────────────
+    let contextData: any = {};
+    let contextDescription = '';
+
+    try {
+      switch (intent) {
+        case 'student_lookup': {
+          const where: any = { deletedAt: null };
+          if (entities.enrollmentNo) {
+            where.enrollmentNo = entities.enrollmentNo;
+          } else if (entities.studentName) {
+            const nameParts = entities.studentName.trim().split(/\s+/);
+            if (nameParts.length === 1) {
+              where.OR = [
+                { firstName: { contains: nameParts[0], mode: 'insensitive' } },
+                { lastName: { contains: nameParts[0], mode: 'insensitive' } },
+              ];
+            } else {
+              where.OR = [
+                {
+                  firstName: { contains: nameParts[0], mode: 'insensitive' },
+                  lastName: { contains: nameParts.slice(1).join(' '), mode: 'insensitive' },
+                },
+                { firstName: { contains: entities.studentName, mode: 'insensitive' } },
+                { lastName: { contains: entities.studentName, mode: 'insensitive' } },
+              ];
+            }
+          }
+
+          const students = await prisma.student.findMany({
+            where,
+            take: 10,
+            include: {
+              batch: { select: { name: true, degree: true } },
+              section: { select: { name: true } },
+              attendance: { select: { status: true } },
+              marks: {
+                select: { marksObtained: true, maxMarks: true, assessmentType: true },
+              },
+            },
+          });
+
+          // ── Fuzzy fallback: if no results and we have a name, find closest matches ──
+          if (students.length === 0 && entities.studentName) {
+            const allStudents = await prisma.student.findMany({
+              where: { deletedAt: null },
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                enrollmentNo: true,
+                semester: true,
+                status: true,
+                batch: { select: { name: true, degree: true } },
+                section: { select: { name: true } },
+              },
+            });
+
+            const scored = allStudents
+              .map(s => ({
+                id: s.id,
+                name: `${s.firstName} ${s.lastName}`,
+                enrollmentNo: s.enrollmentNo,
+                semester: s.semester,
+                status: s.status,
+                batch: s.batch.name,
+                degree: s.batch.degree,
+                section: s.section.name,
+                similarity: nameSimilarity(entities.studentName, `${s.firstName} ${s.lastName}`),
+              }))
+              .filter(s => s.similarity >= 0.3)
+              .sort((a, b) => b.similarity - a.similarity)
+              .slice(0, 5);
+
+            contextData = {
+              exactMatches: [],
+              fuzzyQuery: entities.studentName,
+              suggestions: scored,
+            };
+            contextDescription = `No exact match for "${entities.studentName}". Found ${scored.length} similar name(s) as suggestions.`;
+            console.log(`[AI Chat] Fuzzy fallback: ${scored.length} suggestions for "${entities.studentName}"`);
+          } else {
+            contextData = students.map(s => {
+              const totalAtt = s.attendance.length;
+              const presentCount = s.attendance.filter(a => a.status === 'present' || a.status === 'late').length;
+              const totalMarks = s.marks.reduce((sum, m) => sum + Number(m.marksObtained), 0);
+              const maxMarks = s.marks.reduce((sum, m) => sum + Number(m.maxMarks), 0);
+              return {
+                id: s.id,
+                name: `${s.firstName} ${s.lastName}`,
+                enrollmentNo: s.enrollmentNo,
+                semester: s.semester,
+                status: s.status,
+                batch: s.batch.name,
+                degree: s.batch.degree,
+                section: s.section.name,
+                phone: s.phone,
+                attendanceRate: totalAtt > 0 ? ((presentCount / totalAtt) * 100).toFixed(1) + '%' : 'No records',
+                marksPercentage: maxMarks > 0 ? ((totalMarks / maxMarks) * 100).toFixed(1) + '%' : 'No records',
+                totalAssessments: s.marks.length,
+              };
+            });
+            contextDescription = `Found ${contextData.length} student(s) matching the query.`;
+          }
+          break;
+        }
+
+        case 'attendance_query': {
+          // Build student filter
+          const studentWhere: any = { deletedAt: null, status: 'active' };
+          if (entities.degreeName) {
+            studentWhere.batch = { degree: { contains: entities.degreeName, mode: 'insensitive' } };
+          }
+          if (entities.batchName) {
+            studentWhere.batch = { ...studentWhere.batch, name: { contains: entities.batchName, mode: 'insensitive' } };
+          }
+          if (entities.departmentName) {
+            studentWhere.batch = {
+              ...studentWhere.batch,
+              department: { name: { contains: entities.departmentName, mode: 'insensitive' } },
+            };
+          }
+          if (entities.sectionName) {
+            studentWhere.section = { name: { contains: entities.sectionName, mode: 'insensitive' } };
+          }
+          if (entities.semester) {
+            studentWhere.semester = entities.semester;
+          }
+          if (entities.studentName) {
+            const nameParts = entities.studentName.trim().split(/\s+/);
+            studentWhere.OR = [
+              { firstName: { contains: nameParts[0], mode: 'insensitive' } },
+              { lastName: { contains: nameParts[0], mode: 'insensitive' } },
+            ];
+          }
+
+          const students = await prisma.student.findMany({
+            where: studentWhere,
+            take: 50,
+            include: {
+              batch: { select: { name: true, degree: true } },
+              section: { select: { name: true } },
+              attendance: { select: { status: true, date: true } },
+            },
+          });
+
+          if (entities.studentName && students.length <= 5) {
+            // Individual student attendance detail
+            contextData = students.map(s => {
+              const total = s.attendance.length;
+              const present = s.attendance.filter(a => a.status === 'present' || a.status === 'late').length;
+              const absent = s.attendance.filter(a => a.status === 'absent').length;
+              return {
+                id: s.id,
+                name: `${s.firstName} ${s.lastName}`,
+                enrollmentNo: s.enrollmentNo,
+                batch: s.batch.name,
+                degree: s.batch.degree,
+                section: s.section.name,
+                semester: s.semester,
+                totalClasses: total,
+                present,
+                absent,
+                attendanceRate: total > 0 ? ((present / total) * 100).toFixed(1) + '%' : 'No records',
+              };
+            });
+          } else {
+            // Aggregate attendance
+            const overall = { totalStudents: students.length, totalRecords: 0, totalPresent: 0, totalAbsent: 0 };
+            const studentSummaries = students.map(s => {
+              const total = s.attendance.length;
+              const present = s.attendance.filter(a => a.status === 'present' || a.status === 'late').length;
+              overall.totalRecords += total;
+              overall.totalPresent += present;
+              overall.totalAbsent += s.attendance.filter(a => a.status === 'absent').length;
+              return {
+                id: s.id,
+                name: `${s.firstName} ${s.lastName}`,
+                enrollmentNo: s.enrollmentNo,
+                batch: `${s.batch.degree} - ${s.batch.name}`,
+                section: s.section.name,
+                attendanceRate: total > 0 ? parseFloat(((present / total) * 100).toFixed(1)) : null,
+              };
+            });
+
+            // Sort: lowest attendance first
+            studentSummaries.sort((a, b) => (a.attendanceRate ?? 100) - (b.attendanceRate ?? 100));
+
+            contextData = {
+              summary: {
+                ...overall,
+                overallRate: overall.totalRecords > 0
+                  ? ((overall.totalPresent / overall.totalRecords) * 100).toFixed(1) + '%'
+                  : 'No records',
+              },
+              bottomStudents: studentSummaries.slice(0, 10),
+              topStudents: studentSummaries.filter(s => s.attendanceRate !== null).slice(-5).reverse(),
+            };
+          }
+          contextDescription = `Attendance data for ${students.length} students.`;
+          break;
+        }
+
+        case 'marks_query': {
+          const studentWhere: any = { deletedAt: null, status: 'active' };
+          if (entities.degreeName) {
+            studentWhere.batch = { degree: { contains: entities.degreeName, mode: 'insensitive' } };
+          }
+          if (entities.batchName) {
+            studentWhere.batch = { ...studentWhere.batch, name: { contains: entities.batchName, mode: 'insensitive' } };
+          }
+          if (entities.departmentName) {
+            studentWhere.batch = {
+              ...studentWhere.batch,
+              department: { name: { contains: entities.departmentName, mode: 'insensitive' } },
+            };
+          }
+          if (entities.semester) {
+            studentWhere.semester = entities.semester;
+          }
+          if (entities.studentName) {
+            const nameParts = entities.studentName.trim().split(/\s+/);
+            studentWhere.OR = [
+              { firstName: { contains: nameParts[0], mode: 'insensitive' } },
+              { lastName: { contains: nameParts[0], mode: 'insensitive' } },
+            ];
+          }
+
+          const students = await prisma.student.findMany({
+            where: studentWhere,
+            take: 50,
+            include: {
+              batch: { select: { name: true, degree: true } },
+              section: { select: { name: true } },
+              marks: {
+                include: { course: { select: { code: true, name: true } } },
+                orderBy: { semester: 'asc' },
+              },
+            },
+          });
+
+          const studentSummaries = students.map(s => {
+            const totalObtained = s.marks.reduce((sum, m) => sum + Number(m.marksObtained), 0);
+            const totalMax = s.marks.reduce((sum, m) => sum + Number(m.maxMarks), 0);
+            return {
+              id: s.id,
+              name: `${s.firstName} ${s.lastName}`,
+              enrollmentNo: s.enrollmentNo,
+              batch: `${s.batch.degree} - ${s.batch.name}`,
+              section: s.section.name,
+              semester: s.semester,
+              totalAssessments: s.marks.length,
+              percentage: totalMax > 0 ? parseFloat(((totalObtained / totalMax) * 100).toFixed(1)) : null,
+              courseBreakdown: entities.studentName && students.length <= 3
+                ? s.marks.map(m => ({
+                    course: `${m.course.code} - ${m.course.name}`,
+                    type: m.assessmentType,
+                    obtained: Number(m.marksObtained),
+                    max: Number(m.maxMarks),
+                    percentage: ((Number(m.marksObtained) / Number(m.maxMarks)) * 100).toFixed(1) + '%',
+                  }))
+                : undefined,
+            };
+          });
+
+          // Sort: highest percentage first
+          studentSummaries.sort((a, b) => (b.percentage ?? 0) - (a.percentage ?? 0));
+          contextData = {
+            totalStudents: studentSummaries.length,
+            topPerformers: studentSummaries.slice(0, 10),
+            needsImprovement: studentSummaries.filter(s => s.percentage !== null && s.percentage < 40),
+          };
+          contextDescription = `Marks data for ${students.length} students.`;
+          break;
+        }
+
+        case 'batch_stats': {
+          const deptWhere: any = { deletedAt: null };
+          if (entities.departmentName) {
+            deptWhere.name = { contains: entities.departmentName, mode: 'insensitive' };
+          }
+
+          const departments = await prisma.department.findMany({
+            where: deptWhere,
+            include: {
+              batches: {
+                where: { deletedAt: null },
+                include: {
+                  _count: { select: { students: true, sections: true } },
+                  sections: { where: { deletedAt: null }, select: { name: true, _count: { select: { students: true } } } },
+                },
+              },
+              _count: { select: { staff: true } },
+            },
+          });
+
+          contextData = departments.map(d => ({
+            department: d.name,
+            departmentCode: d.code,
+            staffCount: d._count.staff,
+            batches: d.batches.map(b => ({
+              name: b.name,
+              degree: b.degree,
+              startYear: b.startYear,
+              endYear: b.endYear,
+              studentCount: b._count.students,
+              sectionCount: b._count.sections,
+              sections: b.sections.map(s => ({ name: s.name, students: s._count.students })),
+            })),
+            totalStudents: d.batches.reduce((sum, b) => sum + b._count.students, 0),
+          }));
+          contextDescription = `Stats for ${departments.length} department(s).`;
+          break;
+        }
+
+        case 'at_risk': {
+          const studentWhere: any = { deletedAt: null, status: 'active' };
+          if (entities.degreeName) {
+            studentWhere.batch = { degree: { contains: entities.degreeName, mode: 'insensitive' } };
+          }
+          if (entities.semester) {
+            studentWhere.semester = entities.semester;
+          }
+          if (entities.departmentName) {
+            studentWhere.batch = {
+              ...studentWhere.batch,
+              department: { name: { contains: entities.departmentName, mode: 'insensitive' } },
+            };
+          }
+
+          const students = await prisma.student.findMany({
+            where: studentWhere,
+            include: {
+              batch: { select: { name: true, degree: true } },
+              section: { select: { name: true } },
+              marks: { select: { marksObtained: true, maxMarks: true } },
+              attendance: { select: { status: true } },
+            },
+          });
+
+          const atRisk = students
+            .map(s => {
+              const totalMarks = s.marks.reduce((sum, m) => sum + Number(m.marksObtained), 0);
+              const maxMarks = s.marks.reduce((sum, m) => sum + Number(m.maxMarks), 0);
+              const marksPercentage = maxMarks > 0 ? (totalMarks / maxMarks) * 100 : null;
+              const totalAtt = s.attendance.length;
+              const present = s.attendance.filter(a => a.status === 'present' || a.status === 'late').length;
+              const attRate = totalAtt > 0 ? (present / totalAtt) * 100 : null;
+              const isAtRisk =
+                (marksPercentage !== null && marksPercentage < 40) ||
+                (attRate !== null && attRate < 75);
+              return {
+                id: s.id,
+                name: `${s.firstName} ${s.lastName}`,
+                enrollmentNo: s.enrollmentNo,
+                batch: `${s.batch.degree} - ${s.batch.name}`,
+                section: s.section.name,
+                semester: s.semester,
+                marksPercentage: marksPercentage !== null ? parseFloat(marksPercentage.toFixed(1)) : 'No data',
+                attendanceRate: attRate !== null ? parseFloat(attRate.toFixed(1)) : 'No data',
+                isAtRisk,
+              };
+            })
+            .filter(s => s.isAtRisk);
+
+          contextData = {
+            totalAnalyzed: students.length,
+            atRiskCount: atRisk.length,
+            riskRate: students.length > 0 ? ((atRisk.length / students.length) * 100).toFixed(1) + '%' : '0%',
+            students: atRisk.slice(0, 20),
+          };
+          contextDescription = `At-risk analysis: ${atRisk.length} of ${students.length} students flagged.`;
+          break;
+        }
+
+        default: {
+          // General: provide a summary of available data
+          const [studentCount, staffCount, deptCount, batchCount] = await Promise.all([
+            prisma.student.count({ where: { deletedAt: null, status: 'active' } }),
+            prisma.staff.count({ where: { deletedAt: null } }),
+            prisma.department.count({ where: { deletedAt: null } }),
+            prisma.batch.count({ where: { deletedAt: null } }),
+          ]);
+          contextData = { activeStudents: studentCount, staff: staffCount, departments: deptCount, batches: batchCount };
+          contextDescription = 'General system statistics.';
+          break;
+        }
+      }
+    } catch (dataErr: any) {
+      console.error('[AI Chat] Data fetch error:', dataErr.message);
+      contextData = { error: 'Failed to fetch some data from the database.' };
+    }
+
+    // ── Step 3: Generate response ───────────────────────
+    const responsePrompt = `The admin asked: "${message}"
+
+I classified this as intent: "${intent}".
+${contextDescription}
+
+Here is the EXACT data from the database (do NOT invent any additional data):
+\`\`\`json
+${JSON.stringify(contextData, null, 2)}
+\`\`\`
+
+Based STRICTLY on the data above, provide a helpful, concise response.
+
+IMPORTANT FORMATTING RULES:
+- When mentioning a specific student, ALWAYS use this exact markdown link format: [Full Name](/admin/students/THEIR_ID) — use the "id" field from the data
+- Keep the response concise (under 300 words unless the data warrants more)
+- Use markdown formatting: **bold** for emphasis, bullet points for lists
+- If the data contains a "suggestions" array (fuzzy matches), present them as a friendly "Did you mean?" list. For each suggestion, show the student's name as a clickable link, along with their batch/degree, section, and semester. Do NOT say "no student found" — instead help the admin pick the right one.
+- If no data was found AND no suggestions exist, say so clearly and suggest what the admin can try
+- Do NOT make up any student names, IDs, percentages, or statistics not in the data above`;
+
+    const chatModel = genAI.getGenerativeModel({
+      model: 'gemini-2.5-flash',
+      systemInstruction: CHAT_SYSTEM_INSTRUCTION,
+    });
+    const chatResult = await chatModel.generateContent(responsePrompt);
+    const reply = chatResult.response.text();
+
+    console.log(`[AI Chat] Reply generated (${reply.length} chars)`);
+    res.json({ reply });
+  } catch (err: any) {
+    console.error('[AI Chat] Error:', err);
+    if (err.status === 429 || err.message?.includes('429') || err.message?.includes('quota')) {
+      res.json({ reply: '⚠️ **Rate Limit Exceeded**\n\nThe AI quota has been exceeded. Please wait a moment and try again.' });
+      return;
+    }
+    res.status(500).json({ error: err.message || 'Chat request failed' });
+  }
+});
+
 export default router;

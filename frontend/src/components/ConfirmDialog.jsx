@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { HiOutlineExclamation } from 'react-icons/hi';
+import { AlertTriangle } from 'lucide-react';
 
 /**
  * Reusable confirmation dialog that replaces window.confirm().
@@ -69,7 +69,7 @@ export default function ConfirmDialog({
               margin: '0 auto var(--space-5)',
             }}
           >
-            <HiOutlineExclamation size={28} style={{ color: '#ef4444' }} />
+            <AlertTriangle className="idata" style={{ color: '#ef4444', width: '28px', height: '28px' }} />
           </div>
 
           <h3

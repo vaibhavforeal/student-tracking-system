@@ -5,8 +5,9 @@ import {
   HiOutlinePlus, HiOutlineTrash,
   HiOutlineAcademicCap, HiOutlineHeart, HiOutlineUser,
   HiOutlineLightBulb, HiOutlineBookOpen, HiOutlineDocumentText,
-  HiOutlineBriefcase,
+  HiOutlineBriefcase, HiOutlinePrinter,
 } from 'react-icons/hi';
+import BarcodeGenerator from '../../components/BarcodeGenerator';
 
 export default function StudentDetail() {
   const { id } = useParams();
@@ -17,6 +18,7 @@ export default function StudentDetail() {
   const [student, setStudent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showGraduateModal, setShowGraduateModal] = useState(false);
+  const [showBarcodeModal, setShowBarcodeModal] = useState(false);
 
   const fetchStudent = useCallback(async () => {
     try {
@@ -51,6 +53,15 @@ export default function StudentDetail() {
           </div>
         </div>
         <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
+          {!isTeacher && (
+            <button
+              className="btn btn-secondary btn-sm"
+              onClick={() => setShowBarcodeModal(true)}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+            >
+              <HiOutlinePrinter /> Print Barcode
+            </button>
+          )}
           {!isTeacher && student.status === 'active' && (
             <button
               className="btn btn-secondary btn-sm"
@@ -90,6 +101,13 @@ export default function StudentDetail() {
             setShowGraduateModal(false);
             fetchStudent();
           }}
+        />
+      )}
+
+      {showBarcodeModal && (
+        <BarcodePrintModal
+          student={student}
+          onClose={() => setShowBarcodeModal(false)}
         />
       )}
     </div>
@@ -736,6 +754,55 @@ function GraduateModal({ student, onClose, onSuccess }) {
             <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? 'Graduating...' : 'Graduate Student'}</button>
           </div>
         </form>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
+   MODAL: Print Barcode Strip
+   ═══════════════════════════════════════════════════════ */
+function BarcodePrintModal({ student, onClose }) {
+  const handlePrint = () => {
+    window.print();
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '480px' }}>
+        <div className="modal-header no-print">
+          <h2>Print Barcode</h2>
+          <button className="btn btn-ghost" onClick={onClose}>✕</button>
+        </div>
+        <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--space-4)' }}>
+          {/* Barcode Strip Preview */}
+          <div className="barcode-strip" id="barcode-print-area">
+            <div className="barcode-strip-name">
+              {student.firstName} {student.lastName}
+            </div>
+            <BarcodeGenerator
+              value={student.enrollmentNo}
+              width={2}
+              height={50}
+              displayValue={true}
+              fontSize={12}
+            />
+            <div className="barcode-strip-meta">
+              {student.batch?.department?.name || ''} • {student.batch?.name || ''}
+            </div>
+          </div>
+
+          <p className="no-print" style={{ fontSize: 'var(--font-sm)', color: 'var(--color-gray-500)', textAlign: 'center' }}>
+            The barcode encodes the enrollment number <strong>{student.enrollmentNo}</strong>.<br />
+            Use the print button to print this barcode strip for the student's ID card.
+          </p>
+        </div>
+        <div className="modal-footer no-print">
+          <button className="btn btn-secondary" onClick={onClose}>Close</button>
+          <button className="btn btn-primary" onClick={handlePrint} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+            <HiOutlinePrinter /> Print
+          </button>
+        </div>
       </div>
     </div>
   );

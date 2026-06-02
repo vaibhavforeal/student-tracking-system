@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import client from '../../api/client';
 import {
-  HiOutlineAcademicCap, HiOutlineUserGroup,
-  HiOutlineOfficeBuilding, HiOutlineBookOpen, HiOutlineBriefcase,
-} from 'react-icons/hi';
+  GraduationCap, Users, Building2, BookOpen, Briefcase, Layers, ClipboardList
+} from 'lucide-react';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState(null);
@@ -28,15 +27,15 @@ export default function AdminDashboard() {
   }
 
   const statCards = [
-    { label: 'Total Students', value: stats?.totalStudents || 0, icon: HiOutlineAcademicCap, color: 'sky' },
-    { label: 'Total Staff', value: stats?.totalStaff || 0, icon: HiOutlineUserGroup, color: 'purple' },
-    { label: 'Departments', value: stats?.totalDepartments || 0, icon: HiOutlineOfficeBuilding, color: 'green' },
-    { label: 'Courses', value: stats?.totalCourses || 0, icon: HiOutlineBookOpen, color: 'amber' },
-    { label: 'Batches', value: stats?.totalBatches || 0, icon: HiOutlineAcademicCap, color: 'purple' },
-    { label: 'Sections', value: stats?.totalSections || 0, icon: HiOutlineUserGroup, color: 'sky' },
-    { label: 'Active Students', value: stats?.activeStudents || 0, icon: HiOutlineAcademicCap, color: 'green' },
-    { label: 'Inactive Students', value: stats?.inactiveStudents || 0, icon: HiOutlineAcademicCap, color: 'amber' },
-    { label: 'Total Alumni', value: stats?.totalAlumni || 0, icon: HiOutlineBriefcase, color: 'purple' },
+    { label: 'Total Students', value: stats?.totalStudents || 0, icon: GraduationCap, color: 'sky' },
+    { label: 'Total Staff', value: stats?.totalStaff || 0, icon: Users, color: 'purple' },
+    { label: 'Departments', value: stats?.totalDepartments || 0, icon: Building2, color: 'green' },
+    { label: 'Courses', value: stats?.totalCourses || 0, icon: BookOpen, color: 'amber' },
+    { label: 'Batches', value: stats?.totalBatches || 0, icon: Layers, color: 'purple' },
+    { label: 'Sections', value: stats?.totalSections || 0, icon: ClipboardList, color: 'sky' },
+    { label: 'Active Students', value: stats?.activeStudents || 0, icon: GraduationCap, color: 'green' },
+    { label: 'Inactive Students', value: stats?.inactiveStudents || 0, icon: GraduationCap, color: 'amber' },
+    { label: 'Total Alumni', value: stats?.totalAlumni || 0, icon: Briefcase, color: 'purple' },
   ];
 
   return (
@@ -52,7 +51,7 @@ export default function AdminDashboard() {
         {statCards.map((card, i) => (
           <div key={i} className="stat-card slide-up" style={{ animationDelay: `${i * 50}ms` }}>
             <div className={`stat-icon ${card.color}`}>
-              <card.icon />
+              <card.icon className="idata" />
             </div>
             <div className="stat-info">
               <div className="stat-value">{card.value}</div>

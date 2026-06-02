@@ -3,10 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import client from '../../api/client';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import {
-  HiOutlineBriefcase, HiOutlineSearch, HiOutlineAcademicCap,
-  HiOutlineDocumentDownload, HiOutlineEye, HiOutlineArrowLeft,
-  HiOutlineOfficeBuilding, HiOutlineCollection, HiOutlineCalendar
-} from 'react-icons/hi';
+  Briefcase, Search, GraduationCap, Download, Eye, ArrowLeft,
+  Building2, Layers, Calendar
+} from 'lucide-react';
 
 export default function AlumniDatabase() {
   const [alumni, setAlumni] = useState([]);
@@ -211,15 +210,15 @@ export default function AlumniDatabase() {
           <p className="page-subtitle">Track and manage graduated student profiles</p>
         </div>
         <button className="btn btn-secondary btn-sm" onClick={handleExportCSV}>
-          <HiOutlineDocumentDownload /> Export CSV
+          <Download className="idata" /> Export CSV
         </button>
       </div>
 
       {/* Stats Section */}
-      <div className="stats-grid" style={{ marginBottom: 'var(--space-6)' }}>
+      <div className="stats-grid" style={{ marginBottom: 'var(--space-5)' }}>
         <div className="stat-card slide-up">
           <div className="stat-icon purple">
-            <HiOutlineAcademicCap />
+            <GraduationCap className="idata" />
           </div>
           <div className="stat-info">
             <div className="stat-value">{stats?.totalAlumni || 0}</div>
@@ -229,7 +228,7 @@ export default function AlumniDatabase() {
 
         <div className="stat-card slide-up" style={{ animationDelay: '50ms' }}>
           <div className="stat-icon green">
-            <HiOutlineBriefcase />
+            <Briefcase className="idata" />
           </div>
           <div className="stat-info">
             <div className="stat-value">{stats?.employment?.employed || 0}</div>
@@ -239,17 +238,17 @@ export default function AlumniDatabase() {
 
         <div className="stat-card slide-up" style={{ animationDelay: '100ms' }}>
           <div className="stat-icon amber">
-            <HiOutlineBriefcase />
+            <Briefcase className="idata" />
           </div>
           <div className="stat-info">
             <div className="stat-value">{stats?.employment?.unemployed || 0}</div>
-            <div className="stat-label">Higher Ed / Seeking / Unspecified</div>
+            <div className="stat-label">Higher Ed / Others</div>
           </div>
         </div>
 
         <div className="stat-card slide-up" style={{ animationDelay: '150ms' }}>
           <div className="stat-icon sky">
-            <HiOutlineBriefcase />
+            <Briefcase className="idata" />
           </div>
           <div className="stat-info">
             <div className="stat-value">{rate}%</div>
@@ -259,14 +258,14 @@ export default function AlumniDatabase() {
       </div>
 
       {/* Filter Bar */}
-      <div className="card" style={{ marginBottom: 'var(--space-6)' }}>
+      <div className="card" style={{ marginBottom: 'var(--space-5)' }}>
         <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-4)' }}>
             
             {/* Search */}
             <div className="form-group">
               <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                <HiOutlineSearch style={{ fontSize: '0.9rem' }} /> Search
+                <Search className="idata" style={{ width: '0.9rem', height: '0.9rem' }} /> Search
               </label>
               <input
                 className="form-input"
@@ -279,7 +278,7 @@ export default function AlumniDatabase() {
             {/* Department */}
             <div className="form-group">
               <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                <HiOutlineOfficeBuilding style={{ fontSize: '0.9rem' }} /> Department
+                <Building2 className="idata" style={{ width: '0.9rem', height: '0.9rem' }} /> Department
               </label>
               <select
                 className="form-select"
@@ -296,7 +295,7 @@ export default function AlumniDatabase() {
             {/* Batch */}
             <div className="form-group">
               <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                <HiOutlineCollection style={{ fontSize: '0.9rem' }} /> Batch
+                <Layers className="idata" style={{ width: '0.9rem', height: '0.9rem' }} /> Batch
               </label>
               <select
                 className="form-select"
@@ -315,7 +314,7 @@ export default function AlumniDatabase() {
             {/* Graduation Year */}
             <div className="form-group">
               <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                <HiOutlineCalendar style={{ fontSize: '0.9rem' }} /> Graduation Year
+                <Calendar className="idata" style={{ width: '0.9rem', height: '0.9rem' }} /> Graduation Year
               </label>
               <select
                 className="form-select"
@@ -412,7 +411,7 @@ export default function AlumniDatabase() {
                           onClick={() => handleOpenPreview(alum)}
                           title="View Profile"
                         >
-                          <HiOutlineEye />
+                          <Eye className="idata" />
                         </button>
                         <button
                           className="btn btn-ghost btn-sm"
@@ -420,7 +419,7 @@ export default function AlumniDatabase() {
                           onClick={() => setRevertTarget(alum.id)}
                           title="Revert to Active Student"
                         >
-                          <HiOutlineArrowLeft />
+                          <ArrowLeft className="idata" />
                         </button>
                       </td>
                     </tr>
@@ -433,7 +432,7 @@ export default function AlumniDatabase() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 'var(--space-4) var(--space-6)', borderTop: '1px solid var(--color-gray-100)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 'var(--space-3) var(--space-4)', borderTop: '1px solid var(--color-gray-100)' }}>
             <span style={{ fontSize: 'var(--font-sm)', color: 'var(--color-gray-500)' }}>
               Showing {alumni.length} of {totalCount} alumni
             </span>

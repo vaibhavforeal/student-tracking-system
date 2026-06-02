@@ -31,6 +31,7 @@ import SemesterPromotion from './pages/admin/SemesterPromotion';
 import ManageFeedback from './pages/admin/ManageFeedback';
 import AcademicRecord from './pages/shared/AcademicRecord';
 import StudentFeedback from './pages/student/Feedback';
+import VerifyStudent from './pages/shared/VerifyStudent';
 import useAuthStore from './store/authStore';
 
 function App() {
@@ -67,6 +68,7 @@ function App() {
           <Route path="promotion" element={<SemesterPromotion />} />
           <Route path="students/:id/academic" element={<AcademicRecord />} />
           <Route path="feedback" element={<ManageFeedback />} />
+          <Route path="verify" element={<VerifyStudent />} />
         </Route>
 
         {/* Teacher Routes */}
@@ -83,6 +85,7 @@ function App() {
           <Route path="profile" element={<TeacherProfile />} />
           <Route path="reports" element={<Reports />} />
           <Route path="students/:id/academic" element={<AcademicRecord />} />
+          <Route path="verify" element={<VerifyStudent />} />
         </Route>
 
         {/* Student Routes */}

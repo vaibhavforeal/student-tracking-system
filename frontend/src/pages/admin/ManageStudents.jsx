@@ -2,7 +2,9 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import client from '../../api/client';
 import ConfirmDialog from '../../components/ConfirmDialog';
-import { HiOutlinePlus, HiOutlineEye, HiOutlinePencil, HiOutlineTrash, HiOutlineSearch, HiOutlineX, HiOutlineCamera, HiOutlineHeart } from 'react-icons/hi';
+import BarcodeGenerator from '../../components/BarcodeGenerator';
+import { HiOutlinePlus, HiOutlineEye, HiOutlinePencil, HiOutlineTrash, HiOutlineSearch, HiOutlineX, HiOutlineCamera, HiOutlineHeart, HiOutlineUpload, HiOutlineDownload, HiOutlineDocumentText, HiOutlineCheckCircle, HiOutlineExclamationCircle, HiOutlinePrinter } from 'react-icons/hi';
+import * as XLSX from 'xlsx';
 
 const API_BASE = 'http://localhost:5000';
 
@@ -27,6 +29,20 @@ export default function ManageStudents() {
   const basePath = location.pathname.startsWith('/teacher') ? '/teacher' : '/admin';
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
+
+  // Bulk import state
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importStep, setImportStep] = useState(1); // 1=upload, 2=preview, 3=result
+  const [importFile, setImportFile] = useState(null);
+  const [importPreview, setImportPreview] = useState([]);
+  const [importHeaders, setImportHeaders] = useState([]);
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState(null);
+  const [dragOver, setDragOver] = useState(false);
+  const importFileRef = useRef(null);
+
+  // Bulk barcode print state
+  const [showBarcodeModal, setShowBarcodeModal] = useState(false);
 
   const fetchData = useCallback(async () => {
     try {
@@ -106,13 +122,120 @@ export default function ManageStudents() {
 
   const statusColor = { active: 'badge-green', inactive: 'badge-gray', graduated: 'badge-sky', dropped: 'badge-red' };
 
+  // ─── Bulk Import Handlers ──────────────────────────────────
+  const openImportModal = () => {
+    setShowImportModal(true);
+    setImportStep(1);
+    setImportFile(null);
+    setImportPreview([]);
+    setImportHeaders([]);
+    setImportResult(null);
+    setDragOver(false);
+  };
+
+  const handleImportFileSelect = (file) => {
+    if (!file) return;
+    const validExts = /\.(csv|xlsx|xls)$/i;
+    if (!validExts.test(file.name)) {
+      alert('Please select a CSV, XLS, or XLSX file');
+      return;
+    }
+    setImportFile(file);
+
+    // Parse locally for preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+        if (rows.length === 0) {
+          alert('The file contains no data rows');
+          setImportFile(null);
+          return;
+        }
+        const headers = Object.keys(rows[0]);
+        setImportHeaders(headers);
+        setImportPreview(rows);
+        setImportStep(2);
+      } catch (err) {
+        console.error(err);
+        alert('Failed to parse the file. Please ensure it is a valid CSV or XLSX.');
+        setImportFile(null);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  };
+
+  const handleImportDrop = (e) => {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer?.files?.[0];
+    if (file) handleImportFileSelect(file);
+  };
+
+  const handleImportSubmit = async () => {
+    if (!importFile) return;
+    setImporting(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', importFile);
+      const { data } = await client.post('/admin/students/bulk-import', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 120000, // 2 min for large imports
+      });
+      setImportResult({ success: true, data });
+      setImportStep(3);
+      fetchData(); // refresh student list
+    } catch (err) {
+      const errData = err.response?.data;
+      if (errData?.errors) {
+        setImportResult({ success: false, data: errData });
+      } else {
+        setImportResult({ success: false, data: { error: errData?.error || err.message || 'Import failed' } });
+      }
+      setImportStep(3);
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  const downloadTemplate = async (format) => {
+    try {
+      const { data } = await client.get(`/admin/students/sample-template?format=${format}`, {
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `student_import_template.${format}`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      alert('Failed to download template');
+    }
+  };
+
+  const formatFileSize = (bytes) => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  };
+
   if (loading) return <div className="loading-container"><div className="spinner spinner-lg" /></div>;
 
   return (
     <div>
       <div className="page-header">
         <div><h1>Students</h1><p className="page-subtitle">{basePath === '/teacher' ? 'View your assigned students' : 'Manage student records'}</p></div>
-        {basePath === '/admin' && <button className="btn btn-primary" onClick={openCreate}><HiOutlinePlus /> Add Student</button>}
+        {basePath === '/admin' && (
+          <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
+            <button className="btn btn-ghost" onClick={() => setShowBarcodeModal(true)} title="Print barcodes for filtered students" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}><HiOutlinePrinter /> Print Barcodes</button>
+            <button className="btn btn-secondary" onClick={openImportModal}><HiOutlineUpload /> Import Students</button>
+            <button className="btn btn-primary" onClick={openCreate}><HiOutlinePlus /> Add Student</button>
+          </div>
+        )}
       </div>
 
       <div className="toolbar">
@@ -301,6 +424,228 @@ export default function ManageStudents() {
         onCancel={() => setDeleteTarget(null)}
         loading={deleting}
       />
+
+      {/* ═══ BULK IMPORT MODAL ═══ */}
+      {showImportModal && (
+        <div className="modal-overlay" onClick={() => !importing && setShowImportModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '720px' }}>
+            <div className="modal-header">
+              <h2>Import Students</h2>
+              <button className="btn btn-ghost" onClick={() => !importing && setShowImportModal(false)} disabled={importing}>✕</button>
+            </div>
+
+            {/* Step Indicator */}
+            <div className="import-steps">
+              <div className={`import-step ${importStep === 1 ? 'active' : importStep > 1 ? 'completed' : ''}`}>
+                <span className="import-step-number">{importStep > 1 ? <HiOutlineCheckCircle size={16} /> : '1'}</span>
+                <span>Upload</span>
+              </div>
+              <div className={`import-step-connector ${importStep > 1 ? 'active' : ''}`} />
+              <div className={`import-step ${importStep === 2 ? 'active' : importStep > 2 ? 'completed' : ''}`}>
+                <span className="import-step-number">{importStep > 2 ? <HiOutlineCheckCircle size={16} /> : '2'}</span>
+                <span>Preview</span>
+              </div>
+              <div className={`import-step-connector ${importStep > 2 ? 'active' : ''}`} />
+              <div className={`import-step ${importStep === 3 ? 'active' : ''}`}>
+                <span className="import-step-number">3</span>
+                <span>Result</span>
+              </div>
+            </div>
+
+            <div className="modal-body">
+              {/* Step 1: Upload */}
+              {importStep === 1 && (
+                <div>
+                  <div
+                    className={`import-dropzone ${dragOver ? 'drag-over' : ''}`}
+                    onClick={() => importFileRef.current?.click()}
+                    onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                    onDragLeave={() => setDragOver(false)}
+                    onDrop={handleImportDrop}
+                  >
+                    <div className="import-dropzone-icon">
+                      <HiOutlineUpload />
+                    </div>
+                    <div className="import-dropzone-text">
+                      <strong>Click to upload</strong> or drag and drop<br />
+                      CSV, XLS, or XLSX • Max 500 rows • 10MB limit
+                    </div>
+                    <input
+                      type="file"
+                      ref={importFileRef}
+                      accept=".csv,.xlsx,.xls"
+                      onChange={(e) => handleImportFileSelect(e.target.files[0])}
+                      style={{ display: 'none' }}
+                    />
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'var(--space-5)' }}>
+                    <div style={{ fontSize: 'var(--font-xs)', color: 'var(--color-gray-400)', fontWeight: 500 }}>
+                      Need a template? Download one below:
+                    </div>
+                    <div className="import-sample-buttons">
+                      <button className="btn-sample" onClick={() => downloadTemplate('xlsx')}>
+                        <HiOutlineDownload /> XLSX Template
+                      </button>
+                      <button className="btn-sample" onClick={() => downloadTemplate('csv')}>
+                        <HiOutlineDownload /> CSV Template
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 2: Preview */}
+              {importStep === 2 && !importing && (
+                <div>
+                  {importFile && (
+                    <div className="import-file-info" style={{ marginBottom: 'var(--space-4)' }}>
+                      <div className="file-icon"><HiOutlineDocumentText /></div>
+                      <div className="file-details">
+                        <div className="file-name">{importFile.name}</div>
+                        <div className="file-size">{formatFileSize(importFile.size)}</div>
+                      </div>
+                      <button className="btn btn-ghost btn-sm" onClick={() => { setImportStep(1); setImportFile(null); setImportPreview([]); }}>
+                        <HiOutlineX />
+                      </button>
+                    </div>
+                  )}
+
+                  <div className="import-preview-count">
+                    Found <strong>{importPreview.length}</strong> student{importPreview.length !== 1 ? 's' : ''} to import
+                    {importPreview.length > 10 && <span> (showing first 10)</span>}
+                  </div>
+
+                  <div className="import-preview-wrapper">
+                    <table className="import-preview-table">
+                      <thead>
+                        <tr>
+                          <th>#</th>
+                          {importHeaders.map((h) => <th key={h}>{h}</th>)}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {importPreview.slice(0, 10).map((row, i) => (
+                          <tr key={i}>
+                            <td style={{ color: 'var(--color-gray-400)', fontWeight: 600 }}>{i + 1}</td>
+                            {importHeaders.map((h) => <td key={h}>{String(row[h] || '')}</td>)}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 2: Importing spinner */}
+              {importStep === 2 && importing && (
+                <div className="import-loading">
+                  <div className="spinner spinner-lg" />
+                  <div className="import-loading-text">Importing {importPreview.length} students...</div>
+                  <div style={{ fontSize: 'var(--font-xs)', color: 'var(--color-gray-400)' }}>This may take a moment for large files</div>
+                </div>
+              )}
+
+              {/* Step 3: Results */}
+              {importStep === 3 && importResult && (
+                <div className="import-result">
+                  {importResult.success ? (
+                    <>
+                      <div className="import-result-icon success"><HiOutlineCheckCircle /></div>
+                      <h3>Import Successful!</h3>
+                      <p>{importResult.data.message}</p>
+                    </>
+                  ) : (
+                    <>
+                      <div className="import-result-icon error"><HiOutlineExclamationCircle /></div>
+                      <h3>{importResult.data.errors ? 'Validation Failed' : 'Import Failed'}</h3>
+                      <p>
+                        {importResult.data.errors
+                          ? `${importResult.data.errorCount} error${importResult.data.errorCount !== 1 ? 's' : ''} found in ${importResult.data.totalRows} rows. No students were imported.`
+                          : importResult.data.error
+                        }
+                      </p>
+                      {importResult.data.errors && (
+                        <div className="import-errors-list">
+                          {importResult.data.errors.map((err, i) => (
+                            <div key={i} className="import-error-item">
+                              <span className="import-error-row">Row {err.row}</span>
+                              <span className="import-error-field">{err.field}</span>
+                              <span>{err.message}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="modal-footer">
+              {importStep === 1 && (
+                <button className="btn btn-secondary" onClick={() => setShowImportModal(false)}>Cancel</button>
+              )}
+              {importStep === 2 && !importing && (
+                <>
+                  <button className="btn btn-secondary" onClick={() => { setImportStep(1); setImportFile(null); setImportPreview([]); }}>Back</button>
+                  <button className="btn btn-primary" onClick={handleImportSubmit}>
+                    <HiOutlineUpload /> Import {importPreview.length} Student{importPreview.length !== 1 ? 's' : ''}
+                  </button>
+                </>
+              )}
+              {importStep === 3 && (
+                <>
+                  {!importResult?.success && (
+                    <button className="btn btn-secondary" onClick={() => { setImportStep(1); setImportFile(null); setImportPreview([]); setImportResult(null); }}>Try Again</button>
+                  )}
+                  <button className="btn btn-primary" onClick={() => setShowImportModal(false)}>Done</button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ BULK BARCODE PRINT MODAL ═══ */}
+      {showBarcodeModal && (
+        <div className="modal-overlay" onClick={() => setShowBarcodeModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '800px' }}>
+            <div className="modal-header no-print">
+              <h2>Print Barcodes</h2>
+              <button className="btn btn-ghost" onClick={() => setShowBarcodeModal(false)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <p className="no-print" style={{ fontSize: 'var(--font-sm)', color: 'var(--color-gray-500)', marginBottom: 'var(--space-4)' }}>
+                Generating barcodes for <strong>{students.length}</strong> student{students.length !== 1 ? 's' : ''} on the current page.
+                {filterBatch && ' (filtered by batch)'}
+              </p>
+              <div className="barcode-print-grid" id="barcode-bulk-print-area">
+                {students.map((s) => (
+                  <div key={s.id} className="barcode-strip">
+                    <div className="barcode-strip-name">
+                      {s.firstName} {s.lastName}
+                    </div>
+                    <BarcodeGenerator
+                      value={s.enrollmentNo}
+                      width={1.5}
+                      height={40}
+                      displayValue={true}
+                      fontSize={10}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="modal-footer no-print">
+              <button className="btn btn-secondary" onClick={() => setShowBarcodeModal(false)}>Close</button>
+              <button className="btn btn-primary" onClick={() => window.print()} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                <HiOutlinePrinter /> Print All
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

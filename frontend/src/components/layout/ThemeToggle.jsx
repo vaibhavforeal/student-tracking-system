@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { HiOutlineSun, HiOutlineMoon } from 'react-icons/hi';
+import { Sun, Moon } from 'lucide-react';
 
 export default function ThemeToggle() {
   const [theme, setTheme] = useState(() => {
@@ -28,14 +28,14 @@ export default function ThemeToggle() {
       aria-label="Toggle theme"
     >
       <div className="theme-toggle-track">
-        <HiOutlineSun className="track-icon-sun" />
-        <HiOutlineMoon className="track-icon-moon" />
+        <Sun className="idata track-icon-sun" />
+        <Moon className="idata track-icon-moon" />
       </div>
       <div className="theme-toggle-thumb">
         {theme === 'light' ? (
-          <HiOutlineSun key="sun" />
+          <Sun className="idata" key="sun" />
         ) : (
-          <HiOutlineMoon key="moon" />
+          <Moon className="idata" key="moon" />
         )}
       </div>
     </button>
