@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Menu, Bell, ArrowLeft, Mail, MessageSquare, ScanBarcode } from 'lucide-react';
+import { Menu, Bell, ArrowLeft, Mail, MessageSquare, ScanBarcode, Search } from 'lucide-react';
 import useAuthStore from '../../store/authStore';
 import ThemeToggle from './ThemeToggle';
+import GlobalSearch from './GlobalSearch';
 import client from '../../api/client';
 
 const pageTitles = {
@@ -72,7 +73,20 @@ export default function Navbar({ onMenuToggle }) {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const dropdownRef = useRef(null);
+
+  // Global Ctrl+K / Cmd+K shortcut
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setSearchOpen(prev => !prev);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -172,6 +186,19 @@ export default function Navbar({ onMenuToggle }) {
         
         <h1 className="page-title">{title}</h1>
       </div>
+
+      {/* Global Search Trigger */}
+      <button
+        className="navbar-search-trigger"
+        onClick={() => setSearchOpen(true)}
+        title="Search pages (Ctrl+K)"
+      >
+        <span className="search-trigger-icon">
+          <Search className="idata" />
+        </span>
+        <span className="search-trigger-text">Search…</span>
+        <span className="search-trigger-kbd">Ctrl K</span>
+      </button>
       
       <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
         {user?.role && ['admin', 'teacher'].includes(user.role) && (
@@ -371,6 +398,9 @@ export default function Navbar({ onMenuToggle }) {
           <span className="badge badge-sky">{user?.role}</span>
         </div>
       </div>
+
+      {/* Global Search Command Palette */}
+      <GlobalSearch isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
     </header>
   );
 }

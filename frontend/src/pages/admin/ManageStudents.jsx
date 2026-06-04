@@ -223,6 +223,20 @@ export default function ManageStudents() {
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
 
+  useEffect(() => {
+    if (location.state?.openAddModal) {
+      openCreate();
+      // Clear state so modal doesn't reopen on refresh
+      navigate(location.pathname, { replace: true, state: {} });
+    } else if (location.state?.openImportModal) {
+      openImportModal();
+      navigate(location.pathname, { replace: true, state: {} });
+    } else if (location.state?.openBarcodeModal) {
+      setShowBarcodeModal(true);
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, navigate, location.pathname]);
+
   if (loading) return <div className="loading-container"><div className="spinner spinner-lg" /></div>;
 
   return (

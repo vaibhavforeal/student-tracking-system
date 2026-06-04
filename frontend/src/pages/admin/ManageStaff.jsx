@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import client from '../../api/client';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import { HiOutlinePlus, HiOutlinePencil, HiOutlineTrash, HiOutlineSearch, HiOutlineEye } from 'react-icons/hi';
@@ -7,6 +7,8 @@ import { HiOutlinePlus, HiOutlinePencil, HiOutlineTrash, HiOutlineSearch, HiOutl
 const DESIGNATION_OPTIONS = ['HOD', 'Professor', 'Assistant Professor', 'Teacher'];
 
 export default function ManageStaff() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [staff, setStaff] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -72,6 +74,13 @@ export default function ManageStaff() {
       setDeleting(false);
     }
   };
+
+  useEffect(() => {
+    if (location.state?.openAddModal) {
+      openCreate();
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, navigate, location.pathname]);
 
   if (loading) return <div className="loading-container"><div className="spinner spinner-lg" /></div>;
 

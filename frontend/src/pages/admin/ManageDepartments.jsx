@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import client from '../../api/client';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import { HiOutlinePlus, HiOutlinePencil, HiOutlineTrash } from 'react-icons/hi';
@@ -16,6 +16,7 @@ export default function ManageDepartments() {
   const [error, setError] = useState('');
   const [toast, setToast] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
 
   const fetchDepartments = async () => {
     try {
@@ -40,6 +41,13 @@ export default function ManageDepartments() {
       return () => clearTimeout(t);
     }
   }, [toast]);
+
+  useEffect(() => {
+    if (location.state?.openAddModal) {
+      openCreate();
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, navigate, location.pathname]);
 
   const openCreate = () => { setEditing(null); setError(''); setForm({ name: '', code: '' }); setShowModal(true); };
   const openEdit = (dept) => { setEditing(dept); setError(''); setForm({ name: dept.name, code: dept.code }); setShowModal(true); };

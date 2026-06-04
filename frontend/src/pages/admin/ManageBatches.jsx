@@ -1,9 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import client from '../../api/client';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import { HiOutlinePlus, HiOutlinePencil, HiOutlineTrash } from 'react-icons/hi';
 
 export default function ManageBatches() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [batches, setBatches] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -65,6 +68,13 @@ export default function ManageBatches() {
       setDeleting(false);
     }
   };
+
+  useEffect(() => {
+    if (location.state?.openAddModal) {
+      openCreate();
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, navigate, location.pathname]);
 
   if (loading) return <div className="loading-container"><div className="spinner spinner-lg" /></div>;
 

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import client from '../../api/client';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import SyllabusEditor from '../../components/SyllabusEditor';
@@ -11,6 +12,8 @@ const EMPTY_FORM = {
 };
 
 export default function ManageCourses() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [courses, setCourses] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -190,6 +193,13 @@ export default function ManageCourses() {
     );
     setForm({ ...form, departments: updated });
   };
+
+  useEffect(() => {
+    if (location.state?.openAddModal) {
+      openCreate();
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, navigate, location.pathname]);
 
   if (loading) return <div className="loading-container"><div className="spinner spinner-lg" /></div>;
 

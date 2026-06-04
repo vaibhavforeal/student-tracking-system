@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import client from '../../api/client';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import { HiOutlinePlus, HiOutlineTrash } from 'react-icons/hi';
 
 export default function ManageAssignments() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [assignments, setAssignments] = useState([]);
   const [staff, setStaff] = useState([]);
   const [courses, setCourses] = useState([]);
@@ -60,6 +63,14 @@ export default function ManageAssignments() {
       setDeleteTarget(null);
     } finally { setDeleting(false); }
   };
+
+  useEffect(() => {
+    if (location.state?.openAddModal) {
+      setShowForm(true);
+      setError('');
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, navigate, location.pathname]);
 
   if (loading) return <div className="loading-container"><div className="spinner spinner-lg" /></div>;
 

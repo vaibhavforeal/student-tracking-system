@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import client from '../../api/client';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import {
@@ -7,6 +8,8 @@ import {
 } from 'react-icons/hi';
 
 export default function ManageSkillCourses() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [courses, setCourses] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -122,6 +125,16 @@ export default function ManageSkillCourses() {
   };
 
   const closeEnrollments = () => { setEnrollCourse(null); setEnrollments(null); };
+
+  useEffect(() => {
+    if (location.state?.openAddModal) {
+      openCreate();
+      navigate(location.pathname, { replace: true, state: {} });
+    } else if (location.state?.openCategoriesModal) {
+      setShowCatModal(true);
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, navigate, location.pathname]);
 
   if (loading) return <div className="loading-container"><div className="spinner spinner-lg" /></div>;
 
