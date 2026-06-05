@@ -1,16 +1,16 @@
 # Graph Report - student-tracking-system-master  (2026-06-05)
 
 ## Corpus Check
-- 101 files · ~148,161 words
+- 101 files · ~148,308 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 609 nodes · 842 edges · 50 communities (41 shown, 9 thin omitted)
+- 609 nodes · 843 edges · 45 communities (37 shown, 8 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 5 edges (avg confidence: 0.82)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `1d1ae5f4`
+- Built from commit: `4b7b1360`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -23,7 +23,6 @@
 - [[_COMMUNITY_Backend Dependencies|Backend Dependencies]]
 - [[_COMMUNITY_Project Architecture & Design|Project Architecture & Design]]
 - [[_COMMUNITY_TypeScript Configuration|TypeScript Configuration]]
-- [[_COMMUNITY_Backend Runtime Dependencies|Backend Runtime Dependencies]]
 - [[_COMMUNITY_WhatsApp & Notifications|WhatsApp & Notifications]]
 - [[_COMMUNITY_Student Seed Data|Student Seed Data]]
 - [[_COMMUNITY_Staff Seed Data|Staff Seed Data]]
@@ -52,14 +51,9 @@
 - [[_COMMUNITY_Community 37|Community 37]]
 - [[_COMMUNITY_Community 39|Community 39]]
 - [[_COMMUNITY_Community 40|Community 40]]
-- [[_COMMUNITY_Community 41|Community 41]]
 - [[_COMMUNITY_Community 43|Community 43]]
 - [[_COMMUNITY_Community 44|Community 44]]
 - [[_COMMUNITY_Community 45|Community 45]]
-- [[_COMMUNITY_Community 46|Community 46]]
-- [[_COMMUNITY_Community 47|Community 47]]
-- [[_COMMUNITY_Community 48|Community 48]]
-- [[_COMMUNITY_Community 49|Community 49]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `PageHead()` - 20 edges
@@ -89,7 +83,7 @@
 - **Student Lifecycle Management** — student_status_lifecycle, semester_promotion_flow, auto_graduate_feature, soft_delete_pattern [INFERRED 0.85]
 - **Role-Based Access System** — role_based_access, admin_role, teacher_role, student_role [EXTRACTED 1.00]
 
-## Communities (50 total, 9 thin omitted)
+## Communities (45 total, 8 thin omitted)
 
 ### Community 0 - "Backend Core & Routes"
 Cohesion: 0.05
@@ -100,8 +94,8 @@ Cohesion: 0.05
 Nodes (29): ManageUsers(), StudentDetail(), Login(), ROLES, ProtectedRoute(), DashboardLayout(), adminItems, GlobalSearch() (+21 more)
 
 ### Community 2 - "Analytics & Feedback Dashboard"
-Cohesion: 0.18
-Nodes (7): AVATAR_HUES, DEPT_HUE, deptColor(), deptHueKey(), DeptTag(), Meter(), StatTile()
+Cohesion: 0.05
+Nodes (37): EMPTY_FORM, TYPE_BADGE, CATEGORIES, STATUS_TABS, DIFF_BADGE, DIFF_LABEL, levelMeta, DESG_COLORS (+29 more)
 
 ### Community 3 - "Admin Entity Management"
 Cohesion: 0.33
@@ -122,10 +116,6 @@ Nodes (21): Academic Record Feature, Admin Role, AI-Powered Analytics (Gemini), 
 ### Community 7 - "TypeScript Configuration"
 Cohesion: 0.10
 Nodes (19): compilerOptions, baseUrl, declaration, declarationMap, esModuleInterop, forceConsistentCasingInFileNames, lib, module (+11 more)
-
-### Community 8 - "Backend Runtime Dependencies"
-Cohesion: 0.17
-Nodes (11): DESG_COLORS, DESIGNATION_OPTIONS, ManageStaff(), ManageStudents(), STATUS_TABS, ROLE_COLORS, ROLE_TABS, hueFor() (+3 more)
 
 ### Community 9 - "WhatsApp & Notifications"
 Cohesion: 0.10
@@ -211,10 +201,6 @@ Nodes (5): Color Palette, Design System, Layout, Responsive Behavior, UI / UX De
 Cohesion: 0.50
 Nodes (3): fs, mappings, path
 
-### Community 41 - "Community 41"
-Cohesion: 0.11
-Nodes (5): client, failedQueue, CATEGORIES, statusStyles, ASSESSMENT_TYPES
-
 ### Community 43 - "Community 43"
 Cohesion: 0.50
 Nodes (4): Future Roadmap, Long Term, Medium Term, Short Term
@@ -223,22 +209,10 @@ Nodes (4): Future Roadmap, Long Term, Medium Term, Short Term
 Cohesion: 0.67
 Nodes (3): Backend, Frontend, Technology Stack
 
-### Community 46 - "Community 46"
-Cohesion: 0.16
-Nodes (5): CATEGORIES, STATUS_TABS, reportTypes, PageHead(), ICONS
-
-### Community 48 - "Community 48"
-Cohesion: 0.33
-Nodes (3): DIFF_BADGE, DIFF_LABEL, levelMeta
-
-### Community 49 - "Community 49"
-Cohesion: 0.47
-Nodes (4): daysAgo(), daysLeft(), ENTITY_CONFIG, formatDeletedDate()
-
 ## Knowledge Gaps
 - **310 isolated node(s):** `name`, `version`, `description`, `main`, `dev` (+305 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **9 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **8 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
@@ -247,7 +221,7 @@ _Questions this graph is uniquely positioned to answer:_
   _High betweenness centrality (0.012) - this node is a cross-community bridge._
 - **Why does `Key Features` connect `Community 34` to `Community 27`?**
   _High betweenness centrality (0.005) - this node is a cross-community bridge._
-- **Why does `PageHead()` connect `Community 46` to `Analytics & Feedback Dashboard`, `Community 38`, `Backend Runtime Dependencies`, `Community 47`, `Community 48`, `Community 49`, `Community 24`, `Community 29`?**
+- **Why does `PageHead()` connect `Analytics & Feedback Dashboard` to `Community 24`, `Community 29`, `Community 38`?**
   _High betweenness centrality (0.003) - this node is a cross-community bridge._
 - **What connects `name`, `version`, `description` to the rest of the system?**
   _321 weakly-connected nodes found - possible documentation gaps or missing edges._
@@ -255,5 +229,5 @@ _Questions this graph is uniquely positioned to answer:_
   _Cohesion score 0.05493863237872589 - nodes in this community are weakly interconnected._
 - **Should `Student Detail & Auth Pages` be split into smaller, more focused modules?**
   _Cohesion score 0.05319148936170213 - nodes in this community are weakly interconnected._
-- **Should `Frontend Dependencies` be split into smaller, more focused modules?**
-  _Cohesion score 0.0625 - nodes in this community are weakly interconnected._
+- **Should `Analytics & Feedback Dashboard` be split into smaller, more focused modules?**
+  _Cohesion score 0.05329153605015674 - nodes in this community are weakly interconnected._

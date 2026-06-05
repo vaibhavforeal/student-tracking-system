@@ -2065,7 +2065,7 @@
       "source_file": "frontend/src/App.jsx",
       "source_location": "L1",
       "id": "frontend_src_app_jsx",
-      "community": 41,
+      "community": 2,
       "norm_label": "app.jsx"
     },
     {
@@ -2083,7 +2083,7 @@
       "source_file": "frontend/src/main.jsx",
       "source_location": "L1",
       "id": "frontend_src_main_jsx",
-      "community": 41,
+      "community": 2,
       "norm_label": "main.jsx"
     },
     {
@@ -2092,7 +2092,7 @@
       "source_file": "frontend/src/api/client.js",
       "source_location": "L1",
       "id": "frontend_src_api_client_js",
-      "community": 41,
+      "community": 2,
       "norm_label": "client.js"
     },
     {
@@ -2101,7 +2101,7 @@
       "source_file": "frontend/src/api/client.js",
       "source_location": "L5",
       "id": "api_client_client",
-      "community": 41,
+      "community": 2,
       "norm_label": "client"
     },
     {
@@ -2110,7 +2110,7 @@
       "source_file": "frontend/src/api/client.js",
       "source_location": "L22",
       "id": "api_client_failedqueue",
-      "community": 41,
+      "community": 2,
       "norm_label": "failedqueue"
     },
     {
@@ -2119,7 +2119,7 @@
       "source_file": "frontend/src/api/client.js",
       "source_location": "L24",
       "id": "api_client_processqueue",
-      "community": 41,
+      "community": 2,
       "norm_label": "processqueue()"
     },
     {
@@ -2227,7 +2227,7 @@
       "source_file": "frontend/src/components/SyllabusEditor.jsx",
       "source_location": "L1",
       "id": "frontend_src_components_syllabuseditor_jsx",
-      "community": 47,
+      "community": 2,
       "norm_label": "syllabuseditor.jsx"
     },
     {
@@ -2236,7 +2236,7 @@
       "source_file": "frontend/src/components/SyllabusEditor.jsx",
       "source_location": "L12",
       "id": "components_syllabuseditor_syllabuseditor",
-      "community": 47,
+      "community": 2,
       "norm_label": "syllabuseditor()"
     },
     {
@@ -2587,7 +2587,7 @@
       "source_file": "frontend/src/components/ui/DesignHelpers.jsx",
       "source_location": "L25",
       "id": "ui_designhelpers_huefor",
-      "community": 8,
+      "community": 2,
       "norm_label": "huefor()"
     },
     {
@@ -2596,7 +2596,7 @@
       "source_file": "frontend/src/components/ui/DesignHelpers.jsx",
       "source_location": "L32",
       "id": "ui_designhelpers_initials",
-      "community": 8,
+      "community": 2,
       "norm_label": "initials()"
     },
     {
@@ -2605,7 +2605,7 @@
       "source_file": "frontend/src/components/ui/DesignHelpers.jsx",
       "source_location": "L37",
       "id": "ui_designhelpers_pagehead",
-      "community": 46,
+      "community": 2,
       "norm_label": "pagehead()"
     },
     {
@@ -2623,7 +2623,7 @@
       "source_file": "frontend/src/components/ui/DesignHelpers.jsx",
       "source_location": "L60",
       "id": "ui_designhelpers_miniavatar",
-      "community": 8,
+      "community": 2,
       "norm_label": "miniavatar()"
     },
     {
@@ -2632,7 +2632,7 @@
       "source_file": "frontend/src/components/ui/DesignHelpers.jsx",
       "source_location": "L74",
       "id": "ui_designhelpers_statusbadge",
-      "community": 8,
+      "community": 2,
       "norm_label": "statusbadge()"
     },
     {
@@ -2659,7 +2659,7 @@
       "source_file": "frontend/src/components/ui/Icon.jsx",
       "source_location": "L1",
       "id": "frontend_src_components_ui_icon_jsx",
-      "community": 46,
+      "community": 2,
       "norm_label": "icon.jsx"
     },
     {
@@ -2668,7 +2668,7 @@
       "source_file": "frontend/src/components/ui/Icon.jsx",
       "source_location": "L6",
       "id": "ui_icon_icons",
-      "community": 46,
+      "community": 2,
       "norm_label": "icons"
     },
     {
@@ -2677,7 +2677,7 @@
       "source_file": "frontend/src/components/ui/Icon.jsx",
       "source_location": "L64",
       "id": "ui_icon_icon",
-      "community": 46,
+      "community": 2,
       "norm_label": "icon()"
     },
     {
@@ -2848,7 +2848,7 @@
       "source_file": "frontend/src/pages/admin/ManageCourses.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_admin_managecourses_jsx",
-      "community": 47,
+      "community": 2,
       "norm_label": "managecourses.jsx"
     },
     {
@@ -2857,7 +2857,7 @@
       "source_file": "frontend/src/pages/admin/ManageCourses.jsx",
       "source_location": "L10",
       "id": "admin_managecourses_empty_form",
-      "community": 47,
+      "community": 2,
       "norm_label": "empty_form"
     },
     {
@@ -2866,7 +2866,7 @@
       "source_file": "frontend/src/pages/admin/ManageCourses.jsx",
       "source_location": "L11",
       "id": "admin_managecourses_type_badge",
-      "community": 47,
+      "community": 2,
       "norm_label": "type_badge"
     },
     {
@@ -2875,7 +2875,7 @@
       "source_file": "frontend/src/pages/admin/ManageCourses.jsx",
       "source_location": "L13",
       "id": "admin_managecourses_managecourses",
-      "community": 47,
+      "community": 2,
       "norm_label": "managecourses()"
     },
     {
@@ -2902,7 +2902,7 @@
       "source_file": "frontend/src/pages/admin/ManageFeedback.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_admin_managefeedback_jsx",
-      "community": 46,
+      "community": 2,
       "norm_label": "managefeedback.jsx"
     },
     {
@@ -2911,7 +2911,7 @@
       "source_file": "frontend/src/pages/admin/ManageFeedback.jsx",
       "source_location": "L7",
       "id": "admin_managefeedback_categories",
-      "community": 46,
+      "community": 2,
       "norm_label": "categories"
     },
     {
@@ -2920,7 +2920,7 @@
       "source_file": "frontend/src/pages/admin/ManageFeedback.jsx",
       "source_location": "L18",
       "id": "admin_managefeedback_status_tabs",
-      "community": 46,
+      "community": 2,
       "norm_label": "status_tabs"
     },
     {
@@ -2929,7 +2929,7 @@
       "source_file": "frontend/src/pages/admin/ManageFeedback.jsx",
       "source_location": "L24",
       "id": "admin_managefeedback_managefeedback",
-      "community": 46,
+      "community": 2,
       "norm_label": "managefeedback()"
     },
     {
@@ -2956,7 +2956,7 @@
       "source_file": "frontend/src/pages/admin/ManageSkillCourses.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_admin_manageskillcourses_jsx",
-      "community": 48,
+      "community": 2,
       "norm_label": "manageskillcourses.jsx"
     },
     {
@@ -2965,7 +2965,7 @@
       "source_file": "frontend/src/pages/admin/ManageSkillCourses.jsx",
       "source_location": "L9",
       "id": "admin_manageskillcourses_getcategorymeta",
-      "community": 48,
+      "community": 2,
       "norm_label": "getcategorymeta()"
     },
     {
@@ -2974,7 +2974,7 @@
       "source_file": "frontend/src/pages/admin/ManageSkillCourses.jsx",
       "source_location": "L20",
       "id": "admin_manageskillcourses_levelmeta",
-      "community": 48,
+      "community": 2,
       "norm_label": "levelmeta"
     },
     {
@@ -2983,7 +2983,7 @@
       "source_file": "frontend/src/pages/admin/ManageSkillCourses.jsx",
       "source_location": "L26",
       "id": "admin_manageskillcourses_manageskillcourses",
-      "community": 48,
+      "community": 2,
       "norm_label": "manageskillcourses()"
     },
     {
@@ -2992,7 +2992,7 @@
       "source_file": "frontend/src/pages/admin/ManageStaff.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_admin_managestaff_jsx",
-      "community": 8,
+      "community": 2,
       "norm_label": "managestaff.jsx"
     },
     {
@@ -3001,7 +3001,7 @@
       "source_file": "frontend/src/pages/admin/ManageStaff.jsx",
       "source_location": "L11",
       "id": "admin_managestaff_designation_options",
-      "community": 8,
+      "community": 2,
       "norm_label": "designation_options"
     },
     {
@@ -3010,7 +3010,7 @@
       "source_file": "frontend/src/pages/admin/ManageStaff.jsx",
       "source_location": "L12",
       "id": "admin_managestaff_desg_colors",
-      "community": 8,
+      "community": 2,
       "norm_label": "desg_colors"
     },
     {
@@ -3019,7 +3019,7 @@
       "source_file": "frontend/src/pages/admin/ManageStaff.jsx",
       "source_location": "L14",
       "id": "admin_managestaff_managestaff",
-      "community": 8,
+      "community": 2,
       "norm_label": "managestaff()"
     },
     {
@@ -3028,7 +3028,7 @@
       "source_file": "frontend/src/pages/admin/ManageStudents.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_admin_managestudents_jsx",
-      "community": 8,
+      "community": 2,
       "norm_label": "managestudents.jsx"
     },
     {
@@ -3037,7 +3037,7 @@
       "source_file": "frontend/src/pages/admin/ManageStudents.jsx",
       "source_location": "L13",
       "id": "admin_managestudents_status_tabs",
-      "community": 8,
+      "community": 2,
       "norm_label": "status_tabs"
     },
     {
@@ -3046,7 +3046,7 @@
       "source_file": "frontend/src/pages/admin/ManageStudents.jsx",
       "source_location": "L15",
       "id": "admin_managestudents_managestudents",
-      "community": 8,
+      "community": 2,
       "norm_label": "managestudents()"
     },
     {
@@ -3055,7 +3055,7 @@
       "source_file": "frontend/src/pages/admin/ManageUsers.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_admin_manageusers_jsx",
-      "community": 8,
+      "community": 2,
       "norm_label": "manageusers.jsx"
     },
     {
@@ -3064,7 +3064,7 @@
       "source_file": "frontend/src/pages/admin/ManageUsers.jsx",
       "source_location": "L8",
       "id": "admin_manageusers_role_tabs",
-      "community": 8,
+      "community": 2,
       "norm_label": "role_tabs"
     },
     {
@@ -3073,7 +3073,7 @@
       "source_file": "frontend/src/pages/admin/ManageUsers.jsx",
       "source_location": "L9",
       "id": "admin_manageusers_role_colors",
-      "community": 8,
+      "community": 2,
       "norm_label": "role_colors"
     },
     {
@@ -3091,7 +3091,7 @@
       "source_file": "frontend/src/pages/admin/NotificationHistory.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_admin_notificationhistory_jsx",
-      "community": 8,
+      "community": 2,
       "norm_label": "notificationhistory.jsx"
     },
     {
@@ -3100,7 +3100,7 @@
       "source_file": "frontend/src/pages/admin/NotificationHistory.jsx",
       "source_location": "L6",
       "id": "admin_notificationhistory_notificationhistory",
-      "community": 8,
+      "community": 2,
       "norm_label": "notificationhistory()"
     },
     {
@@ -3109,7 +3109,7 @@
       "source_file": "frontend/src/pages/admin/Reports.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_admin_reports_jsx",
-      "community": 46,
+      "community": 2,
       "norm_label": "reports.jsx"
     },
     {
@@ -3118,7 +3118,7 @@
       "source_file": "frontend/src/pages/admin/Reports.jsx",
       "source_location": "L7",
       "id": "admin_reports_reporttypes",
-      "community": 46,
+      "community": 2,
       "norm_label": "reporttypes"
     },
     {
@@ -3127,7 +3127,7 @@
       "source_file": "frontend/src/pages/admin/Reports.jsx",
       "source_location": "L14",
       "id": "admin_reports_reports",
-      "community": 46,
+      "community": 2,
       "norm_label": "reports()"
     },
     {
@@ -3136,7 +3136,7 @@
       "source_file": "frontend/src/pages/admin/SemesterPromotion.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_admin_semesterpromotion_jsx",
-      "community": 46,
+      "community": 2,
       "norm_label": "semesterpromotion.jsx"
     },
     {
@@ -3145,7 +3145,7 @@
       "source_file": "frontend/src/pages/admin/SemesterPromotion.jsx",
       "source_location": "L7",
       "id": "admin_semesterpromotion_semesterpromotion",
-      "community": 46,
+      "community": 2,
       "norm_label": "semesterpromotion()"
     },
     {
@@ -3343,7 +3343,7 @@
       "source_file": "frontend/src/pages/admin/Trash.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_admin_trash_jsx",
-      "community": 49,
+      "community": 2,
       "norm_label": "trash.jsx"
     },
     {
@@ -3352,7 +3352,7 @@
       "source_file": "frontend/src/pages/admin/Trash.jsx",
       "source_location": "L9",
       "id": "admin_trash_daysago",
-      "community": 49,
+      "community": 2,
       "norm_label": "daysago()"
     },
     {
@@ -3361,7 +3361,7 @@
       "source_file": "frontend/src/pages/admin/Trash.jsx",
       "source_location": "L10",
       "id": "admin_trash_daysleft",
-      "community": 49,
+      "community": 2,
       "norm_label": "daysleft()"
     },
     {
@@ -3370,7 +3370,7 @@
       "source_file": "frontend/src/pages/admin/Trash.jsx",
       "source_location": "L11",
       "id": "admin_trash_formatdeleteddate",
-      "community": 49,
+      "community": 2,
       "norm_label": "formatdeleteddate()"
     },
     {
@@ -3379,7 +3379,7 @@
       "source_file": "frontend/src/pages/admin/Trash.jsx",
       "source_location": "L13",
       "id": "admin_trash_entity_config",
-      "community": 49,
+      "community": 2,
       "norm_label": "entity_config"
     },
     {
@@ -3388,7 +3388,7 @@
       "source_file": "frontend/src/pages/admin/Trash.jsx",
       "source_location": "L22",
       "id": "admin_trash_trash",
-      "community": 49,
+      "community": 2,
       "norm_label": "trash()"
     },
     {
@@ -3397,7 +3397,7 @@
       "source_file": "frontend/src/pages/admin/WhatsAppSend.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_admin_whatsappsend_jsx",
-      "community": 46,
+      "community": 2,
       "norm_label": "whatsappsend.jsx"
     },
     {
@@ -3406,7 +3406,7 @@
       "source_file": "frontend/src/pages/admin/WhatsAppSend.jsx",
       "source_location": "L6",
       "id": "admin_whatsappsend_whatsappsend",
-      "community": 46,
+      "community": 2,
       "norm_label": "whatsappsend()"
     },
     {
@@ -3514,7 +3514,7 @@
       "source_file": "frontend/src/pages/student/Dashboard.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_student_dashboard_jsx",
-      "community": 41,
+      "community": 2,
       "norm_label": "dashboard.jsx"
     },
     {
@@ -3532,7 +3532,7 @@
       "source_file": "frontend/src/pages/student/Feedback.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_student_feedback_jsx",
-      "community": 41,
+      "community": 2,
       "norm_label": "feedback.jsx"
     },
     {
@@ -3541,7 +3541,7 @@
       "source_file": "frontend/src/pages/student/Feedback.jsx",
       "source_location": "L10",
       "id": "student_feedback_categories",
-      "community": 41,
+      "community": 2,
       "norm_label": "categories"
     },
     {
@@ -3550,7 +3550,7 @@
       "source_file": "frontend/src/pages/student/Feedback.jsx",
       "source_location": "L20",
       "id": "student_feedback_studentfeedback",
-      "community": 41,
+      "community": 2,
       "norm_label": "studentfeedback()"
     },
     {
@@ -3559,7 +3559,7 @@
       "source_file": "frontend/src/pages/student/MyAttendance.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_student_myattendance_jsx",
-      "community": 41,
+      "community": 2,
       "norm_label": "myattendance.jsx"
     },
     {
@@ -3568,7 +3568,7 @@
       "source_file": "frontend/src/pages/student/MyAttendance.jsx",
       "source_location": "L5",
       "id": "student_myattendance_statusstyles",
-      "community": 41,
+      "community": 2,
       "norm_label": "statusstyles"
     },
     {
@@ -3577,7 +3577,7 @@
       "source_file": "frontend/src/pages/student/MyAttendance.jsx",
       "source_location": "L11",
       "id": "student_myattendance_myattendance",
-      "community": 41,
+      "community": 2,
       "norm_label": "myattendance()"
     },
     {
@@ -3658,7 +3658,7 @@
       "source_file": "frontend/src/pages/student/SkillCourses.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_student_skillcourses_jsx",
-      "community": 41,
+      "community": 2,
       "norm_label": "skillcourses.jsx"
     },
     {
@@ -3667,7 +3667,7 @@
       "source_file": "frontend/src/pages/student/SkillCourses.jsx",
       "source_location": "L11",
       "id": "student_skillcourses_skillcourses",
-      "community": 41,
+      "community": 2,
       "norm_label": "skillcourses()"
     },
     {
@@ -3802,7 +3802,7 @@
       "source_file": "frontend/src/pages/teacher/Marks.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_teacher_marks_jsx",
-      "community": 41,
+      "community": 2,
       "norm_label": "marks.jsx"
     },
     {
@@ -3811,7 +3811,7 @@
       "source_file": "frontend/src/pages/teacher/Marks.jsx",
       "source_location": "L5",
       "id": "teacher_marks_assessment_types",
-      "community": 41,
+      "community": 2,
       "norm_label": "assessment_types"
     },
     {
@@ -3820,7 +3820,7 @@
       "source_file": "frontend/src/pages/teacher/Marks.jsx",
       "source_location": "L13",
       "id": "teacher_marks_teachermarks",
-      "community": 41,
+      "community": 2,
       "norm_label": "teachermarks()"
     },
     {
@@ -5241,7 +5241,7 @@
       "file_type": "code",
       "source_file": "frontend/src/pages/admin/ManageSkillCourses.jsx",
       "source_location": "L9",
-      "community": 48,
+      "community": 2,
       "norm_label": "diff_badge",
       "id": "admin_manageskillcourses_diff_badge"
     },
@@ -5250,7 +5250,7 @@
       "file_type": "code",
       "source_file": "frontend/src/pages/admin/ManageSkillCourses.jsx",
       "source_location": "L10",
-      "community": 48,
+      "community": 2,
       "norm_label": "diff_label",
       "id": "admin_manageskillcourses_diff_label"
     },
@@ -5286,7 +5286,7 @@
       "file_type": "code",
       "source_file": "frontend/src/pages/admin/ManageStudents.jsx",
       "source_location": "L656",
-      "community": 8,
+      "community": 2,
       "norm_label": "studentpreviewmodal()",
       "id": "admin_managestudents_studentpreviewmodal"
     },
@@ -10482,6 +10482,17 @@
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
+      "source_file": "frontend/src/pages/admin/ManageCourses.jsx",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "frontend_src_pages_admin_managecourses_jsx",
+      "target": "ui_designhelpers_deptcolor",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
       "source_file": "frontend/src/pages/admin/ManageDepartments.jsx",
       "source_location": "L7",
       "weight": 1.0,
@@ -11722,9 +11733,9 @@
       "source_file": "frontend/src/pages/admin/ManageSkillCourses.jsx",
       "source_location": "L9",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "frontend_src_pages_admin_manageskillcourses_jsx",
-      "target": "admin_manageskillcourses_getcategorymeta",
-      "confidence_score": 1.0
+      "target": "admin_manageskillcourses_getcategorymeta"
     },
     {
       "relation": "contains",
@@ -11732,9 +11743,9 @@
       "source_file": "frontend/src/pages/admin/ManageSkillCourses.jsx",
       "source_location": "L20",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "frontend_src_pages_admin_manageskillcourses_jsx",
-      "target": "admin_manageskillcourses_levelmeta",
-      "confidence_score": 1.0
+      "target": "admin_manageskillcourses_levelmeta"
     },
     {
       "relation": "contains",
@@ -14395,5 +14406,5 @@
       "source_file": "gemini.md"
     }
   ],
-  "built_at_commit": "1d1ae5f4c3591ee8a6ceaeabaf1e306863d3397e"
+  "built_at_commit": "4b7b136011273355d3fa14a057f80ba06372fca8"
 }
