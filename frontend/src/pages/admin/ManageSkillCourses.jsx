@@ -4,10 +4,24 @@ import { AlertTriangle, X } from 'lucide-react';
 import client from '../../api/client';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import Icon from '../../components/ui/Icon';
-import { PageHead, StatusBadge, Meter } from '../../components/ui/DesignHelpers';
+import { PageHead, StatusBadge } from '../../components/ui/DesignHelpers';
 
-const DIFF_BADGE = { beginner: { color: 'var(--good)', bg: 'var(--good-soft)' }, intermediate: { color: 'var(--warn)', bg: 'var(--warn-soft)' }, advanced: { color: 'var(--bad)', bg: 'var(--bad-soft)' } };
-const DIFF_LABEL = { beginner: 'Beginner', intermediate: 'Intermediate', advanced: 'Advanced' };
+const getCategoryMeta = (name) => {
+  const meta = {
+    'technical': { soft: 'var(--accent-soft)', ink: 'var(--accent)' },
+    'soft skills': { soft: 'var(--good-soft)', ink: 'var(--good)' },
+    'design': { soft: 'var(--info-soft)', ink: 'var(--info)' },
+    'aptitude': { soft: 'var(--warn-soft)', ink: 'var(--warn)' },
+    'language': { soft: 'var(--bad-soft)', ink: 'var(--bad)' },
+  };
+  return meta[name?.toLowerCase()] || { soft: 'var(--accent-soft)', ink: 'var(--accent)' };
+};
+
+const levelMeta = {
+  beginner: { label: 'Beginner', dot: 'var(--good)' },
+  intermediate: { label: 'Intermediate', dot: 'var(--warn)' },
+  advanced: { label: 'Advanced', dot: 'var(--bad)' },
+};
 
 export default function ManageSkillCourses() {
   const navigate = useNavigate();
@@ -33,81 +47,201 @@ export default function ManageSkillCourses() {
   const [loadingEnroll, setLoadingEnroll] = useState(false);
 
   const fetchData = useCallback(async () => {
-    try { const params = {}; if (filterCat) params.categoryId = filterCat; if (filterDiff) params.difficulty = filterDiff;
-      const [courseRes, catRes] = await Promise.all([client.get('/admin/skill-courses', { params }), client.get('/admin/skill-course-categories')]);
-      setCourses(courseRes.data.skillCourses); setCategories(catRes.data.categories);
-    } catch (err) { console.error(err); } finally { setLoading(false); }
+    try {
+      const params = {};
+      if (filterCat) params.categoryId = filterCat;
+      if (filterDiff) params.difficulty = filterDiff;
+      const [courseRes, catRes] = await Promise.all([
+        client.get('/admin/skill-courses', { params }),
+        client.get('/admin/skill-course-categories')
+      ]);
+      setCourses(courseRes.data.skillCourses);
+      setCategories(catRes.data.categories);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   }, [filterCat, filterDiff]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
   useEffect(() => { if (error) { const t = setTimeout(() => setError(''), 4000); return () => clearTimeout(t); } }, [error]);
   useEffect(() => { if (catError) { const t = setTimeout(() => setCatError(''), 4000); return () => clearTimeout(t); } }, [catError]);
 
-  const openCreate = () => { setEditing(null); setError(''); setForm({ title: '', description: '', categoryId: categories[0]?.id || '', difficulty: 'beginner', duration: '', provider: '', link: '' }); setShowModal(true); };
-  const openEdit = (c) => { setEditing(c); setError(''); setForm({ title: c.title, description: c.description, categoryId: c.categoryId, difficulty: c.difficulty, duration: c.duration, provider: c.provider || '', link: c.link || '' }); setShowModal(true); };
+  const openCreate = () => {
+    setEditing(null);
+    setError('');
+    setForm({ title: '', description: '', categoryId: categories[0]?.id || '', difficulty: 'beginner', duration: '', provider: '', link: '' });
+    setShowModal(true);
+  };
+  const openEdit = (c) => {
+    setEditing(c);
+    setError('');
+    setForm({ title: c.title, description: c.description, categoryId: c.categoryId, difficulty: c.difficulty, duration: c.duration, provider: c.provider || '', link: c.link || '' });
+    setShowModal(true);
+  };
 
-  const handleSubmit = async (e) => { e.preventDefault(); setSaving(true); setError(''); try { if (editing) await client.put(`/admin/skill-courses/${editing.id}`, form); else await client.post('/admin/skill-courses', form); setShowModal(false); fetchData(); } catch (err) { setError(err.response?.data?.error || 'Failed to save'); } finally { setSaving(false); } };
-  const handleDelete = async () => { if (!deleteTarget) return; setDeleting(true); try { await client.delete(`/admin/skill-courses/${deleteTarget}`); setDeleteTarget(null); fetchData(); } catch (err) { alert(err.response?.data?.error || 'Failed to delete'); } finally { setDeleting(false); } };
-  const handleAddCategory = async (e) => { e.preventDefault(); setCatSaving(true); setCatError(''); try { await client.post('/admin/skill-course-categories', { name: catName }); setCatName(''); fetchData(); } catch (err) { setCatError(err.response?.data?.error || 'Failed to add category'); } finally { setCatSaving(false); } };
-  const handleDeleteCategory = async (id) => { try { await client.delete(`/admin/skill-course-categories/${id}`); fetchData(); } catch (err) { alert(err.response?.data?.error || 'Failed to delete category'); } };
-  const openEnrollments = async (course) => { setEnrollCourse(course); setLoadingEnroll(true); try { const res = await client.get(`/admin/skill-courses/${course.id}/enrollments`); setEnrollments(res.data.enrollments); } catch { setEnrollments([]); } finally { setLoadingEnroll(false); } };
-  const closeEnrollments = () => { setEnrollCourse(null); setEnrollments(null); };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    setError('');
+    try {
+      if (editing) await client.put(`/admin/skill-courses/${editing.id}`, form);
+      else await client.post('/admin/skill-courses', form);
+      setShowModal(false);
+      fetchData();
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to save');
+    } finally {
+      setSaving(false);
+    }
+  };
 
-  useEffect(() => { if (location.state?.openAddModal) { openCreate(); navigate(location.pathname, { replace: true, state: {} }); } else if (location.state?.openCategoriesModal) { setShowCatModal(true); navigate(location.pathname, { replace: true, state: {} }); } }, [location.state, navigate, location.pathname]);
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await client.delete(`/admin/skill-courses/${deleteTarget}`);
+      setDeleteTarget(null);
+      fetchData();
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to delete');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleAddCategory = async (e) => {
+    e.preventDefault();
+    setCatSaving(true);
+    setCatError('');
+    try {
+      await client.post('/admin/skill-course-categories', { name: catName });
+      setCatName('');
+      fetchData();
+    } catch (err) {
+      setCatError(err.response?.data?.error || 'Failed to add category');
+    } finally {
+      setCatSaving(false);
+    }
+  };
+
+  const handleDeleteCategory = async (id) => {
+    try {
+      await client.delete(`/admin/skill-course-categories/${id}`);
+      fetchData();
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to delete category');
+    }
+  };
+
+  const openEnrollments = async (course) => {
+    setEnrollCourse(course);
+    setLoadingEnroll(true);
+    try {
+      const res = await client.get(`/admin/skill-courses/${course.id}/enrollments`);
+      setEnrollments(res.data.enrollments);
+    } catch {
+      setEnrollments([]);
+    } finally {
+      setLoadingEnroll(false);
+    }
+  };
+
+  const closeEnrollments = () => {
+    setEnrollCourse(null);
+    setEnrollments(null);
+  };
+
+  useEffect(() => {
+    if (location.state?.openAddModal) {
+      openCreate();
+      navigate(location.pathname, { replace: true, state: {} });
+    } else if (location.state?.openCategoriesModal) {
+      setShowCatModal(true);
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, navigate, location.pathname]);
 
   if (loading) return <div className="loading-container"><div className="spinner spinner-lg" /></div>;
 
   return (
     <div className="rd-content-inner">
-      <PageHead title="Skill Courses" sub="Manage skill enhancement courses for students">
+      <PageHead title="Skill Courses" sub="Value-added & certification courses beyond the core curriculum">
         <button className="rd-btn rd-btn-ghost" onClick={() => setShowCatModal(true)}><Icon name="tag" /> Categories</button>
         <button className="rd-btn rd-btn-primary" onClick={openCreate}><Icon name="plus" /> Add Course</button>
       </PageHead>
 
-      <div className="rd-toolbar">
-        <select className="rd-chip-select" value={filterCat} onChange={e => setFilterCat(e.target.value)}>
-          <option value="">All Categories</option>
-          {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-        </select>
+      <div className="rd-toolbar fade-up">
+        <div className="rd-seg" style={{ flexWrap: 'wrap' }}>
+          <button className={!filterCat ? 'on' : ''} onClick={() => setFilterCat('')}>All Categories</button>
+          {categories.map(c => (
+            <button key={c.id} className={filterCat === c.id ? 'on' : ''} onClick={() => setFilterCat(c.id)}>{c.name}</button>
+          ))}
+        </div>
         <select className="rd-chip-select" value={filterDiff} onChange={e => setFilterDiff(e.target.value)}>
           <option value="">All Levels</option>
-          <option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option>
+          <option value="beginner">Beginner</option>
+          <option value="intermediate">Intermediate</option>
+          <option value="advanced">Advanced</option>
         </select>
       </div>
 
-      <div className="rd-card fade-up">
-        <div className="rd-table-wrap">
-          <table className="rd-tbl">
-            <thead><tr><th>Title</th><th>Category</th><th>Level</th><th>Duration</th><th>Provider</th><th>Enrolled</th><th>Status</th><th style={{ textAlign: 'right' }}>Actions</th></tr></thead>
-            <tbody>
-              {courses.length === 0 ? (
-                <tr><td colSpan="8"><div className="empty-state"><p>No skill courses yet.</p></div></td></tr>
-              ) : courses.map(c => {
-                const db = DIFF_BADGE[c.difficulty] || {};
-                return (
-                  <tr key={c.id} style={{ opacity: c.isActive ? 1 : 0.5 }}>
-                    <td>
-                      <span style={{ fontWeight: 600, fontSize: 13.5 }}>{c.title}</span>
-                      {c.link && <a href={c.link} target="_blank" rel="noopener noreferrer" style={{ marginLeft: 6, fontSize: 12, color: 'var(--accent)' }}>↗</a>}
-                    </td>
-                    <td><span className="rd-badge" style={{ color: 'var(--accent)', background: 'var(--accent-soft)' }}>{c.category?.name}</span></td>
-                    <td><span className="rd-badge" style={{ color: db.color, background: db.bg }}>{DIFF_LABEL[c.difficulty]}</span></td>
-                    <td><span style={{ fontFamily: 'var(--font-mono)', fontSize: 13 }}>{c.duration}</span></td>
-                    <td>{c.provider || '—'}</td>
-                    <td><button className="rd-btn rd-btn-ghost rd-btn-sm" onClick={() => openEnrollments(c)}><Icon name="eye" style={{ width: 14, height: 14 }} /> {c._count?.enrollments || 0}</button></td>
-                    <td><StatusBadge status={c.isActive ? 'active' : 'inactive'} /></td>
-                    <td style={{ textAlign: 'right' }}>
-                      <div className="rd-row-act" style={{ justifyContent: 'flex-end', opacity: 1 }}>
-                        <button className="rd-icon-btn" onClick={() => openEdit(c)} title="Edit"><Icon name="edit" /></button>
-                        <button className="rd-icon-btn" onClick={() => setDeleteTarget(c.id)} title="Delete" style={{ color: 'var(--bad)' }}><Icon name="trash" /></button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 'var(--space-4)' }}>
+        {courses.length === 0 ? (
+          <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: 48, color: 'var(--color-gray-400)' }}>
+            No skill courses found.
+          </div>
+        ) : courses.map(c => {
+          const cm = getCategoryMeta(c.category?.name);
+          return (
+            <div className="rd-card rd-card-pad fade-up" key={c.id} style={{ display: 'flex', flexDirection: 'column', gap: 14, opacity: c.isActive ? 1 : 0.6 }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
+                <span className="rd-badge" style={{ background: cm.soft, color: cm.ink }}>{c.category?.name}</span>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <span className="rd-badge rd-badge-inactive" style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                    <span className="rd-badge-dot" style={{ background: levelMeta[c.difficulty]?.dot || 'var(--good)' }} />
+                    {levelMeta[c.difficulty]?.label || c.difficulty}
+                  </span>
+                  <StatusBadge status={c.isActive ? 'active' : 'inactive'} />
+                </div>
+              </div>
+              <div>
+                <div style={{ fontFamily: 'var(--font-family)', fontWeight: 600, fontSize: '1.05rem', letterSpacing: '-.2px', lineHeight: 1.25, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {c.title}
+                  {c.link && (
+                    <a href={c.link} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--gradient-primary)', display: 'inline-flex' }}>
+                      <Icon name="link" style={{ width: 14, height: 14 }} />
+                    </a>
+                  )}
+                </div>
+                <div style={{ fontSize: 12.5, color: 'var(--color-gray-500)', marginTop: 6, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                  {c.description}
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', fontSize: 12.5, color: 'var(--color-gray-500)' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Icon name="briefcase" style={{ width: 14, height: 14, color: 'var(--color-gray-400)' }} />
+                  {c.provider || 'No provider'}
+                </span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Icon name="clock" style={{ width: 14, height: 14, color: 'var(--color-gray-400)' }} />
+                  {c.duration}
+                </span>
+              </div>
+              <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--color-gray-100)', paddingTop: 12 }}>
+                <button className="rd-btn rd-btn-ghost rd-btn-sm" onClick={() => openEnrollments(c)} style={{ padding: '4px 8px' }}>
+                  <Icon name="users" style={{ width: 14, height: 14 }} />
+                  <span style={{ fontWeight: 600, marginLeft: 4 }}>{c._count?.enrollments || 0} enrolled</span>
+                </button>
+                <div className="rd-row-act" style={{ gap: 4 }}>
+                  <button className="rd-icon-btn" onClick={() => openEdit(c)} title="Edit"><Icon name="edit" style={{ width: 16, height: 16 }} /></button>
+                  <button className="rd-icon-btn" onClick={() => setDeleteTarget(c.id)} title="Delete" style={{ color: 'var(--bad)' }}><Icon name="trash" style={{ width: 16, height: 16 }} /></button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {/* Add/Edit Modal */}
@@ -193,3 +327,4 @@ export default function ManageSkillCourses() {
     </div>
   );
 }
+

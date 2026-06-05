@@ -105,8 +105,8 @@
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\backend\\src\\routes\\admin.routes.ts": {
-    "mtime": 1780229696.5079343,
-    "ast_hash": "ec08567a199b5509038396fb037423a5",
+    "mtime": 1780665574.879292,
+    "ast_hash": "9192420d3ac986a6e7f8cfb9418fc7ae",
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\backend\\src\\routes\\ai.routes.ts": {
@@ -215,13 +215,13 @@
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\components\\layout\\Navbar.jsx": {
-    "mtime": 1780247507.9872377,
-    "ast_hash": "d3699ee6e5a73b6ee39dbdb747edd0ac",
+    "mtime": 1780640831.0653658,
+    "ast_hash": "459076e88dc052c3bf213d11ca38e741",
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\components\\layout\\Sidebar.jsx": {
-    "mtime": 1780247492.3720386,
-    "ast_hash": "b0a64bd06a1fd9af12b8794ad9f19233",
+    "mtime": 1780640861.4705615,
+    "ast_hash": "66d32840b27848ac02c118117f60a0f4",
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\components\\layout\\ThemeToggle.jsx": {
@@ -230,103 +230,103 @@
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\pages\\admin\\AlumniDatabase.jsx": {
-    "mtime": 1780238205.328825,
-    "ast_hash": "3a19a2c4721d775801a85cbeb00887d4",
+    "mtime": 1780641989.5547652,
+    "ast_hash": "cfdd3d7a248d98bf729121b5193c7828",
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\pages\\admin\\Analytics.jsx": {
-    "mtime": 1779996113.0605302,
-    "ast_hash": "52b62271e3dc3de53378b018ed593baa",
+    "mtime": 1780644657.5423856,
+    "ast_hash": "d46be5b3ae8a67412dd639277fe28675",
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\pages\\admin\\Dashboard.jsx": {
-    "mtime": 1780237444.981208,
-    "ast_hash": "6b9b2ab8513e3a6e8d2ef773e7203a97",
+    "mtime": 1780647777.0399363,
+    "ast_hash": "ebd56176265d173a514d55b7c7d28332",
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\pages\\admin\\ManageAssignments.jsx": {
-    "mtime": 1779915186.6960363,
-    "ast_hash": "188b77d3616f2923bedabdb4cb76b860",
+    "mtime": 1780641719.480586,
+    "ast_hash": "9e39864663d7f72db679a35ced6cbc8b",
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\pages\\admin\\ManageBatches.jsx": {
-    "mtime": 1780195855.2934933,
-    "ast_hash": "0af97658cbea5781e58343ce03063f28",
+    "mtime": 1780650675.8381612,
+    "ast_hash": "1de07eed7361f1222bc900226a05db52",
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\pages\\admin\\ManageCourses.jsx": {
-    "mtime": 1780195855.2970169,
-    "ast_hash": "3e786e94ba268bbe3db5e9b7c4a0af86",
+    "mtime": 1780650667.7007153,
+    "ast_hash": "7e24c7c93b54ea2a9f61f447a57fe6e6",
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\pages\\admin\\ManageDepartments.jsx": {
-    "mtime": 1779996135.5685062,
-    "ast_hash": "61a7970b7871beef3e80910019383bd6",
+    "mtime": 1780665761.9317305,
+    "ast_hash": "eab96c7c4acb43a94d0375e89075c7c5",
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\pages\\admin\\ManageFeedback.jsx": {
-    "mtime": 1780195855.299286,
-    "ast_hash": "c6d90de15cf54582746912cf04618c2f",
+    "mtime": 1780650098.532349,
+    "ast_hash": "7c3a8b2b23877c30894f87c3f6ab8f54",
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\pages\\admin\\ManageSections.jsx": {
-    "mtime": 1780195855.300284,
-    "ast_hash": "951b7c05c87b590bef4424052bc4a460",
+    "mtime": 1780650100.550449,
+    "ast_hash": "15eeb39f1803173b5047aa9dc028baac",
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\pages\\admin\\ManageSkillCourses.jsx": {
-    "mtime": 1780195855.303024,
-    "ast_hash": "eabebfc4d34895617b3ad180c4495bc3",
+    "mtime": 1780650129.3649862,
+    "ast_hash": "17a2a94a2b8f7ec092a47f74ca40cf74",
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\pages\\admin\\ManageStaff.jsx": {
-    "mtime": 1780195855.3058455,
-    "ast_hash": "7fdeadc79f6f3b2707277b729a202618",
+    "mtime": 1780665593.8088624,
+    "ast_hash": "75478a079588cb1d32c1e9d2b0f3b2e9",
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\pages\\admin\\ManageStudents.jsx": {
-    "mtime": 1780240448.4631906,
-    "ast_hash": "cb69a80708ddf2d0acce7c323e6b4bc0",
+    "mtime": 1780651203.7391422,
+    "ast_hash": "2f255a91b70c585e28c6e4063d87c7b1",
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\pages\\admin\\ManageUsers.jsx": {
-    "mtime": 1780195855.3115993,
-    "ast_hash": "d8e52f0ec4ce258b4ac26f738bc10219",
+    "mtime": 1780650168.0763571,
+    "ast_hash": "0436cab7aa418ce834c1756dad9b9080",
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\pages\\admin\\NotificationHistory.jsx": {
-    "mtime": 1780195855.3132703,
-    "ast_hash": "845e9fbdfb8311927b52dd43138ffa8d",
+    "mtime": 1780642389.0338209,
+    "ast_hash": "446e3843bb4933dd9f36ef6914cad626",
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\pages\\admin\\Reports.jsx": {
-    "mtime": 1780195855.314948,
-    "ast_hash": "81a5ff237cfe992ce80853d3de9af8e7",
+    "mtime": 1780650234.0652785,
+    "ast_hash": "9d621331cda72c377cbcaaf144888303",
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\pages\\admin\\SemesterPromotion.jsx": {
-    "mtime": 1780195855.3165824,
-    "ast_hash": "d6e19c11b8d1f717060fb9d48ba13876",
+    "mtime": 1780650244.612699,
+    "ast_hash": "d19827781d1da8553228a34222053ce7",
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\pages\\admin\\StaffDetail.jsx": {
-    "mtime": 1780195855.318152,
-    "ast_hash": "74eecd4ef464c619d22a7c564e197e49",
+    "mtime": 1780666039.912727,
+    "ast_hash": "963090976a5f5d2f7a26b6aba48eb5a0",
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\pages\\admin\\StudentDetail.jsx": {
-    "mtime": 1780240395.651351,
-    "ast_hash": "cbb8578c0ec7663e9238381370c9ac87",
+    "mtime": 1780650196.3547857,
+    "ast_hash": "02dcb921713d5748fc37200e666c37f6",
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\pages\\admin\\Trash.jsx": {
-    "mtime": 1779915186.7954867,
-    "ast_hash": "f8c60485be0ebd65a7767b5335d3b7a3",
+    "mtime": 1780650206.3004205,
+    "ast_hash": "f1e7bdf766109e9bc82aaa6b27aaee14",
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\pages\\admin\\WhatsAppSend.jsx": {
-    "mtime": 1780195855.3224013,
-    "ast_hash": "8156a2d5a7c41804a2c8e5b63b8bb3ed",
+    "mtime": 1780643116.9343147,
+    "ast_hash": "c5272a679a04195b955983762f22cbfe",
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\pages\\auth\\Login.jsx": {
@@ -340,13 +340,13 @@
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\pages\\student\\Dashboard.jsx": {
-    "mtime": 1780237517.821581,
-    "ast_hash": "347047fdaed8c1818fa943fdd51c4567",
+    "mtime": 1780650278.6064076,
+    "ast_hash": "2e1c8c2462536d8cd31cbcb5efb2836f",
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\pages\\student\\Feedback.jsx": {
-    "mtime": 1779996213.2181437,
-    "ast_hash": "d9f54604911181f6bb8a3c76d0b0b6fb",
+    "mtime": 1780650280.6850598,
+    "ast_hash": "f69c60b8a15f1f5e77148545c03077d2",
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\pages\\student\\MyAttendance.jsx": {
@@ -365,8 +365,8 @@
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\pages\\student\\SkillCourses.jsx": {
-    "mtime": 1780195855.3314607,
-    "ast_hash": "d18924d5fd0368a8bcd7f3e51ee424fc",
+    "mtime": 1780650282.7762537,
+    "ast_hash": "f60589256f6eb4a0933f679d92fbedc9",
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\pages\\teacher\\Attendance.jsx": {
@@ -375,8 +375,8 @@
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\pages\\teacher\\Dashboard.jsx": {
-    "mtime": 1780237477.3252378,
-    "ast_hash": "90da02b25c72ae89b980c0c297f13a9a",
+    "mtime": 1780674363.8925934,
+    "ast_hash": "0cf04613436f70ad714662e5bc2e26e3",
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\pages\\teacher\\Marks.jsx": {
@@ -385,8 +385,8 @@
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\pages\\teacher\\Profile.jsx": {
-    "mtime": 1780195855.3350322,
-    "ast_hash": "0c0f388ae0a4a1a97057d75b92e5c3b5",
+    "mtime": 1780666011.8881314,
+    "ast_hash": "a1488da0079e7390828d006a21184a49",
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\store\\authStore.js": {
@@ -500,8 +500,8 @@
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\components\\BarcodeGenerator.jsx": {
-    "mtime": 1780240215.1816468,
-    "ast_hash": "16158e5202f702f039d35de9468312e2",
+    "mtime": 1780605028.371914,
+    "ast_hash": "20abc285efa3989ec8c653988349dcbb",
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\components\\BarcodeScanner.jsx": {
@@ -510,8 +510,8 @@
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\pages\\shared\\VerifyStudent.jsx": {
-    "mtime": 1780240299.6579144,
-    "ast_hash": "615c7ced25396d02f444b4a1c10d1f87",
+    "mtime": 1780650254.2769406,
+    "ast_hash": "7759732eed51fa1526698bc57a46063e",
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\public\\icon-192.png": {
@@ -522,6 +522,36 @@
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\public\\icon-512.png": {
     "mtime": 1780240594.0269463,
     "ast_hash": "e6957ec8d95003596fc8902d6ff29368",
+    "semantic_hash": ""
+  },
+  "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\replace_emojis.js": {
+    "mtime": 1780650072.0822191,
+    "ast_hash": "38defbaf86d780c78abb56789df3646a",
+    "semantic_hash": ""
+  },
+  "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\components\\layout\\GlobalSearch.jsx": {
+    "mtime": 1780594382.8093085,
+    "ast_hash": "bd45f19fbc21e0de24e480b3f14f7943",
+    "semantic_hash": ""
+  },
+  "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\components\\ui\\DesignCharts.jsx": {
+    "mtime": 1780640602.3143795,
+    "ast_hash": "9aedc244541706379b6319242b553df4",
+    "semantic_hash": ""
+  },
+  "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\components\\ui\\DesignDirection.jsx": {
+    "mtime": 1780640784.8949695,
+    "ast_hash": "341ea77b7cc24bc7116a8931f1208978",
+    "semantic_hash": ""
+  },
+  "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\components\\ui\\DesignHelpers.jsx": {
+    "mtime": 1780642320.30072,
+    "ast_hash": "36589cfb913ab8ed81074a8196a8ec48",
+    "semantic_hash": ""
+  },
+  "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\components\\ui\\Icon.jsx": {
+    "mtime": 1780642300.8447008,
+    "ast_hash": "2b92fc9477211e8c6dd715fde67635ee",
     "semantic_hash": ""
   }
 }
