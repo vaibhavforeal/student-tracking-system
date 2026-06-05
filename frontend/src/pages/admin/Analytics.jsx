@@ -1,16 +1,12 @@
 import { useState, useEffect } from 'react';
 import client from '../../api/client';
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  LineChart, Line, PieChart, Pie, Cell, Legend,
-} from 'recharts';
-import {
-  HiOutlineTrendingUp, HiOutlineExclamation,
-  HiOutlineScale, HiOutlineSparkles, HiOutlineRefresh,
-} from 'react-icons/hi';
+import Icon from '../../components/ui/Icon';
+import { PageHead } from '../../components/ui/DesignHelpers';
+import { AreaChart, LabeledBars, PieChart as DesignPie } from '../../components/ui/DesignCharts';
 
-const CHART_COLORS = ['#38bdf8', '#818cf8', '#c084fc', '#22c55e', '#f59e0b', '#ef4444', '#06b6d4', '#8b5cf6'];
-const PIE_COLORS = ['#22c55e', '#ef4444', '#38bdf8', '#f59e0b'];
+const MONTHS = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+const STATUS_COLORS = { active: 'var(--good)', inactive: 'var(--bad)', graduated: 'var(--info)', dropped: 'var(--warn)' };
+const BAR_PALETTE = ['#5b54e6', '#19a89a', '#c98a1e', '#d2553f', '#9b3d8f', '#3b7ec9', '#2f9968', '#e06090'];
 
 export default function Analytics() {
   const [chartData, setChartData] = useState(null);
@@ -19,402 +15,211 @@ export default function Analytics() {
   const [aiResults, setAiResults] = useState({});
   const [activeAiTab, setActiveAiTab] = useState(null);
 
-  useEffect(() => {
-    loadChartData();
-  }, []);
+  useEffect(() => { loadChartData(); }, []);
 
-  const loadChartData = async () => {
-    setLoading(true);
-    try {
-      const { data } = await client.get('/reports/analytics-data');
-      setChartData(data);
-    } catch (err) {
-      console.error('Failed to load analytics data:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const loadChartData = async () => { setLoading(true); try { const { data } = await client.get('/reports/analytics-data'); setChartData(data); } catch (err) { console.error(err); } finally { setLoading(false); } };
 
   const runAiAnalysis = async (type) => {
-    setAiLoading(type);
-    setActiveAiTab(type);
-    try {
-      const { data } = await client.post(`/ai/${type}`, {});
-      setAiResults(prev => ({ ...prev, [type]: data }));
-    } catch (err) {
-      setAiResults(prev => ({
-        ...prev,
-        [type]: { analysis: `❌ Failed to generate analysis: ${err.response?.data?.error || err.message}` },
-      }));
-    } finally {
-      setAiLoading('');
-    }
+    setAiLoading(type); setActiveAiTab(type);
+    try { const { data } = await client.post(`/ai/${type}`, {}); setAiResults(prev => ({ ...prev, [type]: data })); }
+    catch (err) { setAiResults(prev => ({ ...prev, [type]: { analysis: `Failed: ${err.response?.data?.error || err.message}` } })); }
+    finally { setAiLoading(''); }
   };
 
   const renderMarkdown = (text) => {
     if (!text) return null;
-    // Simple markdown rendering: bold, headers, lists, code
-    const lines = text.split('\n');
-    return lines.map((line, i) => {
-      // Headers
-      if (line.startsWith('### ')) return <h4 key={i} className="ai-h4">{line.replace('### ', '')}</h4>;
-      if (line.startsWith('## ')) return <h3 key={i} className="ai-h3">{line.replace('## ', '')}</h3>;
-      if (line.startsWith('# ')) return <h2 key={i} className="ai-h2">{line.replace('# ', '')}</h2>;
-      // Bold
-      let rendered = line
-        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.+?)\*/g, '<em>$1</em>');
-      // Lists
-      if (line.match(/^[-*]\s/)) {
-        return <li key={i} className="ai-li" dangerouslySetInnerHTML={{ __html: rendered.replace(/^[-*]\s/, '') }} />;
-      }
-      if (line.match(/^\d+\.\s/)) {
-        return <li key={i} className="ai-li ai-ol" dangerouslySetInnerHTML={{ __html: rendered.replace(/^\d+\.\s/, '') }} />;
-      }
-      // Empty line
+    return text.split('\n').map((line, i) => {
+      if (line.startsWith('### ')) return <h4 key={i} style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)', margin: '12px 0 4px' }}>{line.replace('### ', '')}</h4>;
+      if (line.startsWith('## ')) return <h3 key={i} style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)', margin: '14px 0 6px' }}>{line.replace('## ', '')}</h3>;
+      if (line.startsWith('# ')) return <h2 key={i} style={{ fontSize: 17, fontWeight: 700, color: 'var(--ink)', margin: '16px 0 8px' }}>{line.replace('# ', '')}</h2>;
+      let rendered = line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>');
+      if (line.match(/^[-*]\s/)) return <li key={i} style={{ fontSize: 14, color: 'var(--ink)', lineHeight: 1.7, marginLeft: 16 }} dangerouslySetInnerHTML={{ __html: rendered.replace(/^[-*]\s/, '') }} />;
+      if (line.match(/^\d+\.\s/)) return <li key={i} style={{ fontSize: 14, color: 'var(--ink)', lineHeight: 1.7, marginLeft: 16, listStyleType: 'decimal' }} dangerouslySetInnerHTML={{ __html: rendered.replace(/^\d+\.\s/, '') }} />;
       if (!line.trim()) return <br key={i} />;
-      // Regular paragraph
-      return <p key={i} className="ai-p" dangerouslySetInnerHTML={{ __html: rendered }} />;
+      return <p key={i} style={{ fontSize: 14, color: 'var(--ink)', lineHeight: 1.7, margin: '4px 0' }} dangerouslySetInnerHTML={{ __html: rendered }} />;
     });
   };
 
   const aiActions = [
-    {
-      type: 'performance-trend',
-      title: 'Performance Trends',
-      description: 'Analyze overall student performance trends',
-      icon: HiOutlineTrendingUp,
-      color: 'sky',
-    },
-    {
-      type: 'at-risk-students',
-      title: 'At-Risk Students',
-      description: 'Identify students who may need intervention',
-      icon: HiOutlineExclamation,
-      color: 'red',
-    },
-    {
-      type: 'class-comparison',
-      title: 'Class Comparison',
-      description: 'Compare performance across sections',
-      icon: HiOutlineScale,
-      color: 'purple',
-    },
+    { type: 'performance-trend', title: 'Performance Trends', desc: 'Analyze overall student performance trends', icon: 'chart', tint: 'var(--info)' },
+    { type: 'at-risk-students', title: 'At-Risk Students', desc: 'Identify students who may need intervention', icon: 'alertTriangle', tint: 'var(--bad)' },
+    { type: 'class-comparison', title: 'Class Comparison', desc: 'Compare performance across sections', icon: 'layers', tint: 'var(--accent)' },
   ];
 
-  if (loading) {
-    return (
-      <div className="page-container">
-        <div className="page-header">
-          <div>
-            <h1>Analytics Dashboard</h1>
-            <p className="page-subtitle">Loading analytics data...</p>
-          </div>
-        </div>
-        <div className="analytics-loading">
-          <div className="spinner-lg"></div>
-          <p>Crunching the numbers...</p>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="rd-content-inner">
+      <PageHead title="Analytics" sub="Loading analytics data..." />
+      <div style={{ textAlign: 'center', padding: 60 }}><div className="spinner spinner-lg" /><p style={{ marginTop: 16, color: 'var(--faint)' }}>Crunching the numbers...</p></div>
+    </div>
+  );
+
+  /* Build data for custom chart components from API response */
+  const courseBarData = (chartData?.coursePerformance || []).map((c, i) => ({
+    label: c.name?.length > 8 ? c.name.slice(0, 8) + '...' : c.name,
+    value: Math.round(c.avgPercentage || 0),
+    color: BAR_PALETTE[i % BAR_PALETTE.length],
+  }));
+
+  const attendanceLineData = (chartData?.attendanceTrend || []).map(t => t.attendanceRate || 0);
+
+  const statusPieData = (chartData?.statusDistribution || []).map(s => ({
+    label: s.name,
+    value: s.value,
+    color: STATUS_COLORS[s.name?.toLowerCase()] || 'var(--accent)',
+  }));
+
+  const batchBarData = (chartData?.batchPerformance || []).map((b, i) => ({
+    label: b.name?.length > 10 ? b.name.slice(0, 10) + '...' : b.name,
+    value: Math.round(b.avgPercentage || 0),
+    color: BAR_PALETTE[i % BAR_PALETTE.length],
+  }));
 
   return (
-    <div className="page-container">
-      <div className="page-header">
-        <div>
-          <h1>Analytics Dashboard</h1>
-          <p className="page-subtitle">Performance insights, trends, and AI-powered analysis</p>
-        </div>
-        <button className="btn btn-secondary" onClick={loadChartData}>
-          <HiOutlineRefresh /> Refresh
-        </button>
-      </div>
+    <div className="rd-content-inner">
+      <PageHead title="Analytics" sub="Performance insights, trends, and AI-powered analysis">
+        <button className="rd-btn rd-btn-ghost" onClick={loadChartData}><Icon name="refresh" /> Refresh</button>
+      </PageHead>
 
-      {/* Charts Grid */}
-      <div className="analytics-charts-grid">
-        {/* Course Performance Bar Chart */}
-        <div className="card analytics-chart-card">
-          <div className="card-header">
-            <h3 className="card-title">Average Marks by Course</h3>
-          </div>
-          <div className="card-body chart-container">
-            {chartData?.coursePerformance?.length > 0 ? (
-              <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={chartData.coursePerformance}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-gray-100)" />
-                  <XAxis dataKey="name" tick={{ fill: 'var(--color-gray-500)', fontSize: 12 }} />
-                  <YAxis tick={{ fill: 'var(--color-gray-500)', fontSize: 12 }} domain={[0, 100]} />
-                  <Tooltip
-                    contentStyle={{ borderRadius: '8px', background: 'var(--color-white)', border: '1px solid var(--color-gray-200)', boxShadow: 'var(--shadow-md)' }}
-                    labelStyle={{ color: 'var(--color-gray-800)', fontWeight: 600 }}
-                    itemStyle={{ color: 'var(--color-sky-600)' }}
-                    formatter={(value) => [`${value}%`, 'Avg Performance']}
-                  />
-                  <Bar dataKey="avgPercentage" fill="var(--gradient-primary)" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="chart-empty">No marks data available</div>
-            )}
+      {/* Charts Grid - 2x2 matching prototype */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--gap)', marginBottom: 'var(--gap)' }}>
+        {/* Average marks by course */}
+        <div className="rd-card fade-up">
+          <div className="rd-card-head"><div><div className="rd-card-title">Average marks by course</div><div className="rd-card-sub">Current semester</div></div></div>
+          <div className="rd-card-pad" style={{ paddingTop: 22 }}>
+            {courseBarData.length > 0
+              ? <LabeledBars data={courseBarData} suffix="%" height={230} />
+              : <div style={{ display: 'grid', placeItems: 'center', height: 230, color: 'var(--faint)' }}>No marks data</div>}
           </div>
         </div>
 
-        {/* Attendance Trend Line Chart */}
-        <div className="card analytics-chart-card">
-          <div className="card-header">
-            <h3 className="card-title">Attendance Trend</h3>
-          </div>
-          <div className="card-body chart-container">
-            {chartData?.attendanceTrend?.length > 0 ? (
-              <ResponsiveContainer width="100%" height={280}>
-                <LineChart data={chartData.attendanceTrend}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-gray-100)" />
-                  <XAxis dataKey="month" tick={{ fill: 'var(--color-gray-500)', fontSize: 12 }} />
-                  <YAxis tick={{ fill: 'var(--color-gray-500)', fontSize: 12 }} domain={[0, 100]} />
-                  <Tooltip
-                    contentStyle={{ borderRadius: '8px', background: 'var(--color-white)', border: '1px solid var(--color-gray-200)', boxShadow: 'var(--shadow-md)' }}
-                    labelStyle={{ color: 'var(--color-gray-800)', fontWeight: 600 }}
-                    itemStyle={{ color: 'var(--color-indigo-600)' }}
-                    formatter={(value) => [`${value}%`, 'Attendance Rate']}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="attendanceRate"
-                    stroke="#818cf8"
-                    strokeWidth={3}
-                    dot={{ fill: '#818cf8', r: 5 }}
-                    activeDot={{ r: 7, fill: '#6366f1' }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="chart-empty">No attendance data available</div>
-            )}
+        {/* Attendance trend */}
+        <div className="rd-card fade-up" style={{ animationDelay: '60ms' }}>
+          <div className="rd-card-head"><div><div className="rd-card-title">Attendance trend</div><div className="rd-card-sub">Institution-wide</div></div></div>
+          <div className="rd-card-pad" style={{ paddingTop: 22 }}>
+            {attendanceLineData.length > 0 ? (
+              <>
+                <AreaChart data={attendanceLineData} height={210} />
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
+                  {MONTHS.slice(0, attendanceLineData.length).map(m => <span key={m} style={{ fontSize: 10.5, color: 'var(--faint)', fontFamily: 'var(--font-mono)' }}>{m}</span>)}
+                </div>
+              </>
+            ) : <div style={{ display: 'grid', placeItems: 'center', height: 210, color: 'var(--faint)' }}>No attendance data</div>}
           </div>
         </div>
 
-        {/* Student Status Pie Chart */}
-        <div className="card analytics-chart-card">
-          <div className="card-header">
-            <h3 className="card-title">Student Status Distribution</h3>
-          </div>
-          <div className="card-body chart-container">
-            {chartData?.statusDistribution?.length > 0 ? (
-              <ResponsiveContainer width="100%" height={280}>
-                <PieChart>
-                  <Pie
-                    data={chartData.statusDistribution}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={100}
-                    innerRadius={55}
-                    dataKey="value"
-                    label={({ name, value }) => `${name}: ${value}`}
-                    labelLine={{ stroke: 'var(--color-gray-400)', strokeWidth: 1 }}
-                  >
-                    {chartData.statusDistribution.map((_, i) => (
-                      <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{ borderRadius: '8px', background: 'var(--color-white)', border: '1px solid var(--color-gray-200)', boxShadow: 'var(--shadow-md)' }}
-                    labelStyle={{ color: 'var(--color-gray-800)', fontWeight: 600 }}
-                  />
-                  <Legend iconType="circle" />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="chart-empty">No student data available</div>
-            )}
+        {/* Student status distribution */}
+        <div className="rd-card fade-up" style={{ animationDelay: '120ms' }}>
+          <div className="rd-card-head"><div><div className="rd-card-title">Student status distribution</div><div className="rd-card-sub">All enrolled students</div></div></div>
+          <div className="rd-card-pad" style={{ paddingTop: 22, display: 'grid', placeItems: 'center' }}>
+            {statusPieData.length > 0
+              ? <DesignPie data={statusPieData} size={170} />
+              : <div style={{ display: 'grid', placeItems: 'center', height: 170, color: 'var(--faint)' }}>No student data</div>}
           </div>
         </div>
 
-        {/* Batch Performance Bar Chart */}
-        <div className="card analytics-chart-card">
-          <div className="card-header">
-            <h3 className="card-title">Batch-wise Performance</h3>
-          </div>
-          <div className="card-body chart-container">
-            {chartData?.batchPerformance?.length > 0 ? (
-              <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={chartData.batchPerformance} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-gray-100)" />
-                  <XAxis type="number" tick={{ fill: 'var(--color-gray-500)', fontSize: 12 }} domain={[0, 100]} />
-                  <YAxis dataKey="name" type="category" tick={{ fill: 'var(--color-gray-500)', fontSize: 11 }} width={100} />
-                  <Tooltip
-                    contentStyle={{ borderRadius: '8px', background: 'var(--color-white)', border: '1px solid var(--color-gray-200)', boxShadow: 'var(--shadow-md)' }}
-                    labelStyle={{ color: 'var(--color-gray-800)', fontWeight: 600 }}
-                    itemStyle={{ color: 'var(--color-purple-600)' }}
-                    formatter={(value) => [`${value}%`, 'Avg Performance']}
-                  />
-                  <Bar dataKey="avgPercentage" fill="var(--gradient-accent)" radius={[0, 4, 4, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="chart-empty">No batch data available</div>
-            )}
+        {/* Batch-wise performance */}
+        <div className="rd-card fade-up" style={{ animationDelay: '180ms' }}>
+          <div className="rd-card-head"><div><div className="rd-card-title">Batch-wise performance</div><div className="rd-card-sub">Average score per batch</div></div></div>
+          <div className="rd-card-pad" style={{ paddingTop: 22 }}>
+            {batchBarData.length > 0
+              ? <LabeledBars data={batchBarData} suffix="%" height={230} />
+              : <div style={{ display: 'grid', placeItems: 'center', height: 230, color: 'var(--faint)' }}>No batch data</div>}
           </div>
         </div>
       </div>
 
-      {/* AI Analytics Section */}
-      <div className="ai-section">
-        <div className="ai-section-header">
-          <div>
-            <h2>
-              <HiOutlineSparkles style={{ color: '#818cf8', marginRight: '8px', verticalAlign: 'middle' }} />
-              AI-Powered Insights
-            </h2>
-            <p>Use Gemini AI to analyze student data and generate actionable insights</p>
-          </div>
+      {/* AI Section */}
+      <div className="rd-card rd-card-pad fade-up" style={{ background: 'var(--surface-2)', marginBottom: 'var(--gap)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+          <Icon name="spark" style={{ width: 20, height: 20, color: 'var(--accent)' }} />
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 17 }}>AI-Powered Insights</span>
         </div>
-
-        <div className="ai-actions-grid">
+        <p style={{ color: 'var(--muted)', fontSize: 13.5, marginBottom: 16 }}>Generate actionable insights from student data.</p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
           {aiActions.map(action => (
-            <button
-              key={action.type}
-              className={`ai-action-card ${activeAiTab === action.type ? 'active' : ''}`}
-              onClick={() => runAiAnalysis(action.type)}
-              disabled={aiLoading === action.type}
-              id={`ai-${action.type}`}
-            >
-              <div className={`ai-action-icon ${action.color}`}>
-                <action.icon />
-              </div>
-              <div className="ai-action-info">
-                <h3>{action.title}</h3>
-                <p>{action.description}</p>
-              </div>
-              {aiLoading === action.type && <div className="spinner"></div>}
+            <button key={action.type} onClick={() => runAiAnalysis(action.type)} disabled={aiLoading === action.type}
+              className="rd-card rd-card-pad"
+              style={{ textAlign: 'left', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 9,
+                border: `1.5px solid ${activeAiTab === action.type ? 'var(--accent)' : 'var(--border)'}`,
+                background: activeAiTab === action.type ? 'var(--accent-soft)' : 'var(--surface)' }}>
+              <div className="rd-stat-ico" style={{ background: activeAiTab === action.type ? 'var(--surface)' : 'var(--accent-soft)', color: 'var(--accent)' }}><Icon name={action.icon} /></div>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14.5 }}>{action.title}</div>
+              <div style={{ fontSize: 12.5, color: 'var(--muted)', lineHeight: 1.4 }}>{action.desc}</div>
+              {aiLoading === action.type && <div className="spinner" style={{ marginTop: 4 }} />}
             </button>
           ))}
         </div>
 
         {/* AI Results */}
         {activeAiTab && aiResults[activeAiTab] && (
-          <div className="card ai-results-card">
-            <div className="card-header">
-              <h3 className="card-title">
-                <HiOutlineSparkles style={{ color: '#818cf8', marginRight: '6px' }} />
-                {aiActions.find(a => a.type === activeAiTab)?.title} — AI Analysis
-              </h3>
-              <span className="badge badge-purple">
-                {new Date(aiResults[activeAiTab].generatedAt).toLocaleTimeString()}
-              </span>
+          <div className="rd-card rd-card-pad" style={{ marginTop: 14, borderColor: 'var(--accent)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+              <Icon name="spark" style={{ width: 16, height: 16, color: 'var(--accent)' }} />
+              <span style={{ fontWeight: 600, fontFamily: 'var(--font-display)' }}>{aiActions.find(a => a.type === activeAiTab)?.title} — AI Analysis</span>
+              {aiResults[activeAiTab].generatedAt && (
+                <span className="rd-badge" style={{ marginLeft: 'auto', color: 'var(--accent)', background: 'var(--accent-soft)' }}>
+                  {new Date(aiResults[activeAiTab].generatedAt).toLocaleTimeString()}
+                </span>
+              )}
             </div>
-            <div className="card-body ai-results-body">
-              {/* Summary stats for at-risk */}
-              {activeAiTab === 'at-risk-students' && aiResults[activeAiTab].summary && (
-                <div className="ai-summary-stats">
-                  <div className="ai-stat">
-                    <span className="ai-stat-value">{aiResults[activeAiTab].summary.totalAnalyzed}</span>
-                    <span className="ai-stat-label">Students Analyzed</span>
-                  </div>
-                  <div className="ai-stat danger">
-                    <span className="ai-stat-value">{aiResults[activeAiTab].summary.atRiskCount}</span>
-                    <span className="ai-stat-label">At Risk</span>
-                  </div>
-                  <div className="ai-stat warning">
-                    <span className="ai-stat-value">{aiResults[activeAiTab].summary.riskPercentage}%</span>
-                    <span className="ai-stat-label">Risk Rate</span>
-                  </div>
-                </div>
-              )}
 
-              {/* At-risk students table */}
-              {activeAiTab === 'at-risk-students' && aiResults[activeAiTab].atRiskStudents?.length > 0 && (
-                <div className="data-table-wrapper" style={{ marginBottom: '1.5rem' }}>
-                  <table className="data-table">
-                    <thead>
-                      <tr>
-                        <th>Unique ID</th>
-                        <th>Name</th>
-                        <th>Batch</th>
-                        <th>Section</th>
-                        <th>Marks %</th>
-                        <th>Attendance %</th>
-                        <th>Weak Subjects</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {aiResults[activeAiTab].atRiskStudents.map(s => (
-                        <tr key={s.enrollmentNo}>
-                          <td>{s.enrollmentNo}</td>
-                          <td style={{ fontWeight: 500 }}>{s.name}</td>
-                          <td>{s.batch}</td>
-                          <td>{s.section}</td>
-                          <td>
-                            <span className={`badge ${typeof s.marksPercentage === 'number' && s.marksPercentage < 40 ? 'badge-red' : 'badge-green'}`}>
-                              {typeof s.marksPercentage === 'number' ? `${s.marksPercentage}%` : s.marksPercentage}
-                            </span>
-                          </td>
-                          <td>
-                            <span className={`badge ${typeof s.attendanceRate === 'number' && s.attendanceRate < 75 ? 'badge-red' : 'badge-green'}`}>
-                              {typeof s.attendanceRate === 'number' ? `${s.attendanceRate}%` : s.attendanceRate}
-                            </span>
-                          </td>
-                          <td>{s.weakSubjects?.join(', ') || '—'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-
-              {/* Class comparison data table */}
-              {activeAiTab === 'class-comparison' && aiResults[activeAiTab].comparisonData?.length > 0 && (
-                <div className="data-table-wrapper" style={{ marginBottom: '1.5rem' }}>
-                  <table className="data-table">
-                    <thead>
-                      <tr>
-                        <th>Section</th>
-                        <th>Batch</th>
-                        <th>Students</th>
-                        <th>Avg Performance</th>
-                        <th>Avg Attendance</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {aiResults[activeAiTab].comparisonData.map(s => (
-                        <tr key={s.section + s.batch}>
-                          <td style={{ fontWeight: 500 }}>{s.section}</td>
-                          <td>{s.batch} ({s.degree})</td>
-                          <td>{s.studentCount}</td>
-                          <td>
-                            <span className={`badge ${s.avgPerformance >= 60 ? 'badge-green' : s.avgPerformance >= 40 ? 'badge-amber' : 'badge-red'}`}>
-                              {s.avgPerformance}%
-                            </span>
-                          </td>
-                          <td>
-                            <span className={`badge ${s.avgAttendance >= 75 ? 'badge-green' : s.avgAttendance >= 50 ? 'badge-amber' : 'badge-red'}`}>
-                              {s.avgAttendance}%
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-
-              {/* AI Text Analysis */}
-              <div className="ai-analysis-content">
-                {renderMarkdown(aiResults[activeAiTab].analysis)}
+            {/* At-risk summary */}
+            {activeAiTab === 'at-risk-students' && aiResults[activeAiTab].summary && (
+              <div style={{ display: 'flex', gap: 12, marginBottom: 14 }}>
+                {[
+                  [aiResults[activeAiTab].summary.totalAnalyzed, 'Analyzed', 'var(--ink)'],
+                  [aiResults[activeAiTab].summary.atRiskCount, 'At Risk', 'var(--bad)'],
+                  [`${aiResults[activeAiTab].summary.riskPercentage}%`, 'Risk Rate', 'var(--warn)'],
+                ].map(([v, l, c]) => (
+                  <div key={l} className="rd-card" style={{ flex: 1, padding: '13px', textAlign: 'center', background: 'var(--surface-2)' }}>
+                    <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 22, color: c }}>{v}</div>
+                    <div style={{ fontSize: 11.5, color: 'var(--faint)', fontWeight: 600 }}>{l}</div>
+                  </div>
+                ))}
               </div>
-            </div>
+            )}
+
+            {/* At-risk table */}
+            {activeAiTab === 'at-risk-students' && aiResults[activeAiTab].atRiskStudents?.length > 0 && (
+              <div className="rd-table-wrap" style={{ marginBottom: 20 }}>
+                <table className="rd-tbl">
+                  <thead><tr><th>ID</th><th>Name</th><th>Batch</th><th>Section</th><th>Marks</th><th>Attendance</th><th>Weak Subjects</th></tr></thead>
+                  <tbody>{aiResults[activeAiTab].atRiskStudents.map(s => (
+                    <tr key={s.enrollmentNo}>
+                      <td><span className="rd-badge rd-badge-id">{s.enrollmentNo}</span></td>
+                      <td style={{ fontWeight: 500 }}>{s.name}</td><td>{s.batch}</td><td>{s.section}</td>
+                      <td><span className="rd-badge" style={{ color: typeof s.marksPercentage === 'number' && s.marksPercentage < 40 ? 'var(--bad)' : 'var(--good)', background: typeof s.marksPercentage === 'number' && s.marksPercentage < 40 ? 'var(--bad-soft)' : 'var(--good-soft)' }}>{typeof s.marksPercentage === 'number' ? `${s.marksPercentage}%` : s.marksPercentage}</span></td>
+                      <td><span className="rd-badge" style={{ color: typeof s.attendanceRate === 'number' && s.attendanceRate < 75 ? 'var(--bad)' : 'var(--good)', background: typeof s.attendanceRate === 'number' && s.attendanceRate < 75 ? 'var(--bad-soft)' : 'var(--good-soft)' }}>{typeof s.attendanceRate === 'number' ? `${s.attendanceRate}%` : s.attendanceRate}</span></td>
+                      <td style={{ fontSize: 13, color: 'var(--muted)' }}>{s.weakSubjects?.join(', ') || '\u2014'}</td>
+                    </tr>
+                  ))}</tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Class comparison table */}
+            {activeAiTab === 'class-comparison' && aiResults[activeAiTab].comparisonData?.length > 0 && (
+              <div className="rd-table-wrap" style={{ marginBottom: 20 }}>
+                <table className="rd-tbl">
+                  <thead><tr><th>Section</th><th>Batch</th><th>Students</th><th>Avg Performance</th><th>Avg Attendance</th></tr></thead>
+                  <tbody>{aiResults[activeAiTab].comparisonData.map(s => (
+                    <tr key={s.section + s.batch}>
+                      <td style={{ fontWeight: 500 }}>{s.section}</td><td>{s.batch} ({s.degree})</td><td>{s.studentCount}</td>
+                      <td><span className="rd-badge" style={{ color: s.avgPerformance >= 60 ? 'var(--good)' : s.avgPerformance >= 40 ? 'var(--warn)' : 'var(--bad)', background: s.avgPerformance >= 60 ? 'var(--good-soft)' : s.avgPerformance >= 40 ? 'var(--warn-soft)' : 'var(--bad-soft)' }}>{s.avgPerformance}%</span></td>
+                      <td><span className="rd-badge" style={{ color: s.avgAttendance >= 75 ? 'var(--good)' : s.avgAttendance >= 50 ? 'var(--warn)' : 'var(--bad)', background: s.avgAttendance >= 75 ? 'var(--good-soft)' : s.avgAttendance >= 50 ? 'var(--warn-soft)' : 'var(--bad-soft)' }}>{s.avgAttendance}%</span></td>
+                    </tr>
+                  ))}</tbody>
+                </table>
+              </div>
+            )}
+
+            <div style={{ padding: '16px 0' }}>{renderMarkdown(aiResults[activeAiTab].analysis)}</div>
           </div>
         )}
 
-        {/* Loading state */}
         {aiLoading && (
-          <div className="card ai-loading-card">
-            <div className="card-body" style={{ textAlign: 'center', padding: '3rem' }}>
-              <div className="spinner-lg"></div>
-              <p style={{ marginTop: '1rem', color: '#6b7280' }}>
-                AI is analyzing your data... This may take a moment.
-              </p>
-            </div>
+          <div className="rd-card rd-card-pad" style={{ textAlign: 'center', padding: '48px 20px', marginTop: 14 }}>
+            <div className="spinner spinner-lg" /><p style={{ marginTop: 16, color: 'var(--faint)' }}>AI is analyzing your data...</p>
           </div>
         )}
       </div>

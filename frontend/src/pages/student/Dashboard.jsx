@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Hand } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import client from '../../api/client';
 import useAuthStore from '../../store/authStore';
@@ -72,7 +73,7 @@ export default function StudentDashboard() {
       {/* Welcome Header */}
       <div className="page-header">
         <div>
-          <h1>Welcome, {profile?.firstName || user?.name || 'Student'} 👋</h1>
+          <h1 style={{ display: 'flex', alignItems: 'center' }}>Welcome, {profile?.firstName || user?.name || 'Student'} <Hand size={28} style={{ color: '#fbbf24', marginLeft: 8 }} /></h1>
           <p className="page-subtitle">
             {profile?.enrollmentNo && <span className="badge badge-sky" style={{ marginRight: 'var(--space-2)' }}>{profile.enrollmentNo}</span>}
             {profile?.batch?.degree} — {profile?.batch?.name} · {profile?.section?.name}

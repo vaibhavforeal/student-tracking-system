@@ -19,7 +19,7 @@ export default function BarcodeGenerator({
   fontSize = 14,
   textMargin = 5,
   lineColor = '#000000',
-  background = 'transparent',
+  background = '#ffffff',
 }) {
   const svgRef = useRef(null);
 
@@ -35,7 +35,7 @@ export default function BarcodeGenerator({
           textMargin,
           lineColor,
           background,
-          margin: 10,
+          margin: 20,
           font: 'monospace',
           fontOptions: 'bold',
           textAlign: 'center',

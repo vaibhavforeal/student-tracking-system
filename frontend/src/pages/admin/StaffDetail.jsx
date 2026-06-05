@@ -1,11 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import client from '../../api/client';
-import {
-  HiOutlineArrowLeft, HiOutlinePlus, HiOutlineTrash, HiOutlinePencil,
-  HiOutlineUserGroup, HiOutlineAcademicCap, HiOutlineDocumentText,
-  HiOutlineDownload, HiOutlineUpload, HiOutlineHeart,
-} from 'react-icons/hi';
+import Icon from '../../components/ui/Icon';
+import { PageHead, MiniAvatar } from '../../components/ui/DesignHelpers';
 
 const EDUCATION_LEVELS = [
   { value: 'bachelors', label: "Bachelor's" },
@@ -55,33 +52,20 @@ export default function StaffDetail() {
   if (!staff) return <div className="empty-state"><p>Staff member not found.</p></div>;
 
   return (
-    <div>
+    <div className="rd-content-inner">
       {/* Header */}
-      <div className="page-header">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
-          <button className="btn btn-ghost" onClick={() => navigate('/admin/staff')}>
-            <HiOutlineArrowLeft size={20} />
-          </button>
-          <div>
-            <h1>{staff.user?.name}</h1>
-            <p className="page-subtitle">
-              <span className="badge badge-purple">{staff.employeeId}</span>
-              {' '}
-              {staff.designation}
-              {staff.department && ` • ${staff.department.name}`}
-            </p>
-          </div>
-        </div>
-      </div>
+      <PageHead title={staff.user?.name} sub={`${staff.employeeId} · ${staff.designation}${staff.department ? ` · ${staff.department.name}` : ''}`}>
+        <button className="rd-btn rd-btn-ghost" onClick={() => navigate('/admin/staff')}><Icon name="chevR" style={{ transform: 'rotate(180deg)' }} /> Back</button>
+      </PageHead>
 
       {/* All Sections */}
-      <div style={{ display: 'grid', gap: 'var(--space-5)' }}>
-        <div className="card"><div className="card-body"><PersonalSection staff={staff} refresh={fetchStaff} /></div></div>
-        <div className="card"><div className="card-body"><HealthSection staff={staff} refresh={fetchStaff} /></div></div>
-        <div className="card"><div className="card-body"><EducationSection staff={staff} refresh={fetchStaff} /></div></div>
-        <div className="card"><div className="card-body"><DocumentsSection staff={staff} refresh={fetchStaff} /></div></div>
+      <div style={{ display: 'grid', gap: 'var(--gap)' }}>
+        <div className="rd-card rd-card-pad fade-up"><PersonalSection staff={staff} refresh={fetchStaff} /></div>
+        <div className="rd-card rd-card-pad fade-up"><HealthSection staff={staff} refresh={fetchStaff} /></div>
+        <div className="rd-card rd-card-pad fade-up"><EducationSection staff={staff} refresh={fetchStaff} /></div>
+        <div className="rd-card rd-card-pad fade-up"><DocumentsSection staff={staff} refresh={fetchStaff} /></div>
         {staff.classAssignments?.length > 0 && (
-          <div className="card"><div className="card-body"><AssignmentsSection staff={staff} /></div></div>
+          <div className="rd-card rd-card-pad fade-up"><AssignmentsSection staff={staff} /></div>
         )}
       </div>
     </div>
@@ -132,11 +116,11 @@ function PersonalSection({ staff, refresh }) {
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-5)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-            <HiOutlineUserGroup size={22} style={{ color: 'var(--color-sky-500)' }} />
+          <Icon name="users" style={{ width: 20, height: 20, color: 'var(--accent)' }} />
             <h3 style={{ fontSize: 'var(--font-lg)', fontWeight: 600 }}>Personal Details</h3>
           </div>
-          <button className="btn btn-primary btn-sm" onClick={() => setEditing(true)}>
-            <HiOutlinePencil /> Edit
+          <button className="rd-btn rd-btn-primary rd-btn-sm" onClick={() => setEditing(true)}>
+            <Icon name="edit" /> Edit
           </button>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-4)' }}>
@@ -164,7 +148,7 @@ function PersonalSection({ staff, refresh }) {
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', marginBottom: 'var(--space-5)' }}>
-        <HiOutlineUserGroup size={22} style={{ color: 'var(--color-sky-500)' }} />
+        <Icon name="users" style={{ width: 20, height: 20, color: 'var(--accent)' }} />
         <h3 style={{ fontSize: 'var(--font-lg)', fontWeight: 600 }}>Edit Personal Details</h3>
       </div>
       <form onSubmit={handleSubmit}>
@@ -273,7 +257,7 @@ function HealthSection({ staff, refresh }) {
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', marginBottom: 'var(--space-5)' }}>
-        <HiOutlineHeart size={22} style={{ color: 'var(--color-danger)' }} />
+        <Icon name="drop" style={{ width: 20, height: 20, color: 'var(--bad)' }} />
         <h3 style={{ fontSize: 'var(--font-lg)', fontWeight: 600 }}>Health & Conditions</h3>
       </div>
       <form onSubmit={handleSubmit}>
@@ -322,7 +306,7 @@ function EducationSection({ staff, refresh }) {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     level: 'bachelors', degree: '', specialization: '', institution: '',
-    university: '', yearOfPass: '', percentage: '', grade: '',
+    university: '', yearOfPass: '',
   });
 
   const records = staff.education || [];
@@ -335,7 +319,7 @@ function EducationSection({ staff, refresh }) {
     try {
       await client.post(`/admin/staff/${staff.id}/education`, form);
       setShowForm(false);
-      setForm({ level: 'bachelors', degree: '', specialization: '', institution: '', university: '', yearOfPass: '', percentage: '', grade: '' });
+      setForm({ level: 'bachelors', degree: '', specialization: '', institution: '', university: '', yearOfPass: '' });
       refresh();
     } catch (err) { alert(err.response?.data?.error || 'Error saving education record'); }
     finally { setSaving(false); }
@@ -353,11 +337,11 @@ function EducationSection({ staff, refresh }) {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-5)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-          <HiOutlineAcademicCap size={22} style={{ color: 'var(--color-purple-500)' }} />
+          <Icon name="cap" style={{ width: 20, height: 20, color: 'var(--accent)' }} />
           <h3 style={{ fontSize: 'var(--font-lg)', fontWeight: 600 }}>Education History</h3>
         </div>
-        <button className="btn btn-primary btn-sm" onClick={() => setShowForm(!showForm)}>
-          <HiOutlinePlus /> Add Record
+        <button className="rd-btn rd-btn-primary rd-btn-sm" onClick={() => setShowForm(!showForm)}>
+          <Icon name="plus" /> Add Record
         </button>
       </div>
 
@@ -394,14 +378,6 @@ function EducationSection({ staff, refresh }) {
               <label className="form-label">Year of Passing *</label>
               <input className="form-input" type="number" min="1970" max="2030" value={form.yearOfPass} onChange={(e) => setForm({ ...form, yearOfPass: e.target.value })} required placeholder="e.g. 2018" />
             </div>
-            <div className="form-group">
-              <label className="form-label">Percentage</label>
-              <input className="form-input" type="number" step="0.01" min="0" max="100" value={form.percentage} onChange={(e) => setForm({ ...form, percentage: e.target.value })} placeholder="e.g. 85.5" />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Grade / Class</label>
-              <input className="form-input" value={form.grade} onChange={(e) => setForm({ ...form, grade: e.target.value })} placeholder="e.g. First Class, Distinction" />
-            </div>
           </div>
           <div style={{ display: 'flex', gap: 'var(--space-3)', marginTop: 'var(--space-4)', justifyContent: 'flex-end' }}>
             <button type="button" className="btn btn-secondary btn-sm" onClick={() => setShowForm(false)}>Cancel</button>
@@ -413,32 +389,39 @@ function EducationSection({ staff, refresh }) {
       {records.length === 0 ? (
         <div className="empty-state"><p>No education records added yet.</p></div>
       ) : (
-        <div style={{ display: 'grid', gap: 'var(--space-4)' }}>
-          {records.map((edu) => (
-            <div key={edu.id} style={{
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              padding: 'var(--space-4) var(--space-5)', border: '1px solid var(--color-gray-100)',
-              borderRadius: 'var(--radius-md)', background: 'var(--color-white)',
-            }}>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', marginBottom: 'var(--space-1)' }}>
-                  <span className="badge badge-purple">{levelLabel(edu.level)}</span>
-                  <span style={{ fontWeight: 600, color: 'var(--color-gray-800)' }}>{edu.degree}</span>
-                  {edu.specialization && <span style={{ color: 'var(--color-gray-500)' }}>({edu.specialization})</span>}
-                </div>
-                <div style={{ fontSize: 'var(--font-sm)', color: 'var(--color-gray-500)' }}>
-                  {edu.institution}
-                  {edu.university && ` • ${edu.university}`}
-                  {' • '}Year: {edu.yearOfPass}
-                  {edu.percentage && ` • ${parseFloat(edu.percentage).toFixed(1)}%`}
-                  {edu.grade && ` • ${edu.grade}`}
-                </div>
-              </div>
-              <button className="btn btn-ghost btn-sm" onClick={() => handleDelete(edu.id)} style={{ color: 'var(--color-danger)' }}>
-                <HiOutlineTrash />
-              </button>
-            </div>
-          ))}
+        <div className="data-table-wrapper">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Level</th>
+                <th>Degree & Specialization</th>
+                <th>Institution / University</th>
+                <th>Year</th>
+                <th style={{ width: 60, textAlign: 'right' }}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {records.map((edu) => (
+                <tr key={edu.id}>
+                  <td><span className="badge badge-purple">{levelLabel(edu.level)}</span></td>
+                  <td>
+                    <div style={{ fontWeight: 600, color: 'var(--color-gray-800)' }}>{edu.degree}</div>
+                    {edu.specialization && <div style={{ fontSize: 'var(--font-xs)', color: 'var(--color-gray-500)', marginTop: 2 }}>{edu.specialization}</div>}
+                  </td>
+                  <td>
+                    <div style={{ fontWeight: 500 }}>{edu.institution}</div>
+                    {edu.university && <div style={{ fontSize: 'var(--font-xs)', color: 'var(--color-gray-500)', marginTop: 2 }}>{edu.university}</div>}
+                  </td>
+                  <td>{edu.yearOfPass}</td>
+                  <td style={{ textAlign: 'right' }}>
+                    <button className="rd-icon-btn" onClick={() => handleDelete(edu.id)} style={{ color: 'var(--bad)', display: 'inline-flex' }}>
+                      <Icon name="trash" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>
@@ -499,11 +482,11 @@ function DocumentsSection({ staff, refresh }) {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-5)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-          <HiOutlineDocumentText size={22} style={{ color: 'var(--color-sky-600)' }} />
+          <Icon name="report" style={{ width: 20, height: 20, color: 'var(--info)' }} />
           <h3 style={{ fontSize: 'var(--font-lg)', fontWeight: 600 }}>Identity Documents</h3>
         </div>
-        <button className="btn btn-primary btn-sm" onClick={() => setShowForm(!showForm)}>
-          <HiOutlineUpload /> Upload Document
+        <button className="rd-btn rd-btn-primary rd-btn-sm" onClick={() => setShowForm(!showForm)}>
+          <Icon name="upload" /> Upload Document
         </button>
       </div>
 
@@ -561,8 +544,8 @@ function DocumentsSection({ staff, refresh }) {
                   <span className="badge badge-sky" style={{ marginBottom: 'var(--space-2)', display: 'inline-block' }}>{typeLabel(doc.type)}</span>
                   <div style={{ fontWeight: 600, color: 'var(--color-gray-800)' }}>{doc.title}</div>
                 </div>
-                <button className="btn btn-ghost btn-sm" onClick={() => handleDelete(doc.id)} style={{ color: 'var(--color-danger)' }}>
-                  <HiOutlineTrash />
+                <button className="rd-icon-btn" onClick={() => handleDelete(doc.id)} style={{ color: 'var(--bad)' }}>
+                  <Icon name="trash" />
                 </button>
               </div>
               {doc.documentNumber && (
@@ -580,7 +563,7 @@ function DocumentsSection({ staff, refresh }) {
                 className="btn btn-secondary btn-sm"
                 style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2)', textDecoration: 'none' }}
               >
-                <HiOutlineDownload /> View / Download
+                <Icon name="download" /> View / Download
               </a>
             </div>
           ))}
@@ -599,11 +582,11 @@ function AssignmentsSection({ staff }) {
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', marginBottom: 'var(--space-5)' }}>
-        <HiOutlineAcademicCap size={22} style={{ color: 'var(--color-purple-600)' }} />
+        <Icon name="clipboard" style={{ width: 20, height: 20, color: 'var(--accent)' }} />
         <h3 style={{ fontSize: 'var(--font-lg)', fontWeight: 600 }}>Class Assignments</h3>
       </div>
-      <div className="data-table-wrapper">
-        <table className="data-table">
+      <div className="rd-table-wrap">
+        <table className="rd-tbl">
           <thead>
             <tr><th>Course</th><th>Section</th><th>Batch</th><th>Academic Year</th></tr>
           </thead>

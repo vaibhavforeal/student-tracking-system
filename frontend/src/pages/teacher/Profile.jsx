@@ -153,27 +153,33 @@ export default function TeacherProfile() {
             {education.length === 0 ? (
               <div className="empty-state"><p>No education records on file. Contact admin to add.</p></div>
             ) : (
-              <div style={{ display: 'grid', gap: 'var(--space-4)' }}>
-                {education.map((edu) => (
-                  <div key={edu.id} style={{
-                    padding: 'var(--space-4) var(--space-5)',
-                    border: '1px solid var(--color-gray-100)',
-                    borderRadius: 'var(--radius-md)',
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', marginBottom: 'var(--space-1)' }}>
-                      <span className="badge badge-purple">{EDUCATION_LEVELS[edu.level] || edu.level}</span>
-                      <span style={{ fontWeight: 600, color: 'var(--color-gray-800)' }}>{edu.degree}</span>
-                      {edu.specialization && <span style={{ color: 'var(--color-gray-500)' }}>({edu.specialization})</span>}
-                    </div>
-                    <div style={{ fontSize: 'var(--font-sm)', color: 'var(--color-gray-500)' }}>
-                      {edu.institution}
-                      {edu.university && ` • ${edu.university}`}
-                      {' • '}Year: {edu.yearOfPass}
-                      {edu.percentage && ` • ${parseFloat(edu.percentage).toFixed(1)}%`}
-                      {edu.grade && ` • ${edu.grade}`}
-                    </div>
-                  </div>
-                ))}
+              <div className="data-table-wrapper">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Level</th>
+                      <th>Degree & Specialization</th>
+                      <th>Institution / University</th>
+                      <th>Year</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {education.map((edu) => (
+                      <tr key={edu.id}>
+                        <td><span className="badge badge-purple">{EDUCATION_LEVELS[edu.level] || edu.level}</span></td>
+                        <td>
+                          <div style={{ fontWeight: 600, color: 'var(--color-gray-800)' }}>{edu.degree}</div>
+                          {edu.specialization && <div style={{ fontSize: 'var(--font-xs)', color: 'var(--color-gray-500)', marginTop: 2 }}>{edu.specialization}</div>}
+                        </td>
+                        <td>
+                          <div style={{ fontWeight: 500 }}>{edu.institution}</div>
+                          {edu.university && <div style={{ fontSize: 'var(--font-xs)', color: 'var(--color-gray-500)', marginTop: 2 }}>{edu.university}</div>}
+                        </td>
+                        <td>{edu.yearOfPass}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>

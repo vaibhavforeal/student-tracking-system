@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
+import { CheckCircle2, XCircle, GraduationCap } from 'lucide-react';
 import BarcodeScanner from '../../components/BarcodeScanner';
 import client from '../../api/client';
 import {
@@ -47,11 +48,11 @@ export default function VerifyStudent() {
     verifyStudent(manualInput);
   };
 
-  const statusConfig = {
-    active: { label: '✓ ACTIVE STUDENT', className: 'verification-status-active', icon: '🟢' },
-    inactive: { label: '✗ INACTIVE', className: 'verification-status-inactive', icon: '🔴' },
-    graduated: { label: '🎓 GRADUATED', className: 'verification-status-graduated', icon: '🟡' },
-    dropped: { label: '✗ DROPPED', className: 'verification-status-dropped', icon: '🔴' },
+  const statusMap = {
+    active: { label: 'ACTIVE STUDENT', className: 'verification-status-active', icon: <CheckCircle2 size={16} color="#22c55e" /> },
+    inactive: { label: 'INACTIVE', className: 'verification-status-inactive', icon: <XCircle size={16} color="#ef4444" /> },
+    graduated: { label: 'GRADUATED', className: 'verification-status-graduated', icon: <GraduationCap size={16} color="#eab308" /> },
+    dropped: { label: 'DROPPED', className: 'verification-status-dropped', icon: <XCircle size={16} color="#ef4444" /> },
   };
 
   return (
@@ -115,7 +116,7 @@ export default function VerifyStudent() {
               <div className="card-body">
                 {/* Status Banner */}
                 {(() => {
-                  const config = statusConfig[result.student.status] || statusConfig.inactive;
+                  const config = statusMap[result.student.status] || statusMap.inactive;
                   return (
                     <div className={`verification-status-banner ${config.className}`}>
                       <span className="verification-status-icon">{config.icon}</span>

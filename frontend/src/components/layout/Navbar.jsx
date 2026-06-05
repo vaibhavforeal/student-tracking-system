@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Menu, Bell, ArrowLeft, Mail, MessageSquare, ScanBarcode, Search } from 'lucide-react';
 import useAuthStore from '../../store/authStore';
 import ThemeToggle from './ThemeToggle';
+import DesignDirection from '../ui/DesignDirection';
 import GlobalSearch from './GlobalSearch';
 import client from '../../api/client';
 
@@ -211,7 +212,7 @@ export default function Navbar({ onMenuToggle }) {
             <ScanBarcode className="idata" />
           </button>
         )}
-        <ThemeToggle />
+        {user?.role === 'admin' ? <DesignDirection /> : <ThemeToggle />}
         
         <div style={{ position: 'relative', display: 'inline-block' }} ref={dropdownRef}>
           <button 

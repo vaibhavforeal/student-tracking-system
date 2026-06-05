@@ -1,12 +1,16 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { X } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import client from '../../api/client';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import BarcodeGenerator from '../../components/BarcodeGenerator';
-import { HiOutlinePlus, HiOutlineEye, HiOutlinePencil, HiOutlineTrash, HiOutlineSearch, HiOutlineX, HiOutlineCamera, HiOutlineHeart, HiOutlineUpload, HiOutlineDownload, HiOutlineDocumentText, HiOutlineCheckCircle, HiOutlineExclamationCircle, HiOutlinePrinter } from 'react-icons/hi';
+import Icon from '../../components/ui/Icon';
+import { PageHead, MiniAvatar, DeptTag, Meter, StatusBadge, initials, hueFor, StatTile } from '../../components/ui/DesignHelpers';
 import * as XLSX from 'xlsx';
 
 const API_BASE = 'http://localhost:5000';
+
+const STATUS_TABS = ['all', 'active', 'inactive', 'graduated'];
 
 export default function ManageStudents() {
   const [students, setStudents] = useState([]);
@@ -18,9 +22,10 @@ export default function ManageStudents() {
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState('');
   const [filterBatch, setFilterBatch] = useState('');
+  const [statusTab, setStatusTab] = useState('all');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [previewStudent, setPreviewStudent] = useState(null);
+  const [drawerStudent, setDrawerStudent] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const fileInputRef = useRef(null);
@@ -32,7 +37,7 @@ export default function ManageStudents() {
 
   // Bulk import state
   const [showImportModal, setShowImportModal] = useState(false);
-  const [importStep, setImportStep] = useState(1); // 1=upload, 2=preview, 3=result
+  const [importStep, setImportStep] = useState(1);
   const [importFile, setImportFile] = useState(null);
   const [importPreview, setImportPreview] = useState([]);
   const [importHeaders, setImportHeaders] = useState([]);
@@ -74,27 +79,19 @@ export default function ManageStudents() {
   const handlePhotoChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
-    // Show local preview immediately
     const reader = new FileReader();
     reader.onload = (ev) => setPhotoPreview(ev.target.result);
     reader.readAsDataURL(file);
-
-    // Upload to server
     setUploadingPhoto(true);
     try {
       const formData = new FormData();
       formData.append('photo', file);
-      const { data } = await client.post('/admin/upload/photo', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      const { data } = await client.post('/admin/upload/photo', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
       setForm((prev) => ({ ...prev, photoUrl: data.photoUrl }));
     } catch {
       alert('Failed to upload photo. Please try again.');
       setPhotoPreview(null);
-    } finally {
-      setUploadingPhoto(false);
-    }
+    } finally { setUploadingPhoto(false); }
   };
 
   const handleSubmit = async (e) => {
@@ -111,181 +108,155 @@ export default function ManageStudents() {
     setDeleting(true);
     try {
       await client.delete(`/admin/students/${deleteTarget}`);
-      setDeleteTarget(null);
-      fetchData();
-    } catch (err) {
-      alert(err.response?.data?.error || 'Failed to delete student');
-    } finally {
-      setDeleting(false);
-    }
+      setDeleteTarget(null); fetchData();
+    } catch (err) { alert(err.response?.data?.error || 'Failed to delete student'); }
+    finally { setDeleting(false); }
   };
-
-  const statusColor = { active: 'badge-green', inactive: 'badge-gray', graduated: 'badge-sky', dropped: 'badge-red' };
 
   // ─── Bulk Import Handlers ──────────────────────────────────
-  const openImportModal = () => {
-    setShowImportModal(true);
-    setImportStep(1);
-    setImportFile(null);
-    setImportPreview([]);
-    setImportHeaders([]);
-    setImportResult(null);
-    setDragOver(false);
-  };
-
+  const openImportModal = () => { setShowImportModal(true); setImportStep(1); setImportFile(null); setImportPreview([]); setImportHeaders([]); setImportResult(null); setDragOver(false); };
   const handleImportFileSelect = (file) => {
     if (!file) return;
-    const validExts = /\.(csv|xlsx|xls)$/i;
-    if (!validExts.test(file.name)) {
-      alert('Please select a CSV, XLS, or XLSX file');
-      return;
-    }
+    if (!/\.(csv|xlsx|xls)$/i.test(file.name)) { alert('Please select a CSV, XLS, or XLSX file'); return; }
     setImportFile(file);
-
-    // Parse locally for preview
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
         const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
-        if (rows.length === 0) {
-          alert('The file contains no data rows');
-          setImportFile(null);
-          return;
-        }
-        const headers = Object.keys(rows[0]);
-        setImportHeaders(headers);
+        const wb = XLSX.read(data, { type: 'array' });
+        const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '' });
+        if (!rows.length) { alert('No data rows found'); setImportFile(null); return; }
+        setImportHeaders(Object.keys(rows[0]));
         setImportPreview(rows);
         setImportStep(2);
-      } catch (err) {
-        console.error(err);
-        alert('Failed to parse the file. Please ensure it is a valid CSV or XLSX.');
-        setImportFile(null);
-      }
+      } catch { alert('Failed to parse file'); setImportFile(null); }
     };
     reader.readAsArrayBuffer(file);
   };
-
-  const handleImportDrop = (e) => {
-    e.preventDefault();
-    setDragOver(false);
-    const file = e.dataTransfer?.files?.[0];
-    if (file) handleImportFileSelect(file);
-  };
-
+  const handleImportDrop = (e) => { e.preventDefault(); setDragOver(false); handleImportFileSelect(e.dataTransfer?.files?.[0]); };
   const handleImportSubmit = async () => {
-    if (!importFile) return;
-    setImporting(true);
+    if (!importFile) return; setImporting(true);
     try {
-      const formData = new FormData();
-      formData.append('file', importFile);
-      const { data } = await client.post('/admin/students/bulk-import', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        timeout: 120000, // 2 min for large imports
-      });
-      setImportResult({ success: true, data });
-      setImportStep(3);
-      fetchData(); // refresh student list
+      const fd = new FormData(); fd.append('file', importFile);
+      const { data } = await client.post('/admin/students/bulk-import', fd, { headers: { 'Content-Type': 'multipart/form-data' }, timeout: 120000 });
+      setImportResult({ success: true, data }); setImportStep(3); fetchData();
     } catch (err) {
-      const errData = err.response?.data;
-      if (errData?.errors) {
-        setImportResult({ success: false, data: errData });
-      } else {
-        setImportResult({ success: false, data: { error: errData?.error || err.message || 'Import failed' } });
-      }
-      setImportStep(3);
-    } finally {
-      setImporting(false);
-    }
+      const d = err.response?.data;
+      setImportResult({ success: false, data: d?.errors ? d : { error: d?.error || err.message || 'Import failed' } }); setImportStep(3);
+    } finally { setImporting(false); }
   };
-
-  const downloadTemplate = async (format) => {
+  const downloadTemplate = async (fmt) => {
     try {
-      const { data } = await client.get(`/admin/students/sample-template?format=${format}`, {
-        responseType: 'blob',
-      });
-      const url = window.URL.createObjectURL(data);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `student_import_template.${format}`;
-      a.click();
-      window.URL.revokeObjectURL(url);
-    } catch (err) {
-      alert('Failed to download template');
-    }
+      const { data } = await client.get(`/admin/students/sample-template?format=${fmt}`, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(data); const a = document.createElement('a'); a.href = url; a.download = `student_import_template.${fmt}`; a.click(); window.URL.revokeObjectURL(url);
+    } catch { alert('Failed to download template'); }
   };
-
-  const formatFileSize = (bytes) => {
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-  };
+  const formatFileSize = (b) => b < 1024 ? b + ' B' : b < 1048576 ? (b / 1024).toFixed(1) + ' KB' : (b / 1048576).toFixed(1) + ' MB';
 
   useEffect(() => {
-    if (location.state?.openAddModal) {
-      openCreate();
-      // Clear state so modal doesn't reopen on refresh
-      navigate(location.pathname, { replace: true, state: {} });
-    } else if (location.state?.openImportModal) {
-      openImportModal();
-      navigate(location.pathname, { replace: true, state: {} });
-    } else if (location.state?.openBarcodeModal) {
-      setShowBarcodeModal(true);
-      navigate(location.pathname, { replace: true, state: {} });
-    }
+    if (location.state?.openAddModal) { openCreate(); navigate(location.pathname, { replace: true, state: {} }); }
+    else if (location.state?.openImportModal) { openImportModal(); navigate(location.pathname, { replace: true, state: {} }); }
+    else if (location.state?.openBarcodeModal) { setShowBarcodeModal(true); navigate(location.pathname, { replace: true, state: {} }); }
   }, [location.state, navigate, location.pathname]);
+
+  // Filter by status tab
+  const filteredStudents = statusTab === 'all' ? students : students.filter(s => s.status === statusTab);
+  const statusCounts = { all: students.length, active: students.filter(s => s.status === 'active').length, inactive: students.filter(s => s.status === 'inactive').length, graduated: students.filter(s => s.status === 'graduated').length };
 
   if (loading) return <div className="loading-container"><div className="spinner spinner-lg" /></div>;
 
   return (
-    <div>
-      <div className="page-header">
-        <div><h1>Students</h1><p className="page-subtitle">{basePath === '/teacher' ? 'View your assigned students' : 'Manage student records'}</p></div>
+    <div className="rd-content-inner">
+      <PageHead title="Students" sub={basePath === '/teacher' ? 'View your assigned students' : 'Manage student records'}>
         {basePath === '/admin' && (
-          <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
-            <button className="btn btn-ghost" onClick={() => setShowBarcodeModal(true)} title="Print barcodes for filtered students" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}><HiOutlinePrinter /> Print Barcodes</button>
-            <button className="btn btn-secondary" onClick={openImportModal}><HiOutlineUpload /> Import Students</button>
-            <button className="btn btn-primary" onClick={openCreate}><HiOutlinePlus /> Add Student</button>
-          </div>
+          <>
+            <button className="rd-btn rd-btn-ghost" onClick={() => setShowBarcodeModal(true)}>
+              <Icon name="printer" /> Print Barcodes
+            </button>
+            <button className="rd-btn rd-btn-ghost" onClick={openImportModal}>
+              <Icon name="upload" /> Import
+            </button>
+            <button className="rd-btn rd-btn-primary" onClick={openCreate}>
+              <Icon name="plus" /> Add Student
+            </button>
+          </>
         )}
+      </PageHead>
+
+      {/* ─── Stat tiles ─── */}
+      <div className="rd-stat-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)', marginBottom: '20px' }}>
+        <StatTile icon="cap" label="Active Students" value={statusCounts.active}
+          tint="var(--good)" soft="var(--good-soft)" delay={0} />
+        <StatTile icon="cap" label="Inactive" value={statusCounts.inactive}
+          tint="var(--warn)" soft="var(--warn-soft)" delay={60} />
       </div>
 
-      <div className="toolbar">
-        <div className="search-box">
-          <HiOutlineSearch className="search-icon" />
-          <input className="form-input" placeholder="Search students..."
-            value={search} onChange={(e) => setSearch(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearch()} />
+      {/* ─── Toolbar ─── */}
+      <div className="rd-toolbar">
+        <div className="rd-seg">
+          {STATUS_TABS.map(tab => (
+            <button key={tab} className={statusTab === tab ? 'on' : ''} onClick={() => setStatusTab(tab)}>
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11 }}>{statusCounts[tab]}</span>
+            </button>
+          ))}
         </div>
-        <div className="filter-group">
-          <select className="form-select" value={filterBatch} onChange={(e) => { setFilterBatch(e.target.value); setPage(1); }} style={{ width: 'auto' }}>
-            <option value="">All Batches</option>
-            {batches.map((b) => <option key={b.id} value={b.id}>{b.degree} — {b.name}</option>)}
-          </select>
+        <div style={{ flex: 1 }} />
+        <div className="rd-search">
+          <Icon name="search" />
+          <input placeholder="Search students…" value={search} onChange={e => setSearch(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleSearch()} />
+          <kbd>⏎</kbd>
         </div>
+        <select className="rd-chip-select" value={filterBatch} onChange={e => { setFilterBatch(e.target.value); setPage(1); }}>
+          <option value="">All Batches</option>
+          {batches.map(b => <option key={b.id} value={b.id}>{b.degree} — {b.name}</option>)}
+        </select>
       </div>
 
-      <div className="card">
-        <div className="data-table-wrapper">
-          <table className="data-table">
-            <thead><tr><th>Unique ID</th><th>Name</th><th>Batch</th><th>Section</th><th>Semester</th><th>Status</th><th>Actions</th></tr></thead>
+      {/* ─── Table ─── */}
+      <div className="rd-card fade-up">
+        <div className="rd-table-wrap">
+          <table className="rd-tbl">
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Department</th>
+                <th>Batch / Section</th>
+                <th>Semester</th>
+                <th>Attendance</th>
+                <th>Status</th>
+                <th style={{ textAlign: 'right' }}>Actions</th>
+              </tr>
+            </thead>
             <tbody>
-              {students.length === 0 ? (
+              {filteredStudents.length === 0 ? (
                 <tr><td colSpan="7"><div className="empty-state"><p>No students found.</p></div></td></tr>
-              ) : students.map((s) => (
-                <tr key={s.id}>
-                  <td><span className="badge badge-sky">{s.enrollmentNo}</span></td>
-                  <td style={{ fontWeight: 500 }}>{s.firstName} {s.lastName}</td>
-                  <td>{s.batch?.degree ? `${s.batch.degree} — ${s.batch.name}` : s.batch?.name}</td>
-                  <td>{s.section?.name}</td>
-                  <td>Sem {s.semester}</td>
-                  <td><span className={`badge ${statusColor[s.status] || 'badge-gray'}`}>{s.status}</span></td>
-                  <td className="actions">
-                    <button className="btn btn-ghost btn-sm" onClick={() => setPreviewStudent(s)} title="Quick Preview" style={{ color: 'var(--color-purple-500)' }}><HiOutlineEye /></button>
-                    <button className="btn btn-ghost btn-sm" onClick={() => navigate(`${basePath}/students/${s.id}`)} title="Full Details"><HiOutlinePencil /></button>
-                    {basePath === '/admin' && <button className="btn btn-ghost btn-sm" onClick={() => setDeleteTarget(s.id)} title="Delete" style={{ color: 'var(--color-danger)' }}><HiOutlineTrash /></button>}
+              ) : filteredStudents.map(s => (
+                <tr key={s.id} onClick={() => setDrawerStudent(s)}>
+                  <td>
+                    <div className="rd-cell-name">
+                      <MiniAvatar name={`${s.firstName} ${s.lastName}`} />
+                      <div>
+                        <div className="rd-name-main">{s.firstName} {s.lastName}</div>
+                        <div className="rd-name-sub">{s.enrollmentNo}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td><DeptTag code={s.batch?.department?.code || s.batch?.degree || '—'} /></td>
+                  <td>
+                    <div style={{ fontSize: 13.5, fontWeight: 500 }}>{s.batch?.name || '—'}</div>
+                    <div style={{ fontSize: 12, color: 'var(--faint)' }}>{s.section?.name || '—'}</div>
+                  </td>
+                  <td><span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600 }}>Sem {s.semester}</span></td>
+                  <td style={{ minWidth: 140 }}><Meter value={s.attendancePercentage ?? 0} /></td>
+                  <td><StatusBadge status={s.status} /></td>
+                  <td style={{ textAlign: 'right' }} onClick={e => e.stopPropagation()}>
+                    <div className="rd-row-act" style={{ justifyContent: 'flex-end', opacity: 1 }}>
+                      <button className="rd-icon-btn" onClick={() => setDrawerStudent(s)} title="Quick View"><Icon name="eye" /></button>
+                      <button className="rd-icon-btn" onClick={() => navigate(`${basePath}/students/${s.id}`)} title="Full Details"><Icon name="edit" /></button>
+                      {basePath === '/admin' && <button className="rd-icon-btn" onClick={() => setDeleteTarget(s.id)} title="Delete" style={{ color: 'var(--bad)' }}><Icon name="trash" /></button>}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -303,117 +274,90 @@ export default function ManageStudents() {
         )}
       </div>
 
+      {/* ═══ STUDENT DRAWER ═══ */}
+      {drawerStudent && (
+        <>
+          <div className="rd-scrim" onClick={() => setDrawerStudent(null)} />
+          <div className="rd-drawer">
+            <div className="rd-drawer-hero">
+              <button onClick={() => setDrawerStudent(null)}
+                style={{ position: 'absolute', top: 16, right: 16, background: 'rgba(255,255,255,.2)', border: 'none', borderRadius: 99, width: 32, height: 32, display: 'grid', placeItems: 'center', cursor: 'pointer', color: '#fff' }}>
+                <Icon name="x" style={{ width: 16, height: 16 }} />
+              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                <div style={{ width: 64, height: 64, borderRadius: 16, border: '2px solid rgba(255,255,255,.4)', overflow: 'hidden', background: 'rgba(255,255,255,.15)', display: 'grid', placeItems: 'center' }}>
+                  {drawerStudent.photoUrl ? (
+                    <img src={`${API_BASE}${drawerStudent.photoUrl}`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <span style={{ fontSize: 22, fontWeight: 700, color: 'rgba(255,255,255,.9)' }}>{initials(drawerStudent.firstName, drawerStudent.lastName)}</span>
+                  )}
+                </div>
+                <div>
+                  <h2 style={{ color: '#fff', fontSize: 20, fontWeight: 700, margin: 0 }}>{drawerStudent.firstName} {drawerStudent.lastName}</h2>
+                  <div style={{ marginTop: 6, display: 'inline-block', background: 'rgba(255,255,255,.2)', padding: '3px 12px', borderRadius: 20, fontSize: 13, color: '#fff', fontWeight: 600 }}>
+                    {drawerStudent.enrollmentNo}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="rd-drawer-body">
+              <div className="rd-kv-grid" style={{ marginBottom: 20 }}>
+                <div><div className="rd-kv-k">Batch</div><div className="rd-kv-v">{drawerStudent.batch?.degree || drawerStudent.batch?.name || '—'}</div></div>
+                <div><div className="rd-kv-k">Section</div><div className="rd-kv-v">{drawerStudent.section?.name || '—'}</div></div>
+                <div><div className="rd-kv-k">Semester</div><div className="rd-kv-v">Sem {drawerStudent.semester}</div></div>
+                <div><div className="rd-kv-k">Department</div><div className="rd-kv-v">{drawerStudent.batch?.department?.name || '—'}</div></div>
+                <div><div className="rd-kv-k">Email</div><div className="rd-kv-v" style={{ fontSize: 13 }}>{drawerStudent.email || '—'}</div></div>
+                <div><div className="rd-kv-k">Phone</div><div className="rd-kv-v">{drawerStudent.phone || '—'}</div></div>
+                <div><div className="rd-kv-k">Blood Group</div><div className="rd-kv-v">{drawerStudent.health?.bloodGroup || 'N/A'}</div></div>
+                <div><div className="rd-kv-k">Status</div><div className="rd-kv-v"><StatusBadge status={drawerStudent.status} /></div></div>
+              </div>
+              <button className="rd-btn rd-btn-primary" style={{ width: '100%', justifyContent: 'center' }}
+                onClick={() => { setDrawerStudent(null); navigate(`${basePath}/students/${drawerStudent.id}`); }}>
+                View Full Profile →
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
       {/* ═══ CREATE STUDENT MODAL ═══ */}
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '680px' }}>
-            <div className="modal-header"><h2>Add Student</h2><button className="btn btn-ghost" onClick={() => setShowModal(false)}>✕</button></div>
+            <div className="modal-header"><h2>Add Student</h2><button className="btn btn-ghost" onClick={() => setShowModal(false)}><X size={20} /></button></div>
             <form onSubmit={handleSubmit}>
               <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-                {/* Photo Upload */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-5)', marginBottom: 'var(--space-2)' }}>
-                  <div
-                    onClick={() => fileInputRef.current?.click()}
-                    style={{
-                      width: '88px', height: '88px', borderRadius: '50%', overflow: 'hidden',
-                      border: '3px dashed var(--color-gray-200)', cursor: 'pointer', flexShrink: 0,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      background: photoPreview ? 'none' : 'var(--color-gray-100)',
-                      transition: 'all var(--transition-fast)', position: 'relative',
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--color-sky-400)'}
-                    onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--color-gray-200)'}
-                  >
-                    {photoPreview ? (
-                      <img src={photoPreview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    ) : (
-                      <div style={{ textAlign: 'center' }}>
-                        <HiOutlineCamera size={24} style={{ color: 'var(--color-gray-400)' }} />
-                      </div>
-                    )}
-                    {uploadingPhoto && (
-                      <div style={{
-                        position: 'absolute', inset: 0, borderRadius: '50%',
-                        background: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      }}>
-                        <div className="spinner" />
-                      </div>
-                    )}
+                  <div onClick={() => fileInputRef.current?.click()} style={{ width: 88, height: 88, borderRadius: '50%', overflow: 'hidden', border: '3px dashed var(--color-gray-200)', cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: photoPreview ? 'none' : 'var(--color-gray-100)', transition: 'all var(--transition-fast)', position: 'relative' }}>
+                    {photoPreview ? <img src={photoPreview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <HiOutlineCamera size={24} style={{ color: 'var(--color-gray-400)' }} />}
+                    {uploadingPhoto && <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div className="spinner" /></div>}
                   </div>
                   <input type="file" ref={fileInputRef} accept="image/jpeg,image/png,image/webp" onChange={handlePhotoChange} style={{ display: 'none' }} />
                   <div>
-                    <p style={{ fontSize: 'var(--font-sm)', fontWeight: 600, color: 'var(--color-gray-700)', marginBottom: '4px' }}>Student Photo</p>
-                    <p style={{ fontSize: 'var(--font-xs)', color: 'var(--color-gray-400)', lineHeight: 1.4 }}>
-                      Click the circle to upload.<br />JPG, PNG, or WebP • Max 5MB
-                    </p>
-                  </div>
-                </div>
-
-                <div className="form-row">
-                  <div className="form-group">
-                    <label className="form-label">Unique ID</label>
-                    <input className="form-input" value={form.enrollmentNo} onChange={(e) => setForm({ ...form, enrollmentNo: e.target.value })} required placeholder="e.g. 2024CSE001" />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Email</label>
-                    <input className="form-input" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
-                  </div>
-                </div>
-
-                <div className="form-row">
-                  <div className="form-group">
-                    <label className="form-label">First Name</label>
-                    <input className="form-input" value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} required />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Last Name</label>
-                    <input className="form-input" value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} required />
+                    <p style={{ fontSize: 'var(--font-sm)', fontWeight: 600, color: 'var(--color-gray-700)', marginBottom: 4 }}>Student Photo</p>
+                    <p style={{ fontSize: 'var(--font-xs)', color: 'var(--color-gray-400)', lineHeight: 1.4 }}>Click the circle to upload.<br />JPG, PNG, or WebP • Max 5MB</p>
                   </div>
                 </div>
                 <div className="form-row">
-                  <div className="form-group">
-                    <label className="form-label">Date of Birth</label>
-                    <input className="form-input" type="date" value={form.dob} onChange={(e) => setForm({ ...form, dob: e.target.value })} required />
-                    <span style={{ fontSize: 'var(--font-xs)', color: 'var(--color-gray-400)', marginTop: '4px', display: 'block' }}>Default password will be DOB (DDMMYYYY)</span>
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Gender</label>
-                    <select className="form-select" value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })}>
-                      <option value="male">Male</option>
-                      <option value="female">Female</option>
-                      <option value="other">Other</option>
-                    </select>
-                  </div>
+                  <div className="form-group"><label className="form-label">Unique ID</label><input className="form-input" value={form.enrollmentNo} onChange={e => setForm({ ...form, enrollmentNo: e.target.value })} required placeholder="e.g. 2024CSE001" /></div>
+                  <div className="form-group"><label className="form-label">Email</label><input className="form-input" type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} required /></div>
                 </div>
                 <div className="form-row">
-                  <div className="form-group">
-                    <label className="form-label">Phone</label>
-                    <input className="form-input" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Semester</label>
-                    <input className="form-input" type="number" min="1" max="8" value={form.semester} onChange={(e) => setForm({ ...form, semester: e.target.value })} required />
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Address</label>
-                  <input className="form-input" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} required />
+                  <div className="form-group"><label className="form-label">First Name</label><input className="form-input" value={form.firstName} onChange={e => setForm({ ...form, firstName: e.target.value })} required /></div>
+                  <div className="form-group"><label className="form-label">Last Name</label><input className="form-input" value={form.lastName} onChange={e => setForm({ ...form, lastName: e.target.value })} required /></div>
                 </div>
                 <div className="form-row">
-                  <div className="form-group">
-                    <label className="form-label">Batch</label>
-                    <select className="form-select" value={form.batchId} onChange={(e) => setForm({ ...form, batchId: e.target.value })} required>
-                      <option value="">Select Batch</option>
-                      {batches.map((b) => <option key={b.id} value={b.id}>{b.degree} — {b.name}</option>)}
-                    </select>
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Section</label>
-                    <select className="form-select" value={form.sectionId} onChange={(e) => setForm({ ...form, sectionId: e.target.value })} required>
-                      <option value="">Select Section</option>
-                      {sections.filter((s) => !form.batchId || s.batchId === form.batchId).map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-                    </select>
-                  </div>
+                  <div className="form-group"><label className="form-label">Date of Birth</label><input className="form-input" type="date" value={form.dob} onChange={e => setForm({ ...form, dob: e.target.value })} required /><span style={{ fontSize: 'var(--font-xs)', color: 'var(--color-gray-400)', marginTop: 4, display: 'block' }}>Default password will be DOB (DDMMYYYY)</span></div>
+                  <div className="form-group"><label className="form-label">Gender</label><select className="form-select" value={form.gender} onChange={e => setForm({ ...form, gender: e.target.value })}><option value="male">Male</option><option value="female">Female</option><option value="other">Other</option></select></div>
+                </div>
+                <div className="form-row">
+                  <div className="form-group"><label className="form-label">Phone</label><input className="form-input" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} required /></div>
+                  <div className="form-group"><label className="form-label">Semester</label><input className="form-input" type="number" min="1" max="8" value={form.semester} onChange={e => setForm({ ...form, semester: e.target.value })} required /></div>
+                </div>
+                <div className="form-group"><label className="form-label">Address</label><input className="form-input" value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} required /></div>
+                <div className="form-row">
+                  <div className="form-group"><label className="form-label">Batch</label><select className="form-select" value={form.batchId} onChange={e => setForm({ ...form, batchId: e.target.value })} required><option value="">Select Batch</option>{batches.map(b => <option key={b.id} value={b.id}>{b.degree} — {b.name}</option>)}</select></div>
+                  <div className="form-group"><label className="form-label">Section</label><select className="form-select" value={form.sectionId} onChange={e => setForm({ ...form, sectionId: e.target.value })} required><option value="">Select Section</option>{sections.filter(s => !form.batchId || s.batchId === form.batchId).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div>
                 </div>
               </div>
               <div className="modal-footer">
@@ -425,197 +369,75 @@ export default function ManageStudents() {
         </div>
       )}
 
-      {/* ═══ STUDENT PREVIEW MODAL ═══ */}
-      {previewStudent && (
-        <StudentPreviewModal student={previewStudent} onClose={() => setPreviewStudent(null)} onViewFull={() => { setPreviewStudent(null); navigate(`${basePath}/students/${previewStudent.id}`); }} />
-      )}
-
-      <ConfirmDialog
-        open={!!deleteTarget}
-        title="Delete Student?"
-        message="This will soft-delete the student and deactivate their user account. This action can be reversed by an admin."
-        onConfirm={handleDelete}
-        onCancel={() => setDeleteTarget(null)}
-        loading={deleting}
-      />
+      <ConfirmDialog open={!!deleteTarget} title="Delete Student?" message="This will soft-delete the student and deactivate their user account." onConfirm={handleDelete} onCancel={() => setDeleteTarget(null)} loading={deleting} />
 
       {/* ═══ BULK IMPORT MODAL ═══ */}
       {showImportModal && (
         <div className="modal-overlay" onClick={() => !importing && setShowImportModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '720px' }}>
-            <div className="modal-header">
-              <h2>Import Students</h2>
-              <button className="btn btn-ghost" onClick={() => !importing && setShowImportModal(false)} disabled={importing}>✕</button>
-            </div>
-
-            {/* Step Indicator */}
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: 720 }}>
+            <div className="modal-header"><h2>Import Students</h2><button className="btn btn-ghost" onClick={() => !importing && setShowImportModal(false)} disabled={importing}><X size={20} /></button></div>
             <div className="import-steps">
-              <div className={`import-step ${importStep === 1 ? 'active' : importStep > 1 ? 'completed' : ''}`}>
-                <span className="import-step-number">{importStep > 1 ? <HiOutlineCheckCircle size={16} /> : '1'}</span>
-                <span>Upload</span>
-              </div>
+              <div className={`import-step ${importStep === 1 ? 'active' : importStep > 1 ? 'completed' : ''}`}><span className="import-step-number">{importStep > 1 ? <HiOutlineCheckCircle size={16} /> : '1'}</span><span>Upload</span></div>
               <div className={`import-step-connector ${importStep > 1 ? 'active' : ''}`} />
-              <div className={`import-step ${importStep === 2 ? 'active' : importStep > 2 ? 'completed' : ''}`}>
-                <span className="import-step-number">{importStep > 2 ? <HiOutlineCheckCircle size={16} /> : '2'}</span>
-                <span>Preview</span>
-              </div>
+              <div className={`import-step ${importStep === 2 ? 'active' : importStep > 2 ? 'completed' : ''}`}><span className="import-step-number">{importStep > 2 ? <HiOutlineCheckCircle size={16} /> : '2'}</span><span>Preview</span></div>
               <div className={`import-step-connector ${importStep > 2 ? 'active' : ''}`} />
-              <div className={`import-step ${importStep === 3 ? 'active' : ''}`}>
-                <span className="import-step-number">3</span>
-                <span>Result</span>
-              </div>
+              <div className={`import-step ${importStep === 3 ? 'active' : ''}`}><span className="import-step-number">3</span><span>Result</span></div>
             </div>
-
             <div className="modal-body">
-              {/* Step 1: Upload */}
               {importStep === 1 && (
                 <div>
-                  <div
-                    className={`import-dropzone ${dragOver ? 'drag-over' : ''}`}
-                    onClick={() => importFileRef.current?.click()}
-                    onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-                    onDragLeave={() => setDragOver(false)}
-                    onDrop={handleImportDrop}
-                  >
-                    <div className="import-dropzone-icon">
-                      <HiOutlineUpload />
-                    </div>
-                    <div className="import-dropzone-text">
-                      <strong>Click to upload</strong> or drag and drop<br />
-                      CSV, XLS, or XLSX • Max 500 rows • 10MB limit
-                    </div>
-                    <input
-                      type="file"
-                      ref={importFileRef}
-                      accept=".csv,.xlsx,.xls"
-                      onChange={(e) => handleImportFileSelect(e.target.files[0])}
-                      style={{ display: 'none' }}
-                    />
+                  <div className={`import-dropzone ${dragOver ? 'drag-over' : ''}`} onClick={() => importFileRef.current?.click()} onDragOver={e => { e.preventDefault(); setDragOver(true); }} onDragLeave={() => setDragOver(false)} onDrop={handleImportDrop}>
+                    <div className="import-dropzone-icon"><Icon name="upload" style={{ width: 28, height: 28 }} /></div>
+                    <div className="import-dropzone-text"><strong>Click to upload</strong> or drag and drop<br />CSV, XLS, or XLSX • Max 500 rows • 10MB limit</div>
+                    <input type="file" ref={importFileRef} accept=".csv,.xlsx,.xls" onChange={e => handleImportFileSelect(e.target.files[0])} style={{ display: 'none' }} />
                   </div>
-
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'var(--space-5)' }}>
-                    <div style={{ fontSize: 'var(--font-xs)', color: 'var(--color-gray-400)', fontWeight: 500 }}>
-                      Need a template? Download one below:
-                    </div>
+                    <div style={{ fontSize: 'var(--font-xs)', color: 'var(--color-gray-400)', fontWeight: 500 }}>Need a template? Download one below:</div>
                     <div className="import-sample-buttons">
-                      <button className="btn-sample" onClick={() => downloadTemplate('xlsx')}>
-                        <HiOutlineDownload /> XLSX Template
-                      </button>
-                      <button className="btn-sample" onClick={() => downloadTemplate('csv')}>
-                        <HiOutlineDownload /> CSV Template
-                      </button>
+                      <button className="btn-sample" onClick={() => downloadTemplate('xlsx')}><Icon name="download" style={{ width: 14, height: 14 }} /> XLSX</button>
+                      <button className="btn-sample" onClick={() => downloadTemplate('csv')}><Icon name="download" style={{ width: 14, height: 14 }} /> CSV</button>
                     </div>
                   </div>
                 </div>
               )}
-
-              {/* Step 2: Preview */}
               {importStep === 2 && !importing && (
                 <div>
                   {importFile && (
                     <div className="import-file-info" style={{ marginBottom: 'var(--space-4)' }}>
-                      <div className="file-icon"><HiOutlineDocumentText /></div>
-                      <div className="file-details">
-                        <div className="file-name">{importFile.name}</div>
-                        <div className="file-size">{formatFileSize(importFile.size)}</div>
-                      </div>
-                      <button className="btn btn-ghost btn-sm" onClick={() => { setImportStep(1); setImportFile(null); setImportPreview([]); }}>
-                        <HiOutlineX />
-                      </button>
+                      <div className="file-icon"><Icon name="report" /></div>
+                      <div className="file-details"><div className="file-name">{importFile.name}</div><div className="file-size">{formatFileSize(importFile.size)}</div></div>
+                      <button className="btn btn-ghost btn-sm" onClick={() => { setImportStep(1); setImportFile(null); setImportPreview([]); }}><Icon name="x" style={{ width: 14, height: 14 }} /></button>
                     </div>
                   )}
-
-                  <div className="import-preview-count">
-                    Found <strong>{importPreview.length}</strong> student{importPreview.length !== 1 ? 's' : ''} to import
-                    {importPreview.length > 10 && <span> (showing first 10)</span>}
-                  </div>
-
+                  <div className="import-preview-count">Found <strong>{importPreview.length}</strong> student{importPreview.length !== 1 ? 's' : ''} to import{importPreview.length > 10 && <span> (showing first 10)</span>}</div>
                   <div className="import-preview-wrapper">
                     <table className="import-preview-table">
-                      <thead>
-                        <tr>
-                          <th>#</th>
-                          {importHeaders.map((h) => <th key={h}>{h}</th>)}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {importPreview.slice(0, 10).map((row, i) => (
-                          <tr key={i}>
-                            <td style={{ color: 'var(--color-gray-400)', fontWeight: 600 }}>{i + 1}</td>
-                            {importHeaders.map((h) => <td key={h}>{String(row[h] || '')}</td>)}
-                          </tr>
-                        ))}
-                      </tbody>
+                      <thead><tr><th>#</th>{importHeaders.map(h => <th key={h}>{h}</th>)}</tr></thead>
+                      <tbody>{importPreview.slice(0, 10).map((row, i) => (<tr key={i}><td style={{ color: 'var(--color-gray-400)', fontWeight: 600 }}>{i + 1}</td>{importHeaders.map(h => <td key={h}>{String(row[h] || '')}</td>)}</tr>))}</tbody>
                     </table>
                   </div>
                 </div>
               )}
-
-              {/* Step 2: Importing spinner */}
               {importStep === 2 && importing && (
-                <div className="import-loading">
-                  <div className="spinner spinner-lg" />
-                  <div className="import-loading-text">Importing {importPreview.length} students...</div>
-                  <div style={{ fontSize: 'var(--font-xs)', color: 'var(--color-gray-400)' }}>This may take a moment for large files</div>
-                </div>
+                <div className="import-loading"><div className="spinner spinner-lg" /><div className="import-loading-text">Importing {importPreview.length} students...</div></div>
               )}
-
-              {/* Step 3: Results */}
               {importStep === 3 && importResult && (
                 <div className="import-result">
                   {importResult.success ? (
-                    <>
-                      <div className="import-result-icon success"><HiOutlineCheckCircle /></div>
-                      <h3>Import Successful!</h3>
-                      <p>{importResult.data.message}</p>
-                    </>
+                    <><div className="import-result-icon success"><HiOutlineCheckCircle /></div><h3>Import Successful!</h3><p>{importResult.data.message}</p></>
                   ) : (
-                    <>
-                      <div className="import-result-icon error"><HiOutlineExclamationCircle /></div>
-                      <h3>{importResult.data.errors ? 'Validation Failed' : 'Import Failed'}</h3>
-                      <p>
-                        {importResult.data.errors
-                          ? `${importResult.data.errorCount} error${importResult.data.errorCount !== 1 ? 's' : ''} found in ${importResult.data.totalRows} rows. No students were imported.`
-                          : importResult.data.error
-                        }
-                      </p>
-                      {importResult.data.errors && (
-                        <div className="import-errors-list">
-                          {importResult.data.errors.map((err, i) => (
-                            <div key={i} className="import-error-item">
-                              <span className="import-error-row">Row {err.row}</span>
-                              <span className="import-error-field">{err.field}</span>
-                              <span>{err.message}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                    <><div className="import-result-icon error"><HiOutlineExclamationCircle /></div><h3>{importResult.data.errors ? 'Validation Failed' : 'Import Failed'}</h3>
+                      <p>{importResult.data.errors ? `${importResult.data.errorCount} error(s) in ${importResult.data.totalRows} rows.` : importResult.data.error}</p>
+                      {importResult.data.errors && (<div className="import-errors-list">{importResult.data.errors.map((err, i) => (<div key={i} className="import-error-item"><span className="import-error-row">Row {err.row}</span><span className="import-error-field">{err.field}</span><span>{err.message}</span></div>))}</div>)}
                     </>
                   )}
                 </div>
               )}
             </div>
-
             <div className="modal-footer">
-              {importStep === 1 && (
-                <button className="btn btn-secondary" onClick={() => setShowImportModal(false)}>Cancel</button>
-              )}
-              {importStep === 2 && !importing && (
-                <>
-                  <button className="btn btn-secondary" onClick={() => { setImportStep(1); setImportFile(null); setImportPreview([]); }}>Back</button>
-                  <button className="btn btn-primary" onClick={handleImportSubmit}>
-                    <HiOutlineUpload /> Import {importPreview.length} Student{importPreview.length !== 1 ? 's' : ''}
-                  </button>
-                </>
-              )}
-              {importStep === 3 && (
-                <>
-                  {!importResult?.success && (
-                    <button className="btn btn-secondary" onClick={() => { setImportStep(1); setImportFile(null); setImportPreview([]); setImportResult(null); }}>Try Again</button>
-                  )}
-                  <button className="btn btn-primary" onClick={() => setShowImportModal(false)}>Done</button>
-                </>
-              )}
+              {importStep === 1 && <button className="btn btn-secondary" onClick={() => setShowImportModal(false)}>Cancel</button>}
+              {importStep === 2 && !importing && (<><button className="btn btn-secondary" onClick={() => { setImportStep(1); setImportFile(null); setImportPreview([]); }}>Back</button><button className="btn btn-primary" onClick={handleImportSubmit}><Icon name="upload" style={{ width: 14, height: 14 }} /> Import {importPreview.length} Student{importPreview.length !== 1 ? 's' : ''}</button></>)}
+              {importStep === 3 && (<>{!importResult?.success && <button className="btn btn-secondary" onClick={() => { setImportStep(1); setImportFile(null); setImportPreview([]); setImportResult(null); }}>Try Again</button>}<button className="btn btn-primary" onClick={() => setShowImportModal(false)}>Done</button></>)}
             </div>
           </div>
         </div>
@@ -624,285 +446,28 @@ export default function ManageStudents() {
       {/* ═══ BULK BARCODE PRINT MODAL ═══ */}
       {showBarcodeModal && (
         <div className="modal-overlay" onClick={() => setShowBarcodeModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '800px' }}>
-            <div className="modal-header no-print">
-              <h2>Print Barcodes</h2>
-              <button className="btn btn-ghost" onClick={() => setShowBarcodeModal(false)}>✕</button>
-            </div>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: 800 }}>
+            <div className="modal-header no-print"><h2>Print Barcodes</h2><button className="btn btn-ghost" onClick={() => setShowBarcodeModal(false)}><X size={20} /></button></div>
             <div className="modal-body">
               <p className="no-print" style={{ fontSize: 'var(--font-sm)', color: 'var(--color-gray-500)', marginBottom: 'var(--space-4)' }}>
                 Generating barcodes for <strong>{students.length}</strong> student{students.length !== 1 ? 's' : ''} on the current page.
-                {filterBatch && ' (filtered by batch)'}
               </p>
               <div className="barcode-print-grid" id="barcode-bulk-print-area">
-                {students.map((s) => (
+                {students.map(s => (
                   <div key={s.id} className="barcode-strip">
-                    <div className="barcode-strip-name">
-                      {s.firstName} {s.lastName}
-                    </div>
-                    <BarcodeGenerator
-                      value={s.enrollmentNo}
-                      width={1.5}
-                      height={40}
-                      displayValue={true}
-                      fontSize={10}
-                    />
+                    <div className="barcode-strip-name">{s.firstName} {s.lastName}</div>
+                    <BarcodeGenerator value={s.enrollmentNo} width={1.5} height={40} displayValue fontSize={10} />
                   </div>
                 ))}
               </div>
             </div>
             <div className="modal-footer no-print">
               <button className="btn btn-secondary" onClick={() => setShowBarcodeModal(false)}>Close</button>
-              <button className="btn btn-primary" onClick={() => window.print()} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                <HiOutlinePrinter /> Print All
-              </button>
+              <button className="btn btn-primary" onClick={() => window.print()}><Icon name="printer" style={{ width: 14, height: 14 }} /> Print All</button>
             </div>
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-/* ═══════════════════════════════════════════════════════
-   STUDENT PREVIEW MODAL — Quick view of key details
-   ═══════════════════════════════════════════════════════ */
-function StudentPreviewModal({ student, onClose, onViewFull }) {
-  const diseases = Array.isArray(student.health?.diseases) ? student.health.diseases : [];
-  const allergies = Array.isArray(student.health?.allergies) ? student.health.allergies : [];
-  const hasHealthIssues = diseases.length > 0 || allergies.length > 0;
-
-  const getInitials = (first, last) => {
-    return `${(first || '')[0] || ''}${(last || '')[0] || ''}`.toUpperCase();
-  };
-
-  return (
-    <div className="modal-overlay" onClick={onClose} style={{ backdropFilter: 'blur(4px)' }}>
-      <div
-        className="modal-content"
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          maxWidth: '440px', borderRadius: 'var(--radius-xl)', overflow: 'hidden',
-          boxShadow: '0 25px 60px rgba(0,0,0,0.15)', animation: 'slideUp 0.3s ease',
-        }}
-      >
-        {/* Top gradient banner */}
-        <div style={{
-          background: 'var(--gradient-primary)',
-          padding: 'var(--space-6) var(--space-6) var(--space-8)',
-          position: 'relative',
-        }}>
-          <button
-            onClick={onClose}
-            style={{
-              position: 'absolute', top: 'var(--space-3)', right: 'var(--space-3)',
-              background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '50%',
-              width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', color: '#fff', transition: 'background 0.2s',
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.35)'}
-            onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
-          >
-            <HiOutlineX size={16} />
-          </button>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-5)' }}>
-            {/* Profile Photo */}
-            <div style={{
-              width: '80px', height: '80px', borderRadius: '50%', flexShrink: 0,
-              border: '3px solid rgba(255,255,255,0.5)', overflow: 'hidden',
-              background: 'rgba(255,255,255,0.15)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-            }}>
-              {student.photoUrl ? (
-                <img
-                  src={`${API_BASE}${student.photoUrl}`}
-                  alt={`${student.firstName} ${student.lastName}`}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
-                />
-              ) : null}
-              <div style={{
-                display: student.photoUrl ? 'none' : 'flex',
-                alignItems: 'center', justifyContent: 'center',
-                width: '100%', height: '100%',
-                fontSize: '28px', fontWeight: 700, color: 'rgba(255,255,255,0.9)',
-                letterSpacing: '1px',
-              }}>
-                {getInitials(student.firstName, student.lastName)}
-              </div>
-            </div>
-
-            {/* Name & Unique ID */}
-            <div>
-              <h2 style={{
-                color: '#fff', fontSize: 'var(--font-xl)', fontWeight: 700,
-                margin: 0, lineHeight: 1.2,
-                textShadow: '0 1px 2px rgba(0,0,0,0.1)',
-              }}>
-                {student.firstName} {student.lastName}
-              </h2>
-              <div style={{
-                marginTop: 'var(--space-2)',
-                display: 'inline-block',
-                background: 'rgba(255,255,255,0.2)',
-                padding: '3px 10px', borderRadius: '20px',
-                fontSize: 'var(--font-sm)', color: '#fff', fontWeight: 600,
-                letterSpacing: '0.3px',
-              }}>
-                {student.enrollmentNo}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Details body */}
-        <div style={{ padding: 'var(--space-5) var(--space-6)' }}>
-          {/* Class & Section */}
-          <div style={{
-            display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)',
-            marginBottom: 'var(--space-5)',
-          }}>
-            <div style={{
-              padding: 'var(--space-3) var(--space-4)',
-              background: 'var(--color-sky-50)', borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--color-sky-100)',
-            }}>
-              <div style={{ fontSize: 'var(--font-xs)', color: 'var(--color-gray-400)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '2px' }}>
-                Class / Batch
-              </div>
-              <div style={{ fontSize: 'var(--font-sm)', color: 'var(--color-gray-800)', fontWeight: 600 }}>
-                {student.batch?.degree ? `${student.batch.degree}` : student.batch?.name || '—'}
-              </div>
-              <div style={{ fontSize: 'var(--font-xs)', color: 'var(--color-gray-500)' }}>
-                {student.batch?.name || ''} • Sem {student.semester}
-              </div>
-            </div>
-            <div style={{
-              padding: 'var(--space-3) var(--space-4)',
-              background: 'var(--color-purple-50)', borderRadius: 'var(--radius-md)',
-              border: '1px solid rgba(139,92,246,0.15)',
-            }}>
-              <div style={{ fontSize: 'var(--font-xs)', color: 'var(--color-gray-400)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '2px' }}>
-                Section
-              </div>
-              <div style={{ fontSize: 'var(--font-sm)', color: 'var(--color-gray-800)', fontWeight: 600 }}>
-                {student.section?.name || '—'}
-              </div>
-              <div style={{ fontSize: 'var(--font-xs)', color: 'var(--color-gray-500)' }}>
-                {student.batch?.department?.name || ''}
-              </div>
-            </div>
-          </div>
-
-          {/* Blood Group */}
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 'var(--space-3)',
-            padding: 'var(--space-3) var(--space-4)',
-            background: student.health?.bloodGroup ? '#fee2e2' : 'var(--color-gray-50)',
-            borderRadius: 'var(--radius-md)',
-            border: student.health?.bloodGroup ? '1px solid #fecdd3' : '1px solid var(--color-gray-100)',
-            marginBottom: 'var(--space-4)',
-          }}>
-            <div style={{
-              width: '36px', height: '36px', borderRadius: '50%',
-              background: student.health?.bloodGroup ? 'var(--color-danger)' : 'var(--color-gray-200)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-            }}>
-              <HiOutlineHeart size={18} style={{ color: '#fff' }} />
-            </div>
-            <div>
-              <div style={{ fontSize: 'var(--font-xs)', color: 'var(--color-gray-400)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Blood Group</div>
-              <div style={{ fontSize: 'var(--font-base)', color: 'var(--color-gray-800)', fontWeight: 700 }}>
-                {student.health?.bloodGroup || 'Not recorded'}
-              </div>
-            </div>
-          </div>
-
-          {/* Health Issues */}
-          {hasHealthIssues && (
-            <div style={{
-              padding: 'var(--space-4)',
-              background: '#fffbeb',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid #fde68a',
-              marginBottom: 'var(--space-4)',
-            }}>
-              <div style={{ fontSize: 'var(--font-xs)', color: 'var(--color-gray-500)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 'var(--space-3)' }}>
-                ⚠ Health Concerns
-              </div>
-              {diseases.length > 0 && (
-                <div style={{ marginBottom: allergies.length > 0 ? 'var(--space-3)' : 0 }}>
-                  <div style={{ fontSize: 'var(--font-xs)', color: 'var(--color-gray-500)', marginBottom: '4px' }}>Diseases / Conditions</div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                    {diseases.map((d, i) => (
-                      <span key={i} style={{
-                        padding: '2px 10px', borderRadius: '12px',
-                        background: '#fef2f2', border: '1px solid #fecdd3',
-                        fontSize: 'var(--font-xs)', color: '#b91c1c', fontWeight: 500,
-                      }}>
-                        {d}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {allergies.length > 0 && (
-                <div>
-                  <div style={{ fontSize: 'var(--font-xs)', color: 'var(--color-gray-500)', marginBottom: '4px' }}>Allergies</div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                    {allergies.map((a, i) => (
-                      <span key={i} style={{
-                        padding: '2px 10px', borderRadius: '12px',
-                        background: '#fff7ed', border: '1px solid #fed7aa',
-                        fontSize: 'var(--font-xs)', color: '#c2410c', fontWeight: 500,
-                      }}>
-                        {a}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {!hasHealthIssues && !student.health?.bloodGroup && (
-            <div style={{
-              padding: 'var(--space-3) var(--space-4)',
-              background: 'var(--color-gray-50)', borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--color-gray-100)',
-              marginBottom: 'var(--space-4)',
-              textAlign: 'center',
-            }}>
-              <p style={{ fontSize: 'var(--font-sm)', color: 'var(--color-gray-400)', margin: 0 }}>No health information recorded yet</p>
-            </div>
-          )}
-
-          {/* Status */}
-          <div style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            padding: 'var(--space-3) var(--space-4)',
-            background: 'var(--color-gray-50)', borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--color-gray-100)',
-            marginBottom: 'var(--space-5)',
-          }}>
-            <span style={{ fontSize: 'var(--font-sm)', color: 'var(--color-gray-500)', fontWeight: 500 }}>Status</span>
-            <span className={`badge ${student.status === 'active' ? 'badge-green' : student.status === 'dropped' ? 'badge-red' : 'badge-gray'}`}>
-              {student.status}
-            </span>
-          </div>
-
-          {/* View Full Profile button */}
-          <button
-            className="btn btn-primary"
-            onClick={onViewFull}
-            style={{ width: '100%', justifyContent: 'center' }}
-          >
-            View Full Profile →
-          </button>
-        </div>
-      </div>
     </div>
   );
 }

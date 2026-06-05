@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { PartyPopper } from 'lucide-react';
 import client from '../../api/client';
 import {
   HiOutlineLightBulb, HiOutlinePaperAirplane, HiOutlineClock,
@@ -43,7 +44,7 @@ export default function StudentFeedback() {
       await client.post('/student/feedback', form);
       setForm({ subject: '', message: '', category: 'general' });
       setShowForm(false);
-      setSuccessMsg('Your feedback has been submitted successfully! 🎉');
+      setSuccessMsg(<>Your feedback has been submitted successfully! <PartyPopper size={16} style={{ marginLeft: 6, display: 'inline' }} /></>);
       setTimeout(() => setSuccessMsg(''), 4000);
       fetchFeedbacks();
     } catch (err) {

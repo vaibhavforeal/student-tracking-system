@@ -1,28 +1,24 @@
 import { useState, useEffect, useCallback } from 'react';
+import { Check } from 'lucide-react';
 import client from '../../api/client';
-import {
-  HiOutlineMail, HiOutlineMailOpen, HiOutlineSearch,
-  HiOutlineFilter, HiOutlineArchive, HiOutlineReply,
-  HiOutlineTag, HiOutlineClock, HiOutlineUser,
-  HiOutlineAcademicCap, HiOutlineChevronLeft,
-  HiOutlineCheckCircle, HiOutlineExclamation,
-} from 'react-icons/hi';
+import Icon from '../../components/ui/Icon';
+import { PageHead, MiniAvatar, initials } from '../../components/ui/DesignHelpers';
 
 const CATEGORIES = [
   { value: 'all', label: 'All Categories' },
-  { value: 'general', label: 'General', color: 'var(--color-sky-500)' },
-  { value: 'academics', label: 'Academics', color: 'var(--color-purple-500)' },
-  { value: 'infrastructure', label: 'Infrastructure', color: 'var(--color-warning)' },
-  { value: 'faculty', label: 'Faculty', color: 'var(--color-indigo-500)' },
-  { value: 'suggestion', label: 'Suggestion', color: 'var(--color-success)' },
-  { value: 'complaint', label: 'Complaint', color: 'var(--color-danger)' },
-  { value: 'other', label: 'Other', color: 'var(--color-gray-500)' },
+  { value: 'general', label: 'General', color: 'var(--info)' },
+  { value: 'academics', label: 'Academics', color: 'var(--accent)' },
+  { value: 'infrastructure', label: 'Infrastructure', color: 'var(--warn)' },
+  { value: 'faculty', label: 'Faculty', color: '#9b3d8f' },
+  { value: 'suggestion', label: 'Suggestion', color: 'var(--good)' },
+  { value: 'complaint', label: 'Complaint', color: 'var(--bad)' },
+  { value: 'other', label: 'Other', color: 'var(--faint)' },
 ];
 
 const STATUS_TABS = [
-  { value: 'unread', label: 'Unread', icon: HiOutlineMail },
-  { value: 'read', label: 'Read', icon: HiOutlineMailOpen },
-  { value: 'archived', label: 'Archived', icon: HiOutlineArchive },
+  { value: 'unread', label: 'Unread', icon: 'mail' },
+  { value: 'read', label: 'Read', icon: 'eye' },
+  { value: 'archived', label: 'Archived', icon: 'folder' },
 ];
 
 export default function ManageFeedback() {
@@ -45,138 +41,52 @@ export default function ManageFeedback() {
     try {
       const params = { status: statusFilter, category: categoryFilter, search, page, limit: 15 };
       const { data } = await client.get('/admin/feedback', { params });
-      setFeedbacks(data.feedbacks);
-      setTotal(data.total);
-      setTotalPages(data.totalPages);
-      setUnreadCount(data.unreadCount);
+      setFeedbacks(data.feedbacks); setTotal(data.total); setTotalPages(data.totalPages); setUnreadCount(data.unreadCount);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
   }, [statusFilter, categoryFilter, search, page]);
 
   useEffect(() => { fetchFeedbacks(); }, [fetchFeedbacks]);
 
-  const openFeedback = async (id) => {
-    try {
-      const { data } = await client.get(`/admin/feedback/${id}`);
-      setSelectedFeedback(data.feedback);
-      setReplyText(data.feedback.adminReply || '');
-      // Refresh list to update read status
-      fetchFeedbacks();
-    } catch (err) { console.error(err); }
-  };
+  const openFeedback = async (id) => { try { const { data } = await client.get(`/admin/feedback/${id}`); setSelectedFeedback(data.feedback); setReplyText(data.feedback.adminReply || ''); fetchFeedbacks(); } catch (err) { console.error(err); } };
+  const handleReply = async () => { if (!replyText.trim()) return; setReplying(true); try { const { data } = await client.put(`/admin/feedback/${selectedFeedback.id}/reply`, { reply: replyText }); setSelectedFeedback({ ...selectedFeedback, adminReply: data.feedback.adminReply, repliedAt: data.feedback.repliedAt }); fetchFeedbacks(); } catch (err) { alert(err.response?.data?.error || 'Failed to send reply'); } finally { setReplying(false); } };
+  const handleArchive = async (id) => { setActionLoading(id); try { await client.put(`/admin/feedback/${id}/archive`); if (selectedFeedback?.id === id) setSelectedFeedback(null); fetchFeedbacks(); } catch (err) { console.error(err); } finally { setActionLoading(null); } };
+  const handleToggleRead = async (id) => { setActionLoading(id); try { await client.put(`/admin/feedback/${id}/read`); if (selectedFeedback?.id === id) setSelectedFeedback({ ...selectedFeedback, isRead: !selectedFeedback.isRead }); fetchFeedbacks(); } catch (err) { console.error(err); } finally { setActionLoading(null); } };
 
-  const handleReply = async () => {
-    if (!replyText.trim()) return;
-    setReplying(true);
-    try {
-      const { data } = await client.put(`/admin/feedback/${selectedFeedback.id}/reply`, { reply: replyText });
-      setSelectedFeedback({ ...selectedFeedback, adminReply: data.feedback.adminReply, repliedAt: data.feedback.repliedAt });
-      fetchFeedbacks();
-    } catch (err) { console.error(err); alert(err.response?.data?.error || 'Failed to send reply'); }
-    finally { setReplying(false); }
-  };
-
-  const handleArchive = async (id) => {
-    setActionLoading(id);
-    try {
-      await client.put(`/admin/feedback/${id}/archive`);
-      if (selectedFeedback?.id === id) setSelectedFeedback(null);
-      fetchFeedbacks();
-    } catch (err) { console.error(err); }
-    finally { setActionLoading(null); }
-  };
-
-  const handleToggleRead = async (id) => {
-    setActionLoading(id);
-    try {
-      await client.put(`/admin/feedback/${id}/read`);
-      if (selectedFeedback?.id === id) {
-        setSelectedFeedback({ ...selectedFeedback, isRead: !selectedFeedback.isRead });
-      }
-      fetchFeedbacks();
-    } catch (err) { console.error(err); }
-    finally { setActionLoading(null); }
-  };
-
-  const getCategoryInfo = (cat) => CATEGORIES.find((c) => c.value === cat) || CATEGORIES[1];
-
-  const formatDate = (d) => {
-    if (!d) return '—';
-    const date = new Date(d);
-    const now = new Date();
-    const diff = now - date;
-    if (diff < 60 * 1000) return 'Just now';
-    if (diff < 60 * 60 * 1000) return `${Math.floor(diff / 60000)}m ago`;
-    if (diff < 24 * 60 * 60 * 1000) return `${Math.floor(diff / 3600000)}h ago`;
-    if (diff < 7 * 24 * 60 * 60 * 1000) return `${Math.floor(diff / 86400000)}d ago`;
-    return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-  };
-
-  const formatFullDate = (d) => {
-    if (!d) return '—';
-    return new Date(d).toLocaleDateString('en-IN', {
-      day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
-    });
-  };
+  const getCategoryInfo = (cat) => CATEGORIES.find(c => c.value === cat) || CATEGORIES[1];
+  const formatDate = (d) => { if (!d) return '—'; const diff = Date.now() - new Date(d); if (diff < 60000) return 'Just now'; if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`; if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`; if (diff < 604800000) return `${Math.floor(diff / 86400000)}d ago`; return new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }); };
+  const formatFullDate = (d) => d ? new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
 
   // ─── Detail View ─────────────────────────────
   if (selectedFeedback) {
     const fb = selectedFeedback;
     const cat = getCategoryInfo(fb.category);
     return (
-      <div>
-        <button
-          className="btn btn-ghost"
-          onClick={() => setSelectedFeedback(null)}
-          style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-4)' }}
-        >
-          <HiOutlineChevronLeft size={18} /> Back to Inbox
+      <div className="rd-content-inner">
+        <button className="rd-btn rd-btn-ghost" onClick={() => setSelectedFeedback(null)} style={{ marginBottom: 'var(--gap)' }}>
+          <Icon name="arrowUp" style={{ transform: 'rotate(-90deg)', width: 16, height: 16 }} /> Back to Inbox
         </button>
 
-        <div className="card">
-          {/* Feedback header */}
-          <div style={{
-            padding: 'var(--space-5) var(--space-6)',
-            borderBottom: '1px solid var(--color-gray-100)',
-            background: 'rgba(79, 70, 229, 0.03)',
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 'var(--space-4)', flexWrap: 'wrap' }}>
+        <div className="rd-card fade-up">
+          {/* Header */}
+          <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', background: 'var(--accent-soft)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
               <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-2)' }}>
-                  <span style={{
-                    fontSize: 'var(--font-xs)', padding: '2px 10px', borderRadius: 'var(--radius-full)',
-                    background: `${cat.color}15`, color: cat.color, fontWeight: 500,
-                  }}>
-                    {cat.label}
-                  </span>
-                  {fb.adminReply && (
-                    <span className="badge badge-success" style={{ fontSize: 'var(--font-xs)' }}>Replied</span>
-                  )}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                  <span className="rd-badge" style={{ background: `color-mix(in srgb, ${cat.color} 10%, transparent)`, color: cat.color }}>{cat.label}</span>
+                  {fb.adminReply && <span className="rd-badge" style={{ color: 'var(--good)', background: 'var(--good-soft)' }}>Replied</span>}
                 </div>
-                <h2 style={{ fontSize: 'var(--font-xl)', fontWeight: 700 }}>{fb.subject}</h2>
-                <div style={{ fontSize: 'var(--font-sm)', color: 'var(--color-gray-400)', marginTop: 'var(--space-1)' }}>
-                  <HiOutlineClock size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />
-                  {formatFullDate(fb.createdAt)}
+                <h2 style={{ fontSize: 20, fontWeight: 700, fontFamily: 'var(--font-display)', color: 'var(--ink)' }}>{fb.subject}</h2>
+                <div style={{ fontSize: 12.5, color: 'var(--faint)', marginTop: 4 }}>
+                  <Icon name="clock" style={{ width: 13, height: 13, verticalAlign: 'middle', marginRight: 4 }} />{formatFullDate(fb.createdAt)}
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-                <button
-                  className="btn btn-ghost"
-                  onClick={() => handleToggleRead(fb.id)}
-                  title={fb.isRead ? 'Mark as unread' : 'Mark as read'}
-                  style={{ fontSize: 'var(--font-sm)' }}
-                >
-                  {fb.isRead ? <HiOutlineMail size={16} /> : <HiOutlineMailOpen size={16} />}
-                  {fb.isRead ? 'Unread' : 'Read'}
+              <div style={{ display: 'flex', gap: 6 }}>
+                <button className="rd-btn rd-btn-ghost rd-btn-sm" onClick={() => handleToggleRead(fb.id)}>
+                  <Icon name={fb.isRead ? 'mail' : 'eye'} style={{ width: 15, height: 15 }} /> {fb.isRead ? 'Unread' : 'Read'}
                 </button>
-                <button
-                  className="btn btn-ghost"
-                  onClick={() => handleArchive(fb.id)}
-                  title={fb.isArchived ? 'Unarchive' : 'Archive'}
-                  style={{ fontSize: 'var(--font-sm)' }}
-                >
-                  <HiOutlineArchive size={16} />
-                  {fb.isArchived ? 'Unarchive' : 'Archive'}
+                <button className="rd-btn rd-btn-ghost rd-btn-sm" onClick={() => handleArchive(fb.id)}>
+                  <Icon name="folder" style={{ width: 15, height: 15 }} /> {fb.isArchived ? 'Unarchive' : 'Archive'}
                 </button>
               </div>
             </div>
@@ -184,107 +94,39 @@ export default function ManageFeedback() {
 
           {/* Student info */}
           {fb.student && (
-            <div style={{
-              padding: 'var(--space-4) var(--space-6)',
-              borderBottom: '1px solid var(--color-gray-100)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 'var(--space-4)',
-              flexWrap: 'wrap',
-              background: 'var(--color-gray-50)',
-            }}>
-              <div style={{
-                width: 40, height: 40, borderRadius: 'var(--radius-full)',
-                background: 'var(--gradient-primary)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: '#fff', fontWeight: 600, fontSize: 'var(--font-sm)',
-              }}>
-                {fb.student.firstName?.charAt(0)}{fb.student.lastName?.charAt(0)}
-              </div>
+            <div style={{ padding: '14px 24px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 12, background: 'var(--surface-2)' }}>
+              <MiniAvatar name={`${fb.student.firstName} ${fb.student.lastName}`} />
               <div>
-                <div style={{ fontWeight: 600 }}>{fb.student.firstName} {fb.student.lastName}</div>
-                <div style={{ fontSize: 'var(--font-xs)', color: 'var(--color-gray-500)' }}>
-                  {fb.student.enrollmentNo} · Semester {fb.student.semester}
-                  {fb.student.batch && ` · ${fb.student.batch.department?.name}`}
-                  {fb.student.section && ` · ${fb.student.section.name}`}
+                <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--ink)' }}>{fb.student.firstName} {fb.student.lastName}</div>
+                <div style={{ fontSize: 12, color: 'var(--faint)', fontFamily: 'var(--font-mono)' }}>
+                  {fb.student.enrollmentNo} · Sem {fb.student.semester}{fb.student.batch ? ` · ${fb.student.batch.department?.name}` : ''}{fb.student.section ? ` · ${fb.student.section.name}` : ''}
                 </div>
               </div>
-              {fb.student.user?.email && (
-                <div style={{ marginLeft: 'auto', fontSize: 'var(--font-xs)', color: 'var(--color-gray-400)' }}>
-                  {fb.student.user.email}
-                </div>
-              )}
+              {fb.student.user?.email && <div style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--faint)' }}>{fb.student.user.email}</div>}
             </div>
           )}
 
-          {/* Message body */}
-          <div style={{ padding: 'var(--space-6)' }}>
-            <div style={{
-              padding: 'var(--space-5)',
-              background: 'var(--color-gray-50)',
-              borderRadius: 'var(--radius-lg)',
-              fontSize: 'var(--font-base)',
-              lineHeight: 1.8,
-              whiteSpace: 'pre-wrap',
-              color: 'var(--color-gray-700)',
-            }}>
-              {fb.message}
-            </div>
+          {/* Message + Reply */}
+          <div style={{ padding: 24 }}>
+            <div style={{ padding: 20, background: 'var(--surface-2)', borderRadius: 'var(--r-md)', fontSize: 14, lineHeight: 1.8, whiteSpace: 'pre-wrap', color: 'var(--ink)' }}>{fb.message}</div>
 
-            {/* Existing reply */}
             {fb.adminReply && (
-              <div style={{
-                marginTop: 'var(--space-5)',
-                padding: 'var(--space-5)',
-                background: 'rgba(37, 99, 235, 0.05)',
-                borderRadius: 'var(--radius-lg)',
-                border: '1px solid rgba(16, 185, 129, 0.2)',
-              }}>
-                <div style={{
-                  display: 'flex', alignItems: 'center', gap: 'var(--space-2)',
-                  marginBottom: 'var(--space-3)',
-                  color: 'var(--color-success)', fontWeight: 600,
-                }}>
-                  <HiOutlineCheckCircle size={18} />
-                  Your Reply
-                  {fb.repliedAt && (
-                    <span style={{ fontWeight: 400, color: 'var(--color-gray-400)', fontSize: 'var(--font-xs)' }}>
-                      · {formatFullDate(fb.repliedAt)}
-                    </span>
-                  )}
+              <div style={{ marginTop: 20, padding: 20, background: 'var(--good-soft)', borderRadius: 'var(--r-md)', border: '1px solid color-mix(in srgb, var(--good) 20%, transparent)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, color: 'var(--good)', fontWeight: 600, fontSize: 14 }}>
+                  <Check size={14} style={{ display: 'inline', marginBottom: -2 }} /> Your Reply{fb.repliedAt && <span style={{ fontWeight: 400, color: 'var(--faint)', fontSize: 12 }}>· {formatFullDate(fb.repliedAt)}</span>}
                 </div>
-                <div style={{
-                  fontSize: 'var(--font-sm)', lineHeight: 1.7,
-                  whiteSpace: 'pre-wrap', color: 'var(--color-gray-700)',
-                }}>
-                  {fb.adminReply}
-                </div>
+                <div style={{ fontSize: 14, lineHeight: 1.7, whiteSpace: 'pre-wrap', color: 'var(--ink)' }}>{fb.adminReply}</div>
               </div>
             )}
 
-            {/* Reply form */}
-            <div style={{ marginTop: 'var(--space-5)' }}>
-              <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-                <HiOutlineReply size={16} />
-                {fb.adminReply ? 'Update Reply' : 'Reply to Student'}
+            <div style={{ marginTop: 20 }}>
+              <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Icon name="mail" style={{ width: 16, height: 16 }} /> {fb.adminReply ? 'Update Reply' : 'Reply to Student'}
               </label>
-              <textarea
-                className="form-input"
-                rows={4}
-                placeholder="Write your response..."
-                value={replyText}
-                onChange={(e) => setReplyText(e.target.value)}
-                style={{ resize: 'vertical', minHeight: 100 }}
-              />
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 'var(--space-3)' }}>
-                <button
-                  className="btn btn-primary"
-                  onClick={handleReply}
-                  disabled={replying || !replyText.trim()}
-                  style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}
-                >
-                  {replying ? <div className="spinner" /> : <HiOutlineReply size={16} />}
-                  {replying ? 'Sending...' : fb.adminReply ? 'Update Reply' : 'Send Reply'}
+              <textarea className="form-input" rows={4} placeholder="Write your response…" value={replyText} onChange={e => setReplyText(e.target.value)} style={{ resize: 'vertical', minHeight: 100 }} />
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 12 }}>
+                <button className="rd-btn rd-btn-primary" onClick={handleReply} disabled={replying || !replyText.trim()}>
+                  {replying ? 'Sending…' : fb.adminReply ? 'Update Reply' : 'Send Reply'}
                 </button>
               </div>
             </div>
@@ -296,240 +138,74 @@ export default function ManageFeedback() {
 
   // ─── List View ───────────────────────────────
   return (
-    <div>
-      {/* Header */}
-      <div className="page-header">
-        <h1 style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-          <HiOutlineMail size={28} style={{ color: 'var(--color-purple-500)' }} />
-          Student Feedback
-          {unreadCount > 0 && (
-            <span style={{
-              background: 'var(--color-danger)',
-              color: '#fff',
-              fontSize: 'var(--font-xs)',
-              fontWeight: 600,
-              padding: '2px 8px',
-              borderRadius: 'var(--radius-full)',
-              minWidth: 20,
-              textAlign: 'center',
-            }}>
-              {unreadCount}
-            </span>
-          )}
-        </h1>
-        <p className="page-subtitle">View and respond to student thoughts, suggestions, and feedback</p>
-      </div>
+    <div className="rd-content-inner">
+      <PageHead title="Student Feedback" sub="View and respond to student thoughts, suggestions, and feedback">
+        {unreadCount > 0 && <span className="rd-badge" style={{ background: 'var(--bad)', color: '#fff', fontSize: 13, padding: '4px 12px' }}>{unreadCount} unread</span>}
+      </PageHead>
 
-      {/* Status tabs */}
-      <div style={{
-        display: 'flex',
-        gap: 'var(--space-1)',
-        marginBottom: 'var(--space-5)',
-        background: 'var(--color-gray-100)',
-        borderRadius: 'var(--radius-lg)',
-        padding: 'var(--space-1)',
-        width: 'fit-content',
-      }}>
-        {STATUS_TABS.map((tab) => {
-          const TabIcon = tab.icon;
-          return (
-          <button
-            key={tab.value}
-            onClick={() => { setStatusFilter(tab.value); setPage(1); }}
-            style={{
-              padding: 'var(--space-2) var(--space-4)',
-              borderRadius: 'var(--radius-md)',
-              border: 'none',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 'var(--space-2)',
-              fontSize: 'var(--font-sm)',
-              fontWeight: statusFilter === tab.value ? 600 : 400,
-              background: statusFilter === tab.value ? '#fff' : 'transparent',
-              color: statusFilter === tab.value ? 'var(--color-purple-600)' : 'var(--color-gray-500)',
-              boxShadow: statusFilter === tab.value ? 'var(--shadow-sm)' : 'none',
-              transition: 'all var(--transition-fast)',
-            }}
-          >
-            <TabIcon size={16} />
-            {tab.label}
-            {tab.value === 'unread' && unreadCount > 0 && (
-              <span style={{
-                background: 'var(--color-danger)',
-                color: '#fff',
-                fontSize: '10px',
-                padding: '0 5px',
-                borderRadius: 'var(--radius-full)',
-                fontWeight: 600,
-              }}>
-                {unreadCount}
-              </span>
-            )}
-          </button>
-          );
-        })}
-      </div>
-
-      {/* Filters */}
-      <div style={{ display: 'flex', gap: 'var(--space-3)', marginBottom: 'var(--space-5)', flexWrap: 'wrap' }}>
-        <div style={{ position: 'relative', flex: '1 1 280px' }}>
-          <HiOutlineSearch size={16} style={{
-            position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)',
-            color: 'var(--color-gray-400)',
-          }} />
-          <input
-            className="form-input"
-            placeholder="Search by subject, message, or student..."
-            value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            style={{ paddingLeft: 36 }}
-          />
-        </div>
-        <select
-          className="form-input"
-          value={categoryFilter}
-          onChange={(e) => { setCategoryFilter(e.target.value); setPage(1); }}
-          style={{ width: 'auto', minWidth: 180 }}
-        >
-          {CATEGORIES.map((c) => (
-            <option key={c.value} value={c.value}>{c.label}</option>
+      <div className="rd-toolbar">
+        <div className="rd-seg">
+          {STATUS_TABS.map(tab => (
+            <button key={tab.value} className={statusFilter === tab.value ? 'on' : ''} onClick={() => { setStatusFilter(tab.value); setPage(1); }}>
+              <Icon name={tab.icon} style={{ width: 15, height: 15 }} /> {tab.label}
+              {tab.value === 'unread' && unreadCount > 0 && <span style={{ background: 'var(--bad)', color: '#fff', fontSize: 10, padding: '0 5px', borderRadius: 99, fontWeight: 600 }}>{unreadCount}</span>}
+            </button>
           ))}
+        </div>
+        <div style={{ flex: 1 }} />
+        <div className="rd-search">
+          <Icon name="search" />
+          <input placeholder="Search feedback…" value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} />
+        </div>
+        <select className="rd-chip-select" value={categoryFilter} onChange={e => { setCategoryFilter(e.target.value); setPage(1); }}>
+          {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
         </select>
       </div>
 
-      {/* Feedback list */}
-      <div className="card">
-        {loading ? (
-          <div className="loading-container"><div className="spinner spinner-lg" /></div>
-        ) : feedbacks.length === 0 ? (
-          <div style={{
-            textAlign: 'center',
-            padding: 'var(--space-10) var(--space-6)',
-            color: 'var(--color-gray-400)',
-          }}>
-            <HiOutlineMail size={48} style={{ marginBottom: 'var(--space-3)', opacity: 0.5 }} />
-            <p style={{ fontSize: 'var(--font-lg)', fontWeight: 500 }}>No feedback found</p>
-            <p style={{ fontSize: 'var(--font-sm)' }}>
-              {statusFilter === 'unread' ? 'All caught up! No unread feedback.' : 'No feedback matching your filters.'}
-            </p>
+      <div className="rd-card fade-up">
+        {loading ? <div className="loading-container"><div className="spinner spinner-lg" /></div> : feedbacks.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--faint)' }}>
+            <Icon name="mail" style={{ width: 48, height: 48, margin: '0 auto 16px', display: 'block', opacity: 0.5 }} />
+            <p style={{ fontSize: 16, fontWeight: 500, fontFamily: 'var(--font-display)' }}>No feedback found</p>
+            <p style={{ fontSize: 14 }}>{statusFilter === 'unread' ? 'All caught up!' : 'No feedback matching your filters.'}</p>
           </div>
         ) : (
           <>
-            {feedbacks.map((fb) => {
-              const cat = getCategoryInfo(fb.category);
-              return (
-                <div
-                  key={fb.id}
-                  onClick={() => openFeedback(fb.id)}
-                  style={{
-                    padding: 'var(--space-4) var(--space-5)',
-                    borderBottom: '1px solid var(--color-gray-50)',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 'var(--space-4)',
-                    transition: 'background var(--transition-fast)',
-                    background: !fb.isRead ? 'rgba(139, 92, 246, 0.02)' : 'transparent',
-                    fontWeight: !fb.isRead ? 500 : 400,
-                  }}
-                  onMouseOver={(e) => e.currentTarget.style.background = 'var(--color-gray-50)'}
-                  onMouseOut={(e) => e.currentTarget.style.background = !fb.isRead ? 'rgba(139, 92, 246, 0.02)' : 'transparent'}
-                >
-                  {/* Unread dot */}
-                  <div style={{
-                    width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
-                    background: !fb.isRead ? 'var(--color-purple-500)' : 'transparent',
-                  }} />
-
-                  {/* Student avatar */}
-                  <div style={{
-                    width: 36, height: 36, borderRadius: 'var(--radius-full)', flexShrink: 0,
-                    background: 'var(--gradient-primary)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: '#fff', fontSize: 'var(--font-xs)', fontWeight: 600,
-                  }}>
-                    {fb.student?.firstName?.charAt(0)}{fb.student?.lastName?.charAt(0)}
-                  </div>
-
-                  {/* Content */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 2 }}>
-                      <span style={{ fontSize: 'var(--font-sm)', fontWeight: 600, color: 'var(--color-gray-900)' }}>
-                        {fb.student?.firstName} {fb.student?.lastName}
-                      </span>
-                      <span style={{ fontSize: 'var(--font-xs)', color: 'var(--color-gray-400)' }}>
-                        {fb.student?.enrollmentNo}
-                      </span>
-                      <span style={{
-                        fontSize: '10px', padding: '1px 6px', borderRadius: 'var(--radius-full)',
-                        background: `${cat.color}15`, color: cat.color, fontWeight: 500,
-                      }}>
-                        {cat.label}
-                      </span>
+            <div className="rd-panel-list">
+              {feedbacks.map(fb => {
+                const cat = getCategoryInfo(fb.category);
+                return (
+                  <div key={fb.id} onClick={() => openFeedback(fb.id)} style={{ padding: '14px 20px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 14, transition: 'background .12s', background: !fb.isRead ? 'var(--accent-soft)' : 'transparent' }} onMouseOver={e => e.currentTarget.style.background = 'var(--surface-2)'} onMouseOut={e => e.currentTarget.style.background = !fb.isRead ? 'var(--accent-soft)' : 'transparent'}>
+                    <div style={{ width: 8, height: 8, borderRadius: 99, background: !fb.isRead ? 'var(--accent)' : 'transparent', flexShrink: 0 }} />
+                    <MiniAvatar name={`${fb.student?.firstName || ''} ${fb.student?.lastName || ''}`} size={36} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+                        <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--ink)' }}>{fb.student?.firstName} {fb.student?.lastName}</span>
+                        <span style={{ fontSize: 11.5, color: 'var(--faint)', fontFamily: 'var(--font-mono)' }}>{fb.student?.enrollmentNo}</span>
+                        <span className="rd-badge" style={{ background: `color-mix(in srgb, ${cat.color} 10%, transparent)`, color: cat.color, fontSize: 10 }}>{cat.label}</span>
+                      </div>
+                      <div style={{ fontSize: 13.5, color: !fb.isRead ? 'var(--ink)' : 'var(--muted)', fontWeight: !fb.isRead ? 600 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{fb.subject}</div>
+                      <div style={{ fontSize: 12, color: 'var(--faint)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: 2 }}>{fb.message.substring(0, 100)}{fb.message.length > 100 ? '…' : ''}</div>
                     </div>
-                    <div style={{
-                      fontSize: 'var(--font-sm)',
-                      color: !fb.isRead ? 'var(--color-gray-900)' : 'var(--color-gray-600)',
-                      fontWeight: !fb.isRead ? 600 : 400,
-                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                    }}>
-                      {fb.subject}
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
+                      <span style={{ fontSize: 12, color: 'var(--faint)', whiteSpace: 'nowrap' }}>{formatDate(fb.createdAt)}</span>
+                      {fb.adminReply && <span className="rd-badge" style={{ color: 'var(--good)', background: 'var(--good-soft)', fontSize: 10 }}>Replied</span>}
                     </div>
-                    <div style={{
-                      fontSize: 'var(--font-xs)', color: 'var(--color-gray-400)',
-                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                      marginTop: 2,
-                    }}>
-                      {fb.message.substring(0, 100)}{fb.message.length > 100 ? '...' : ''}
+                    <div onClick={e => e.stopPropagation()} style={{ flexShrink: 0 }}>
+                      <button className="rd-icon-btn" onClick={() => handleArchive(fb.id)} title={fb.isArchived ? 'Unarchive' : 'Archive'} disabled={actionLoading === fb.id}>
+                        <Icon name="folder" />
+                      </button>
                     </div>
                   </div>
-
-                  {/* Meta */}
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 'var(--space-1)', flexShrink: 0 }}>
-                    <span style={{ fontSize: 'var(--font-xs)', color: 'var(--color-gray-400)', whiteSpace: 'nowrap' }}>
-                      {formatDate(fb.createdAt)}
-                    </span>
-                    {fb.adminReply && (
-                      <span style={{
-                        fontSize: '10px', padding: '1px 6px', borderRadius: 'var(--radius-full)',
-                        background: 'rgba(16, 185, 129, 0.1)', color: 'var(--color-success)', fontWeight: 500,
-                        display: 'flex', alignItems: 'center', gap: 2,
-                      }}>
-                        <HiOutlineReply size={10} /> Replied
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Actions */}
-                  <div style={{ display: 'flex', gap: 'var(--space-1)', flexShrink: 0 }} onClick={(e) => e.stopPropagation()}>
-                    <button
-                      className="btn btn-ghost"
-                      style={{ padding: 'var(--space-1)' }}
-                      onClick={() => handleArchive(fb.id)}
-                      title={fb.isArchived ? 'Unarchive' : 'Archive'}
-                      disabled={actionLoading === fb.id}
-                    >
-                      <HiOutlineArchive size={16} />
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-
-            {/* Pagination */}
+                );
+              })}
+            </div>
             {totalPages > 1 && (
-              <div style={{
-                padding: 'var(--space-4) var(--space-5)',
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                borderTop: '1px solid var(--color-gray-100)',
-              }}>
-                <span style={{ fontSize: 'var(--font-sm)', color: 'var(--color-gray-500)' }}>
-                  Showing {(page - 1) * 15 + 1}–{Math.min(page * 15, total)} of {total}
-                </span>
-                <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-                  <button className="btn btn-ghost" disabled={page <= 1} onClick={() => setPage(page - 1)}>Previous</button>
-                  <button className="btn btn-ghost" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>Next</button>
+              <div style={{ padding: '14px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border)' }}>
+                <span style={{ fontSize: 13, color: 'var(--muted)' }}>Showing {(page - 1) * 15 + 1}–{Math.min(page * 15, total)} of {total}</span>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button className="rd-btn rd-btn-ghost rd-btn-sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>Previous</button>
+                  <button className="rd-btn rd-btn-ghost rd-btn-sm" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>Next</button>
                 </div>
               </div>
             )}

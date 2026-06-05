@@ -1,5 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import { authenticate, authorize } from '../middleware/auth';
 import { hashPassword } from '../utils/password';
 import multer from 'multer';
@@ -83,7 +83,28 @@ router.get('/departments', asyncHandler(async (req: Request, res: Response): Pro
     },
     orderBy: { name: 'asc' },
   });
-  res.json({ departments });
+
+  const attendanceAggs: any[] = await prisma.$queryRaw`
+    SELECT 
+      b.department_id as "departmentId",
+      COUNT(a.id) as "total",
+      SUM(CASE WHEN a.status IN ('present', 'late') THEN 1 ELSE 0 END) as "present"
+    FROM attendance a
+    JOIN students s ON a.student_id = s.id
+    JOIN batches b ON s.batch_id = b.id
+    GROUP BY b.department_id
+  `;
+
+  const departmentsWithAttendance = departments.map(d => {
+    const agg = attendanceAggs.find((a: any) => a.departmentId === d.id);
+    let attendancePercentage = null;
+    if (agg && Number(agg.total) > 0) {
+      attendancePercentage = Math.round((Number(agg.present) / Number(agg.total)) * 100);
+    }
+    return { ...d, attendancePercentage };
+  });
+
+  res.json({ departments: departmentsWithAttendance });
 }));
 
 // POST /api/admin/departments
@@ -566,6 +587,8 @@ router.get('/staff', asyncHandler(async (req: Request, res: Response): Promise<v
     include: {
       user: { select: { name: true, email: true, isActive: true } },
       department: { select: { name: true, code: true } },
+      personalDetails: true,
+      education: { orderBy: { yearOfPass: 'desc' } },
     },
     orderBy: { createdAt: 'desc' },
   });
@@ -937,7 +960,7 @@ router.get('/students', asyncHandler(async (req: Request, res: Response): Promis
     }),
   };
 
-  const [students, total] = await Promise.all([
+  const [studentsData, total] = await Promise.all([
     prisma.student.findMany({
       where,
       include: {
@@ -952,6 +975,30 @@ router.get('/students', asyncHandler(async (req: Request, res: Response): Promis
     }),
     prisma.student.count({ where }),
   ]);
+
+  const studentIds = studentsData.map((s: any) => s.id);
+  let attendanceAggs: any[] = [];
+  
+  if (studentIds.length > 0) {
+    attendanceAggs = await prisma.$queryRaw`
+      SELECT 
+        student_id as "studentId",
+        COUNT(id) as "total",
+        SUM(CASE WHEN status IN ('present', 'late') THEN 1 ELSE 0 END) as "present"
+      FROM attendance
+      WHERE student_id IN (${Prisma.join(studentIds)})
+      GROUP BY student_id
+    `;
+  }
+
+  const students = studentsData.map((student: any) => {
+    const agg = attendanceAggs.find((a: any) => a.studentId === student.id);
+    let attendancePercentage = null;
+    if (agg && Number(agg.total) > 0) {
+      attendancePercentage = Math.round((Number(agg.present) / Number(agg.total)) * 100);
+    }
+    return { ...student, attendancePercentage };
+  });
 
   res.json({ students, total, page, totalPages: Math.ceil(total / limit) });
 }));
@@ -1662,6 +1709,8 @@ router.get('/dashboard/stats', asyncHandler(async (req: Request, res: Response):
     totalStudents, totalStaff, totalDepartments,
     totalBatches, totalCourses, totalSections,
     activeStudents, inactiveStudents, totalAlumni,
+    recentStudents, recentStaff, recentFeedback,
+    activeStudentsDeptData,
   ] = await Promise.all([
     prisma.student.count({ where: { deletedAt: null } }),
     prisma.staff.count({ where: { deletedAt: null } }),
@@ -1672,7 +1721,48 @@ router.get('/dashboard/stats', asyncHandler(async (req: Request, res: Response):
     prisma.student.count({ where: { deletedAt: null, status: 'active' } }),
     prisma.student.count({ where: { deletedAt: null, status: { not: 'active' } } }),
     prisma.student.count({ where: { deletedAt: null, status: 'graduated' } }),
+    prisma.student.findMany({ where: { deletedAt: null }, orderBy: { createdAt: 'desc' }, take: 3, include: { batch: { select: { name: true } } } }),
+    prisma.staff.findMany({ where: { deletedAt: null }, orderBy: { createdAt: 'desc' }, take: 3, include: { user: { select: { name: true } }, department: { select: { name: true } } } }),
+    prisma.studentFeedback.findMany({ orderBy: { createdAt: 'desc' }, take: 3, include: { student: { select: { firstName: true, lastName: true } } } }),
+    prisma.student.findMany({ where: { deletedAt: null, status: 'active' }, select: { batch: { select: { department: { select: { code: true } } } } } }),
   ]);
+
+  const deptCounts: Record<string, number> = {};
+  activeStudentsDeptData.forEach(s => {
+    const code = s.batch?.department?.code || 'Unknown';
+    deptCounts[code] = (deptCounts[code] || 0) + 1;
+  });
+  const deptStudents = Object.entries(deptCounts)
+    .map(([code, count]) => ({ code, count }))
+    .sort((a, b) => b.count - a.count);
+
+  const activities: any[] = [];
+  recentStudents.forEach((s) => {
+    activities.push({
+      icon: 'cap', bg: 'var(--accent-soft)', fg: 'var(--accent)',
+      text: `<b>${s.firstName} ${s.lastName}</b> enrolled in ${s.batch.name}`,
+      createdAt: s.createdAt,
+    });
+  });
+
+  recentStaff.forEach((s) => {
+    activities.push({
+      icon: 'staff', bg: 'var(--good-soft)', fg: 'var(--good)',
+      text: `<b>${s.user.name}</b> joined ${s.department?.name || 'staff'}`,
+      createdAt: s.createdAt,
+    });
+  });
+
+  recentFeedback.forEach((f) => {
+    activities.push({
+      icon: 'mail', bg: 'var(--info-soft)', fg: 'var(--info)',
+      text: `New feedback from <b>${f.student.firstName} ${f.student.lastName}</b>`,
+      createdAt: f.createdAt,
+    });
+  });
+
+  activities.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  const recentActivity = activities.slice(0, 5);
 
   res.json({
     stats: {
@@ -1680,6 +1770,8 @@ router.get('/dashboard/stats', asyncHandler(async (req: Request, res: Response):
       totalBatches, totalCourses, totalSections,
       activeStudents, inactiveStudents, totalAlumni,
     },
+    deptStudents,
+    recentActivity,
   });
 }));
 

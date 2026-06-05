@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { Search, Book, Check } from 'lucide-react';
 import client from '../../api/client';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import {
@@ -155,7 +156,7 @@ export default function SkillCourses() {
             marginBottom: '-2px', fontSize: 'var(--font-sm)',
             transition: 'all var(--transition-fast)',
           }}>
-            {t === 'browse' ? '🔍 Browse Catalog' : '📚 My Courses'}
+            {t === 'browse' ? <><Search size={16} style={{ marginRight: 6, marginBottom: -3, display: 'inline' }} /> Browse Catalog</> : <><Book size={16} style={{ marginRight: 6, marginBottom: -3, display: 'inline' }} /> My Courses</>}
           </button>
         ))}
       </div>
@@ -253,13 +254,9 @@ export default function SkillCourses() {
                   {/* Action */}
                   <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
                     {c.myStatus === 'enrolled' ? (
-                      <span className="badge badge-sky" style={{ padding: '6px 12px', flex: 1, textAlign: 'center' }}>
-                        ✓ Enrolled
-                      </span>
+                        <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}><Check size={14} /> Enrolled</span>
                     ) : c.myStatus === 'completed' ? (
-                      <span className="badge badge-green" style={{ padding: '6px 12px', flex: 1, textAlign: 'center' }}>
-                        ✓ Completed
-                      </span>
+                        <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}><Check size={14} /> Completed</span>
                     ) : (
                       <button className="btn btn-primary" style={{ flex: 1 }}
                         onClick={() => handleEnroll(c.id)} disabled={actionLoading === c.id}>

@@ -1,12 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useLocation, Link } from 'react-router-dom';
+import { X } from 'lucide-react';
 import client from '../../api/client';
-import {
-  HiOutlinePlus, HiOutlineTrash,
-  HiOutlineAcademicCap, HiOutlineHeart, HiOutlineUser,
-  HiOutlineLightBulb, HiOutlineBookOpen, HiOutlineDocumentText,
-  HiOutlineBriefcase, HiOutlinePrinter,
-} from 'react-icons/hi';
+import Icon from '../../components/ui/Icon';
+import { PageHead, MiniAvatar, StatusBadge } from '../../components/ui/DesignHelpers';
 import BarcodeGenerator from '../../components/BarcodeGenerator';
 
 export default function StudentDetail() {
@@ -39,58 +36,24 @@ export default function StudentDetail() {
 
 
   return (
-    <div>
+    <div className="rd-content-inner">
       {/* Header */}
-      <div className="page-header">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
-          <div>
-            <h1>{student.firstName} {student.lastName}</h1>
-            <p className="page-subtitle">
-              <span className="badge badge-sky">{student.enrollmentNo}</span>
-              {' '}
-              {student.batch?.name} • {student.section?.name} • Sem {student.semester}
-            </p>
-          </div>
-        </div>
-        <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
-          {!isTeacher && (
-            <button
-              className="btn btn-secondary btn-sm"
-              onClick={() => setShowBarcodeModal(true)}
-              style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
-            >
-              <HiOutlinePrinter /> Print Barcode
-            </button>
-          )}
-          {!isTeacher && student.status === 'active' && (
-            <button
-              className="btn btn-secondary btn-sm"
-              onClick={() => setShowGraduateModal(true)}
-              style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
-            >
-              <HiOutlineBriefcase /> Move to Alumni
-            </button>
-          )}
-          <Link
-            to={`${isTeacher ? '/teacher' : '/admin'}/students/${id}/academic`}
-            className="btn btn-primary btn-sm"
-            style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
-          >
-            <HiOutlineDocumentText /> Academic Record
-          </Link>
-        </div>
-      </div>
+      <PageHead title={`${student.firstName} ${student.lastName}`} sub={`${student.enrollmentNo} · ${student.batch?.name} · ${student.section?.name} · Sem ${student.semester}`}>
+        {!isTeacher && <button className="rd-btn rd-btn-ghost" onClick={() => setShowBarcodeModal(true)}><Icon name="printer" /> Print Barcode</button>}
+        {!isTeacher && student.status === 'active' && <button className="rd-btn rd-btn-ghost" onClick={() => setShowGraduateModal(true)}><Icon name="briefcase" /> Move to Alumni</button>}
+        <Link to={`${isTeacher ? '/teacher' : '/admin'}/students/${id}/academic`} className="rd-btn rd-btn-primary"><Icon name="report" /> Academic Record</Link>
+      </PageHead>
 
       {/* All Sections */}
-      <div style={{ display: 'grid', gap: 'var(--space-5)' }}>
-        <div className="card"><div className="card-body"><PersonalTab student={student} /></div></div>
+      <div style={{ display: 'grid', gap: 'var(--gap)' }}>
+        <div className="rd-card rd-card-pad fade-up"><PersonalTab student={student} /></div>
         {!isTeacher && student.status === 'graduated' && (
-          <div className="card"><div className="card-body"><AlumniProfileTab student={student} refresh={fetchStudent} /></div></div>
+          <div className="rd-card rd-card-pad fade-up"><AlumniProfileTab student={student} refresh={fetchStudent} /></div>
         )}
-        <div className="card"><div className="card-body"><EducationTab student={student} apiBase={apiBase} refresh={fetchStudent} /></div></div>
-        <div className="card"><div className="card-body"><SkillsTab student={student} apiBase={apiBase} refresh={fetchStudent} /></div></div>
-        <div className="card"><div className="card-body"><HealthTab student={student} apiBase={apiBase} refresh={fetchStudent} /></div></div>
-        <div className="card"><div className="card-body"><ParentsTab student={student} apiBase={apiBase} refresh={fetchStudent} /></div></div>
+        <div className="rd-card rd-card-pad fade-up"><EducationTab student={student} apiBase={apiBase} refresh={fetchStudent} /></div>
+        <div className="rd-card rd-card-pad fade-up"><SkillsTab student={student} apiBase={apiBase} refresh={fetchStudent} /></div>
+        <div className="rd-card rd-card-pad fade-up"><HealthTab student={student} apiBase={apiBase} refresh={fetchStudent} /></div>
+        <div className="rd-card rd-card-pad fade-up"><ParentsTab student={student} apiBase={apiBase} refresh={fetchStudent} /></div>
       </div>
 
       {showGraduateModal && (
@@ -146,7 +109,7 @@ function PersonalTab({ student }) {
       <DetailField label="Semester" value={student.semester} />
       <DetailField label="Department" value={student.batch?.department?.name} />
       <DetailField label="Degree" value={student.batch?.degree} />
-      <DetailField label="Status" value={<span className={`badge ${student.status === 'active' ? 'badge-green' : student.status === 'graduated' ? 'badge-purple' : 'badge-gray'}`}>{student.status}</span>} />
+      <DetailField label="Status" value={<StatusBadge status={student.status} />} />
     </div>
   );
 }
@@ -187,8 +150,8 @@ function EducationTab({ student, apiBase, refresh }) {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-5)' }}>
         <h3 style={{ fontSize: 'var(--font-lg)', fontWeight: 600 }}>Previous Education</h3>
-        <button className="btn btn-primary btn-sm" onClick={() => setShowForm(!showForm)}>
-          <HiOutlinePlus /> Add Record
+        <button className="rd-btn rd-btn-primary rd-btn-sm" onClick={() => setShowForm(!showForm)}>
+          <Icon name="plus" /> Add Record
         </button>
       </div>
 
@@ -247,8 +210,8 @@ function EducationTab({ student, apiBase, refresh }) {
                   {edu.board && `${edu.board} • `}Percentage: <strong>{parseFloat(edu.percentage).toFixed(1)}%</strong> • Year: {edu.yearOfPass}
                 </div>
               </div>
-              <button className="btn btn-ghost btn-sm" onClick={() => handleDelete(edu.id)} style={{ color: 'var(--color-danger)' }}>
-                <HiOutlineTrash />
+              <button className="rd-icon-btn" onClick={() => handleDelete(edu.id)} style={{ color: 'var(--bad)' }}>
+                <Icon name="trash" />
               </button>
             </div>
           ))}
@@ -312,7 +275,7 @@ function SkillsTab({ student, apiBase, refresh }) {
         <h3 style={{ fontSize: 'var(--font-lg)', fontWeight: 600, marginBottom: 'var(--space-4)' }}>Skills</h3>
         <form onSubmit={addSkill} style={{ display: 'flex', gap: 'var(--space-3)', marginBottom: 'var(--space-4)' }}>
           <input className="form-input" value={skillName} onChange={(e) => setSkillName(e.target.value)} placeholder="e.g. Python, Public Speaking, Excel..." style={{ maxWidth: '320px' }} />
-          <button type="submit" className="btn btn-primary btn-sm" disabled={saving || !skillName.trim()}><HiOutlinePlus /> Add</button>
+          <button type="submit" className="rd-btn rd-btn-primary rd-btn-sm" disabled={saving || !skillName.trim()}><Icon name="plus" /> Add</button>
         </form>
         {skills.length === 0 ? <p style={{ color: 'var(--color-gray-400)', fontSize: 'var(--font-sm)' }}>No skills added yet.</p> : (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-2)' }}>
@@ -330,7 +293,7 @@ function SkillsTab({ student, apiBase, refresh }) {
       <section>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-4)' }}>
           <h3 style={{ fontSize: 'var(--font-lg)', fontWeight: 600 }}>Hobbies & Strengths</h3>
-          <button className="btn btn-primary btn-sm" onClick={() => setShowHobbyForm(!showHobbyForm)}><HiOutlinePlus /> Add</button>
+          <button className="rd-btn rd-btn-primary rd-btn-sm" onClick={() => setShowHobbyForm(!showHobbyForm)}><Icon name="plus" /> Add</button>
         </div>
         {showHobbyForm && (
           <form onSubmit={addHobby} style={{ marginBottom: 'var(--space-4)', padding: 'var(--space-4)', background: 'var(--color-gray-50)', borderRadius: 'var(--radius-lg)' }}>
@@ -492,7 +455,7 @@ function ParentsTab({ student, apiBase, refresh }) {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-5)' }}>
         <h3 style={{ fontSize: 'var(--font-lg)', fontWeight: 600 }}>Parent / Guardian Details</h3>
-        <button className="btn btn-primary btn-sm" onClick={() => setShowForm(!showForm)}><HiOutlinePlus /> Add Parent</button>
+        <button className="rd-btn rd-btn-primary rd-btn-sm" onClick={() => setShowForm(!showForm)}><Icon name="plus" /> Add Parent</button>
       </div>
 
       {showForm && (
@@ -546,7 +509,7 @@ function ParentsTab({ student, apiBase, refresh }) {
                   {p.phone} • {p.email} {p.occupation && `• ${p.occupation}`}
                 </div>
               </div>
-              <button className="btn btn-ghost btn-sm" onClick={() => handleDelete(p.id)} style={{ color: 'var(--color-danger)' }}><HiOutlineTrash /></button>
+              <button className="rd-icon-btn" onClick={() => handleDelete(p.id)} style={{ color: 'var(--bad)' }}><Icon name="trash" /></button>
             </div>
           ))}
         </div>
@@ -703,7 +666,7 @@ function GraduateModal({ student, onClose, onSuccess }) {
       <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '550px' }}>
         <div className="modal-header">
           <h2>Graduate Student</h2>
-          <button className="btn btn-ghost" onClick={onClose}>✕</button>
+          <button className="btn btn-ghost" onClick={onClose}><X size={20} /></button>
         </div>
         <form onSubmit={handleSubmit}>
           <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
@@ -800,7 +763,7 @@ function BarcodePrintModal({ student, onClose }) {
         <div className="modal-footer no-print">
           <button className="btn btn-secondary" onClick={onClose}>Close</button>
           <button className="btn btn-primary" onClick={handlePrint} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-            <HiOutlinePrinter /> Print
+            <Icon name="printer" /> Print
           </button>
         </div>
       </div>
