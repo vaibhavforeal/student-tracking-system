@@ -99,7 +99,7 @@ export default function ManageStaff() {
               ) : filtered.map(s => (
                 <tr key={s.id} onClick={() => setDrawerStaff(s)}>
                   <td>
-                    <div className="rd-name-stack">
+                    <div className="rd-cell-name">
                       <MiniAvatar name={s.user?.name || 'Staff'} />
                       <div>
                         <div className="rd-name-main">{s.user?.name}</div>
