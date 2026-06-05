@@ -5,7 +5,7 @@ import client from '../../api/client';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import SyllabusEditor from '../../components/SyllabusEditor';
 import Icon from '../../components/ui/Icon';
-import { PageHead, DeptTag, StatTile } from '../../components/ui/DesignHelpers';
+import { PageHead, DeptTag, StatTile, deptColor } from '../../components/ui/DesignHelpers';
 
 const EMPTY_FORM = { code: '', name: '', credits: '3', semester: '1', type: 'theory', isMandatory: false, departments: [] };
 const TYPE_BADGE = { theory: { color: 'var(--accent)', bg: 'var(--accent-soft)' }, lab: { color: 'var(--good)', bg: 'var(--good-soft)' }, elective: { color: 'var(--warn)', bg: 'var(--warn-soft)' } };
@@ -96,55 +96,72 @@ export default function ManageCourses() {
         </select>
       </div>
 
-      <div className="rd-card fade-up">
-        <div className="rd-table-wrap">
-          <table className="rd-tbl">
-            <thead><tr><th>Code</th><th>Course</th><th>Departments</th><th>Credits</th><th>Semester</th><th>Type</th><th>Syllabus</th><th style={{ textAlign: 'right' }}>Actions</th></tr></thead>
-            <tbody>
-              {filtered.length === 0 ? (
-                <tr><td colSpan="8"><div className="empty-state"><p>No courses found.</p></div></td></tr>
-              ) : filtered.map(c => {
-                const tb = TYPE_BADGE[c.type] || { color: 'var(--muted)', bg: 'var(--surface-3)' };
-                return (
-                  <tr key={c.id}>
-                    <td><span className="rd-badge rd-badge-id">{c.code}</span></td>
-                    <td><span style={{ fontWeight: 600, fontSize: 13.5 }}>{c.name}</span></td>
-                    <td>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                        {c.isMandatory && <span className="rd-badge" style={{ color: 'var(--accent)', background: 'var(--accent-soft)', fontSize: 11 }}>Mandatory</span>}
-                        {(c.departments || []).map(d => <span key={d.id} className="rd-badge rd-badge-id" style={{ fontSize: 11 }}>{d.code || d.name}</span>)}
-                      </div>
-                    </td>
-                    <td><span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600 }}>{c.credits}</span></td>
-                    <td><span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600 }}>Sem {c.semester}</span></td>
-                    <td><span className="rd-badge" style={{ color: tb.color, background: tb.bg }}>{c.type}</span></td>
-                    <td>
-                      {c.needsSyllabusCount > 0 ? (
-                        <button className="rd-badge" style={{ background: 'var(--warn-soft)', color: 'var(--warn)', cursor: 'pointer', border: 'none' }}
-                          onClick={() => { const cd = c.courseDepartments?.find(cd => cd._count?.units === 0); if (cd) openSyllabusEditor(c.id, cd.department.id, cd.department.name, []); }}>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><AlertTriangle size={14} /> {c.needsSyllabusCount} need{c.needsSyllabusCount === 1 ? 's' : ''} syllabus</span>
-                        </button>
-                      ) : c.courseDepartments?.length > 0 ? (
-                        <span style={{ color: 'var(--good)', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', gap: 4 }}><Check size={14} /> Complete</span>
-                      ) : null}
-                    </td>
-                    <td style={{ textAlign: 'right' }}>
-                      <div className="rd-row-act" style={{ justifyContent: 'flex-end', opacity: 1 }}>
-                        <button className="rd-icon-btn" onClick={() => openEdit(c)} title="Edit"><Icon name="edit" /></button>
-                        {c.courseDepartments?.map(cd => (
-                          <button key={cd.department.id} className="rd-btn rd-btn-ghost rd-btn-sm" onClick={() => openSyllabusEditor(c.id, cd.department.id, cd.department.name, cd.units || [])} title={`Syllabus: ${cd.department.name}`}>
-                            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Clipboard size={14} /> {cd.department.code}</span>
-                          </button>
-                        ))}
-                        <button className="rd-icon-btn" onClick={() => setDeleteTarget(c.id)} title="Delete" style={{ color: 'var(--bad)' }}><Icon name="trash" /></button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(310px, 1fr))', gap: 'var(--space-4)' }}>
+        {filtered.length === 0 ? (
+          <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: 48, color: 'var(--color-gray-400)' }}>
+            No courses found.
+          </div>
+        ) : filtered.map(c => {
+          const tb = TYPE_BADGE[c.type] || { color: 'var(--color-gray-600)', bg: 'var(--color-gray-100)' };
+          return (
+            <div className="rd-card rd-card-pad fade-up" key={c.id} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
+                <span className="rd-badge rd-badge-id">{c.code}</span>
+                <span className="rd-badge" style={{ color: tb.color, background: tb.bg }}>{c.type}</span>
+              </div>
+              
+              <div>
+                <div style={{ fontFamily: 'var(--font-family)', fontWeight: 600, fontSize: '1.05rem', letterSpacing: '-.2px', lineHeight: 1.25, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6 }}>
+                  {c.name}
+                  {c.isMandatory && <span className="rd-badge" style={{ color: 'var(--accent)', background: 'var(--accent-soft)', fontSize: 11, fontWeight: 600 }}>Mandatory</span>}
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 12.5 }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
+                  <span style={{ color: 'var(--color-gray-500)' }}>Departments:</span>
+                  {(c.departments || []).map(d => (
+                    <span key={d.id} className="rd-badge rd-badge-inactive" style={{ fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      <span className="rd-badge-dot" style={{ background: deptColor(d.code) }} />
+                      {d.code}
+                    </span>
+                  ))}
+                </div>
+
+                <div style={{ display: 'flex', gap: 16, color: 'var(--color-gray-500)' }}>
+                  <span>Credits: <b style={{ color: 'var(--color-gray-800)', fontFamily: 'var(--font-mono)' }}>{c.credits}</b></span>
+                  <span>Semester: <b style={{ color: 'var(--color-gray-800)', fontFamily: 'var(--font-mono)' }}>Sem {c.semester}</b></span>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ color: 'var(--color-gray-500)' }}>Syllabus:</span>
+                  {c.needsSyllabusCount > 0 ? (
+                    <button className="rd-badge" style={{ background: 'var(--warn-soft)', color: 'var(--warn)', cursor: 'pointer', border: 'none', display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px' }}
+                      onClick={() => { const cd = c.courseDepartments?.find(cd => cd._count?.units === 0); if (cd) openSyllabusEditor(c.id, cd.department.id, cd.department.name, []); }}>
+                      <AlertTriangle size={12} /> {c.needsSyllabusCount} incomplete
+                    </button>
+                  ) : c.courseDepartments?.length > 0 ? (
+                    <span style={{ color: 'var(--good)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}><Check size={14} /> Complete</span>
+                  ) : <span style={{ color: 'var(--color-gray-400)' }}>None</span>}
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--color-gray-100)', paddingTop: 12, marginTop: 'auto', gap: 10 }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, flex: 1 }}>
+                  {c.courseDepartments?.map(cd => (
+                    <button key={cd.department.id} className="rd-btn rd-btn-ghost rd-btn-sm" onClick={() => openSyllabusEditor(c.id, cd.department.id, cd.department.name, cd.units || [])} style={{ padding: '2px 6px', fontSize: 11.5 }} title={`Edit Syllabus for ${cd.department.name}`}>
+                      <Clipboard size={12} style={{ marginRight: 2 }} /> {cd.department.code}
+                    </button>
+                  ))}
+                </div>
+                <div className="rd-row-act" style={{ gap: 4, flexShrink: 0 }}>
+                  <button className="rd-icon-btn" onClick={() => openEdit(c)} title="Edit"><Icon name="edit" style={{ width: 16, height: 16 }} /></button>
+                  <button className="rd-icon-btn" onClick={() => setDeleteTarget(c.id)} title="Delete" style={{ color: 'var(--bad)' }}><Icon name="trash" style={{ width: 16, height: 16 }} /></button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {/* ─── Create / Edit Course Modal ─── */}
