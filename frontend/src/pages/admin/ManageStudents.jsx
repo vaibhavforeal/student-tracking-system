@@ -183,13 +183,6 @@ export default function ManageStudents() {
         )}
       </PageHead>
 
-      {/* ─── Stat tiles ─── */}
-      <div className="rd-stat-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)', marginBottom: '20px' }}>
-        <StatTile icon="cap" label="Active Students" value={statusCounts.active}
-          tint="var(--good)" soft="var(--good-soft)" delay={0} />
-        <StatTile icon="cap" label="Inactive" value={statusCounts.inactive}
-          tint="var(--warn)" soft="var(--warn-soft)" delay={60} />
-      </div>
 
       {/* ─── Toolbar ─── */}
       <div className="rd-toolbar">
