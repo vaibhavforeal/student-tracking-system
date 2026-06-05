@@ -61,11 +61,6 @@ export default function ManageBatches() {
         <button className="rd-btn rd-btn-primary" onClick={openCreate}><Icon name="plus" /> Add Batch</button>
       </PageHead>
 
-      {/* ─── Stat tiles ─── */}
-      <div className="rd-stat-grid" style={{ marginBottom: '20px' }}>
-        <StatTile icon="layers" label="Total Batches" value={batches.length}
-          tint="var(--accent)" soft="var(--accent-soft)" delay={0} />
-      </div>
 
       <div className="rd-toolbar">
         <select className="rd-chip-select" value={filterDept} onChange={e => setFilterDept(e.target.value)}>
