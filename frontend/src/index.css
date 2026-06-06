@@ -4216,3 +4216,159 @@ input, button, textarea, select {
   .rd-section-head { flex-direction: column; }
   .rd-drawer { width: 100vw; }
 }
+
+/* ════════════════════════════════════════════════════════════════
+   STUDENT DASHBOARD — SPECIFIC STYLES
+   Extends the redesign design system for the student portal.
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── Greeting tags row ── */
+.s-greet-tags { display: flex; align-items: center; gap: 8px; margin-top: 9px; flex-wrap: wrap; }
+
+/* ── Letter grade pill ── */
+.s-grade-pill {
+  display: inline-grid; place-items: center; min-width: 30px; height: 24px; padding: 0 8px;
+  border-radius: 7px; font-family: var(--font-display); font-weight: 700; font-size: 12.5px; letter-spacing: -.2px;
+  background: var(--accent-soft); color: var(--accent-ink, var(--accent));
+}
+.s-grade-pill.g-top { background: var(--good-soft); color: var(--good); }
+.s-grade-pill.g-mid { background: var(--info-soft); color: var(--info); }
+.s-grade-pill.g-low { background: var(--warn-soft); color: var(--warn); }
+
+/* ── Dashboard top row layout ── */
+.s-dash-top-row { display: grid; grid-template-columns: 1.05fr 2fr; gap: var(--gap); margin-bottom: var(--gap); align-items: stretch; }
+.s-dash-stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--gap); }
+.s-dash-stats-row .rd-stat { display: flex; flex-direction: column; }
+
+@media (max-width: 1180px) { .s-dash-top-row { grid-template-columns: 1fr; } }
+
+/* ── Informative stat card internals ── */
+.s-info-stat .rd-stat-label { margin-bottom: 2px; }
+.s-info-stat .s-stat-viz { margin-top: auto; padding-top: 10px; }
+.s-info-stat .s-stat-foot {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  margin-top: 10px; padding-top: 9px; border-top: 1px solid var(--border);
+  font-size: 11.5px; color: var(--faint); font-weight: 500;
+}
+.s-info-stat .s-stat-foot b { color: var(--ink); font-weight: 600; }
+.s-info-stat .s-stat-foot b.up { color: var(--good); }
+.s-info-stat .s-stat-foot .mono { font-family: var(--font-mono); }
+.s-info-stat .rd-stat-delta { font-size: 11.5px; }
+
+/* ── Credit segment bar ── */
+.s-cred-bar { display: flex; gap: 3px; width: 100%; height: 26px; }
+.s-cred-bar span { border-radius: 4px; min-width: 6px; transition: flex .5s ease; }
+
+/* ── Mini CGPA bars ── */
+.s-mini-bars { display: flex; align-items: flex-end; gap: 5px; }
+.s-mini-bars span { flex: 1; border-radius: 4px 4px 2px 2px; min-height: 6px; transition: height .6s cubic-bezier(.22,1,.36,1); }
+
+/* ── Donut + legend ── */
+.s-donut-wrap { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 6px 0 4px; }
+.s-dl-v { font-family: var(--font-display); font-weight: 600; font-size: 17px; letter-spacing: -.4px; }
+.s-dl-k { font-size: 10.5px; color: var(--faint); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; margin-top: 1px; }
+
+/* ── Attendance legend row ── */
+.s-att-legend-row { display: flex; align-items: center; gap: 8px; }
+.s-att-legend-row .s-att-dot { width: 9px; height: 9px; border-radius: 99px; flex-shrink: 0; }
+.s-att-legend-row .s-dl-v { font-family: var(--font-display); font-weight: 600; letter-spacing: -.3px; min-width: 34px; font-size: 15px; }
+.s-att-legend-row .s-dl-k { margin-top: 0; }
+
+/* ── Course card faculty row ── */
+.s-course-faculty { display: flex; align-items: center; gap: 7px; font-size: 11.8px; color: var(--muted); }
+.s-course-faculty .rd-mini-avatar { width: 22px; height: 22px; border-radius: 6px; font-size: 9px; }
+
+/* ── Course card attendance line ── */
+.s-att-line { margin-top: auto; }
+.s-att-line-top {
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 11px; font-weight: 600; color: var(--faint); margin-bottom: 5px;
+  text-transform: uppercase; letter-spacing: .05em;
+}
+
+/* ── Recent results spine ── */
+.s-res-spine { width: 4px; height: 30px; border-radius: 4px; flex-shrink: 0; }
+.s-res-cell { display: flex; align-items: center; gap: 11px; }
+
+/* ── Schedule (timeline) — reuse teacher schedule with s- prefix ── */
+.s-sched { display: flex; flex-direction: column; }
+.s-sched-row {
+  display: grid; grid-template-columns: 70px 1fr auto; align-items: center; gap: 16px;
+  padding: 13px 18px; border-top: 1px solid var(--border); position: relative;
+  transition: background .14s;
+}
+.s-sched-row:first-child { border-top: none; }
+.s-sched-row:hover { background: var(--surface-2); }
+.s-sched-time {
+  font-family: var(--font-mono); font-size: 12.5px; font-weight: 600;
+  color: var(--muted); line-height: 1.35;
+}
+.s-sched-time span { display: block; font-size: 10.5px; color: var(--faint); font-weight: 500; }
+
+.s-sched-rail { position: relative; padding-left: 22px; }
+.s-sched-rail::before {
+  content: ''; position: absolute; left: 5px; top: 3px; width: 10px; height: 10px;
+  border-radius: 99px; background: var(--surface); border: 2.5px solid var(--border-2);
+}
+.s-sched-row.now .s-sched-rail::before {
+  border-color: var(--accent); background: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+}
+.s-sched-row.done .s-sched-rail::before {
+  border-color: var(--good); background: var(--good);
+}
+.s-sched-rail::after {
+  content: ''; position: absolute; left: 9.5px; top: 16px; bottom: -27px;
+  width: 2px; background: var(--border);
+}
+.s-sched-row:last-child .s-sched-rail::after { display: none; }
+
+.s-sched-name {
+  font-family: var(--font-display); font-weight: 600; font-size: 14.5px;
+  letter-spacing: -.2px;
+}
+.s-sched-meta {
+  font-size: 12px; color: var(--muted); margin-top: 2px;
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.s-sched-meta svg { width: 13px; height: 13px; color: var(--faint); }
+
+.s-now-pill {
+  font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  background: var(--accent); color: var(--accent-contrast, #fff); padding: 2px 8px;
+  border-radius: 99px;
+}
+
+/* ── Task / deadline items ── */
+.s-task {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 18px; border-top: 1px solid var(--border);
+  transition: background .14s;
+}
+.s-task:first-child { border-top: none; }
+.s-task:hover { background: var(--surface-2); }
+.s-task-bar {
+  width: 3px; align-self: stretch; border-radius: 3px;
+  background: var(--border-2); flex-shrink: 0;
+}
+.s-task.urgent .s-task-bar { background: var(--bad); }
+.s-task-ico {
+  width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0;
+  display: grid; place-items: center;
+}
+.s-task-ico svg { width: 15px; height: 15px; }
+.s-task-due {
+  margin-left: auto; font-size: 11px; font-weight: 700;
+  font-family: var(--font-mono); color: var(--muted); white-space: nowrap;
+}
+.s-task.urgent .s-task-due { color: var(--bad); }
+
+/* ── Profile key-value grid ── */
+.s-kv-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 2px; background: var(--border);
+  border: 1px solid var(--border); border-radius: var(--r-md, 11px); overflow: hidden; }
+.s-kv-item { display: flex; align-items: center; gap: 12px; padding: 13px 15px; background: var(--surface); }
+.s-kv-ico { width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0; display: grid; place-items: center;
+  background: var(--surface-3); color: var(--faint); }
+.s-kv-ico svg { width: 17px; height: 17px; }
+.s-kv-k { font-size: 10.5px; color: var(--faint); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+.s-kv-v { font-weight: 600; font-size: 13.6px; line-height: 1.3; margin-top: 1px; }

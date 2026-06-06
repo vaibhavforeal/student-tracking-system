@@ -340,8 +340,8 @@
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\pages\\student\\Dashboard.jsx": {
-    "mtime": 1780710984.1449656,
-    "ast_hash": "5a59c8171a71d39802ef278c3e46163a",
+    "mtime": 1780650278.6064076,
+    "ast_hash": "2e1c8c2462536d8cd31cbcb5efb2836f",
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\pages\\student\\Feedback.jsx": {
@@ -552,11 +552,6 @@
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\components\\ui\\Icon.jsx": {
     "mtime": 1780642300.8447008,
     "ast_hash": "2b92fc9477211e8c6dd715fde67635ee",
-    "semantic_hash": ""
-  },
-  "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\components\\ui\\StudentCharts.jsx": {
-    "mtime": 1780710846.763208,
-    "ast_hash": "52d5e813e81472749a490325d252fe68",
     "semantic_hash": ""
   }
 }

@@ -2209,7 +2209,7 @@
       "source_file": "frontend/src/components/ConfirmDialog.jsx",
       "source_location": "L1",
       "id": "frontend_src_components_confirmdialog_jsx",
-      "community": 59,
+      "community": 2,
       "norm_label": "confirmdialog.jsx"
     },
     {
@@ -2218,7 +2218,7 @@
       "source_file": "frontend/src/components/ConfirmDialog.jsx",
       "source_location": "L16",
       "id": "components_confirmdialog_confirmdialog",
-      "community": 59,
+      "community": 2,
       "norm_label": "confirmdialog()"
     },
     {
@@ -2681,48 +2681,12 @@
       "norm_label": "icon()"
     },
     {
-      "label": "StudentCharts.jsx",
-      "file_type": "code",
-      "source_file": "frontend/src/components/ui/StudentCharts.jsx",
-      "source_location": "L1",
-      "id": "frontend_src_components_ui_studentcharts_jsx",
-      "community": 58,
-      "norm_label": "studentcharts.jsx"
-    },
-    {
-      "label": "AreaChart()",
-      "file_type": "code",
-      "source_file": "frontend/src/components/ui/StudentCharts.jsx",
-      "source_location": "L8",
-      "id": "ui_studentcharts_areachart",
-      "community": 58,
-      "norm_label": "areachart()"
-    },
-    {
-      "label": "Donut()",
-      "file_type": "code",
-      "source_file": "frontend/src/components/ui/StudentCharts.jsx",
-      "source_location": "L35",
-      "id": "ui_studentcharts_donut",
-      "community": 58,
-      "norm_label": "donut()"
-    },
-    {
-      "label": "LabeledBars()",
-      "file_type": "code",
-      "source_file": "frontend/src/components/ui/StudentCharts.jsx",
-      "source_location": "L58",
-      "id": "ui_studentcharts_labeledbars",
-      "community": 58,
-      "norm_label": "labeledbars()"
-    },
-    {
       "label": "AlumniDatabase.jsx",
       "file_type": "code",
       "source_file": "frontend/src/pages/admin/AlumniDatabase.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_admin_alumnidatabase_jsx",
-      "community": 54,
+      "community": 2,
       "norm_label": "alumnidatabase.jsx"
     },
     {
@@ -2731,7 +2695,7 @@
       "source_file": "frontend/src/pages/admin/AlumniDatabase.jsx",
       "source_location": "L8",
       "id": "admin_alumnidatabase_alumnidatabase",
-      "community": 54,
+      "community": 2,
       "norm_label": "alumnidatabase()"
     },
     {
@@ -2848,7 +2812,7 @@
       "source_file": "frontend/src/pages/admin/ManageAssignments.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_admin_manageassignments_jsx",
-      "community": 59,
+      "community": 2,
       "norm_label": "manageassignments.jsx"
     },
     {
@@ -2857,7 +2821,7 @@
       "source_file": "frontend/src/pages/admin/ManageAssignments.jsx",
       "source_location": "L8",
       "id": "admin_manageassignments_manageassignments",
-      "community": 59,
+      "community": 2,
       "norm_label": "manageassignments()"
     },
     {
@@ -3595,97 +3559,16 @@
       "source_file": "frontend/src/pages/student/Dashboard.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_student_dashboard_jsx",
-      "community": 58,
+      "community": 8,
       "norm_label": "dashboard.jsx"
-    },
-    {
-      "label": "DEMO_SCHEDULE",
-      "file_type": "code",
-      "source_file": "frontend/src/pages/student/Dashboard.jsx",
-      "source_location": "L10",
-      "id": "student_dashboard_demo_schedule",
-      "community": 58,
-      "norm_label": "demo_schedule"
-    },
-    {
-      "label": "DEMO_FEED",
-      "file_type": "code",
-      "source_file": "frontend/src/pages/student/Dashboard.jsx",
-      "source_location": "L17",
-      "id": "student_dashboard_demo_feed",
-      "community": 58,
-      "norm_label": "demo_feed"
-    },
-    {
-      "label": "COURSE_COLORS",
-      "file_type": "code",
-      "source_file": "frontend/src/pages/student/Dashboard.jsx",
-      "source_location": "L25",
-      "id": "student_dashboard_course_colors",
-      "community": 58,
-      "norm_label": "course_colors"
-    },
-    {
-      "label": "greetWord()",
-      "file_type": "code",
-      "source_file": "frontend/src/pages/student/Dashboard.jsx",
-      "source_location": "L28",
-      "id": "student_dashboard_greetword",
-      "community": 58,
-      "norm_label": "greetword()"
-    },
-    {
-      "label": "todayLabel()",
-      "file_type": "code",
-      "source_file": "frontend/src/pages/student/Dashboard.jsx",
-      "source_location": "L35",
-      "id": "student_dashboard_todaylabel",
-      "community": 58,
-      "norm_label": "todaylabel()"
-    },
-    {
-      "label": "AttendanceCard()",
-      "file_type": "code",
-      "source_file": "frontend/src/pages/student/Dashboard.jsx",
-      "source_location": "L40",
-      "id": "student_dashboard_attendancecard",
-      "community": 58,
-      "norm_label": "attendancecard()"
-    },
-    {
-      "label": "StatTiles()",
-      "file_type": "code",
-      "source_file": "frontend/src/pages/student/Dashboard.jsx",
-      "source_location": "L74",
-      "id": "student_dashboard_stattiles",
-      "community": 58,
-      "norm_label": "stattiles()"
-    },
-    {
-      "label": "ScheduleCard()",
-      "file_type": "code",
-      "source_file": "frontend/src/pages/student/Dashboard.jsx",
-      "source_location": "L158",
-      "id": "student_dashboard_schedulecard",
-      "community": 58,
-      "norm_label": "schedulecard()"
-    },
-    {
-      "label": "FeedCard()",
-      "file_type": "code",
-      "source_file": "frontend/src/pages/student/Dashboard.jsx",
-      "source_location": "L191",
-      "id": "student_dashboard_feedcard",
-      "community": 58,
-      "norm_label": "feedcard()"
     },
     {
       "label": "StudentDashboard()",
       "file_type": "code",
       "source_file": "frontend/src/pages/student/Dashboard.jsx",
-      "source_location": "L213",
+      "source_location": "L11",
       "id": "student_dashboard_studentdashboard",
-      "community": 58,
+      "community": 1,
       "norm_label": "studentdashboard()"
     },
     {
@@ -3820,7 +3703,7 @@
       "source_file": "frontend/src/pages/student/SkillCourses.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_student_skillcourses_jsx",
-      "community": 59,
+      "community": 8,
       "norm_label": "skillcourses.jsx"
     },
     {
@@ -3829,7 +3712,7 @@
       "source_file": "frontend/src/pages/student/SkillCourses.jsx",
       "source_location": "L11",
       "id": "student_skillcourses_skillcourses",
-      "community": 59,
+      "community": 8,
       "norm_label": "skillcourses()"
     },
     {
@@ -3991,7 +3874,7 @@
       "source_file": "frontend/src/pages/teacher/Profile.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_teacher_profile_jsx",
-      "community": 60,
+      "community": 1,
       "norm_label": "profile.jsx"
     },
     {
@@ -4000,7 +3883,7 @@
       "source_file": "frontend/src/pages/teacher/Profile.jsx",
       "source_location": "L8",
       "id": "teacher_profile_education_levels",
-      "community": 60,
+      "community": 1,
       "norm_label": "education_levels"
     },
     {
@@ -4009,7 +3892,7 @@
       "source_file": "frontend/src/pages/teacher/Profile.jsx",
       "source_location": "L13",
       "id": "teacher_profile_document_types",
-      "community": 60,
+      "community": 1,
       "norm_label": "document_types"
     },
     {
@@ -4018,7 +3901,7 @@
       "source_file": "frontend/src/pages/teacher/Profile.jsx",
       "source_location": "L22",
       "id": "teacher_profile_profilefield",
-      "community": 60,
+      "community": 1,
       "norm_label": "profilefield()"
     },
     {
@@ -4027,7 +3910,7 @@
       "source_file": "frontend/src/pages/teacher/Profile.jsx",
       "source_location": "L31",
       "id": "teacher_profile_teacherprofile",
-      "community": 60,
+      "community": 1,
       "norm_label": "teacherprofile()"
     },
     {
@@ -10611,17 +10494,6 @@
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "frontend/src/pages/student/Dashboard.jsx",
-      "source_location": "L6",
-      "weight": 1.0,
-      "source": "frontend_src_pages_student_dashboard_jsx",
-      "target": "frontend_src_components_ui_designhelpers_jsx",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
       "source_file": "frontend/src/pages/teacher/Dashboard.jsx",
       "source_location": "L7",
       "weight": 1.0,
@@ -10694,17 +10566,6 @@
       "confidence_score": 1.0,
       "source": "frontend_src_pages_admin_managestudents_jsx",
       "target": "ui_designhelpers_huefor"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "frontend/src/pages/student/Dashboard.jsx",
-      "source_location": "L6",
-      "weight": 1.0,
-      "source": "frontend_src_pages_student_dashboard_jsx",
-      "target": "ui_designhelpers_huefor",
-      "confidence_score": 1.0
     },
     {
       "relation": "imports",
@@ -10996,17 +10857,6 @@
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "frontend/src/pages/student/Dashboard.jsx",
-      "source_location": "L6",
-      "weight": 1.0,
-      "source": "frontend_src_pages_student_dashboard_jsx",
-      "target": "ui_designhelpers_pagehead",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
       "source_file": "frontend/src/pages/admin/ManageAssignments.jsx",
       "source_location": "L6",
       "weight": 1.0,
@@ -11189,17 +11039,6 @@
       "confidence_score": 1.0,
       "source": "frontend_src_pages_admin_whatsappsend_jsx",
       "target": "ui_designhelpers_miniavatar"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "frontend/src/pages/student/Dashboard.jsx",
-      "source_location": "L6",
-      "weight": 1.0,
-      "source": "frontend_src_pages_student_dashboard_jsx",
-      "target": "ui_designhelpers_miniavatar",
-      "confidence_score": 1.0
     },
     {
       "relation": "imports",
@@ -11398,17 +11237,6 @@
       "confidence_score": 1.0,
       "source": "frontend_src_pages_admin_managestudents_jsx",
       "target": "ui_designhelpers_stattile"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "frontend/src/pages/student/Dashboard.jsx",
-      "source_location": "L6",
-      "weight": 1.0,
-      "source": "frontend_src_pages_student_dashboard_jsx",
-      "target": "ui_designhelpers_stattile",
-      "confidence_score": 1.0
     },
     {
       "relation": "imports",
@@ -11665,86 +11493,12 @@
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "frontend/src/pages/student/Dashboard.jsx",
-      "source_location": "L5",
-      "weight": 1.0,
-      "source": "frontend_src_pages_student_dashboard_jsx",
-      "target": "frontend_src_components_ui_icon_jsx",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
       "source_file": "frontend/src/pages/teacher/Dashboard.jsx",
       "source_location": "L5",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "frontend_src_pages_teacher_dashboard_jsx",
       "target": "frontend_src_components_ui_icon_jsx"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "frontend/src/components/ui/StudentCharts.jsx",
-      "source_location": "L8",
-      "weight": 1.0,
-      "source": "frontend_src_components_ui_studentcharts_jsx",
-      "target": "ui_studentcharts_areachart",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "frontend/src/components/ui/StudentCharts.jsx",
-      "source_location": "L35",
-      "weight": 1.0,
-      "source": "frontend_src_components_ui_studentcharts_jsx",
-      "target": "ui_studentcharts_donut",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "frontend/src/components/ui/StudentCharts.jsx",
-      "source_location": "L58",
-      "weight": 1.0,
-      "source": "frontend_src_components_ui_studentcharts_jsx",
-      "target": "ui_studentcharts_labeledbars",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "frontend/src/pages/student/Dashboard.jsx",
-      "source_location": "L7",
-      "weight": 1.0,
-      "source": "frontend_src_pages_student_dashboard_jsx",
-      "target": "frontend_src_components_ui_studentcharts_jsx",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "frontend/src/pages/student/Dashboard.jsx",
-      "source_location": "L7",
-      "weight": 1.0,
-      "source": "frontend_src_pages_student_dashboard_jsx",
-      "target": "ui_studentcharts_areachart",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "frontend/src/pages/student/Dashboard.jsx",
-      "source_location": "L7",
-      "weight": 1.0,
-      "source": "frontend_src_pages_student_dashboard_jsx",
-      "target": "ui_studentcharts_donut",
-      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -11934,9 +11688,9 @@
       "source_file": "frontend/src/pages/admin/ManageCourses.jsx",
       "source_location": "L24",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "frontend_src_pages_admin_managecourses_jsx",
-      "target": "admin_managecourses_getstudentcount"
+      "target": "admin_managecourses_getstudentcount",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -11964,9 +11718,9 @@
       "source_file": "frontend/src/pages/admin/ManageCourses.jsx",
       "source_location": "L18",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "frontend_src_pages_admin_managecourses_jsx",
-      "target": "admin_managecourses_type_label"
+      "target": "admin_managecourses_type_label",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -12694,134 +12448,11 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/pages/student/Dashboard.jsx",
-      "source_location": "L40",
-      "weight": 1.0,
-      "source": "frontend_src_pages_student_dashboard_jsx",
-      "target": "student_dashboard_attendancecard",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "frontend/src/pages/student/Dashboard.jsx",
-      "source_location": "L25",
-      "weight": 1.0,
-      "source": "frontend_src_pages_student_dashboard_jsx",
-      "target": "student_dashboard_course_colors",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "frontend/src/pages/student/Dashboard.jsx",
-      "source_location": "L17",
-      "weight": 1.0,
-      "source": "frontend_src_pages_student_dashboard_jsx",
-      "target": "student_dashboard_demo_feed",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "frontend/src/pages/student/Dashboard.jsx",
-      "source_location": "L10",
-      "weight": 1.0,
-      "source": "frontend_src_pages_student_dashboard_jsx",
-      "target": "student_dashboard_demo_schedule",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "frontend/src/pages/student/Dashboard.jsx",
-      "source_location": "L191",
-      "weight": 1.0,
-      "source": "frontend_src_pages_student_dashboard_jsx",
-      "target": "student_dashboard_feedcard",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "frontend/src/pages/student/Dashboard.jsx",
-      "source_location": "L28",
-      "weight": 1.0,
-      "source": "frontend_src_pages_student_dashboard_jsx",
-      "target": "student_dashboard_greetword",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "frontend/src/pages/student/Dashboard.jsx",
-      "source_location": "L158",
-      "weight": 1.0,
-      "source": "frontend_src_pages_student_dashboard_jsx",
-      "target": "student_dashboard_schedulecard",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "frontend/src/pages/student/Dashboard.jsx",
-      "source_location": "L74",
-      "weight": 1.0,
-      "source": "frontend_src_pages_student_dashboard_jsx",
-      "target": "student_dashboard_stattiles",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "frontend/src/pages/student/Dashboard.jsx",
       "source_location": "L12",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "frontend_src_pages_student_dashboard_jsx",
       "target": "student_dashboard_studentdashboard"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "frontend/src/pages/student/Dashboard.jsx",
-      "source_location": "L35",
-      "weight": 1.0,
-      "source": "frontend_src_pages_student_dashboard_jsx",
-      "target": "student_dashboard_todaylabel",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "frontend/src/pages/student/Dashboard.jsx",
-      "source_location": "L253",
-      "weight": 1.0,
-      "source": "student_dashboard_studentdashboard",
-      "target": "student_dashboard_greetword",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "frontend/src/pages/student/Dashboard.jsx",
-      "source_location": "L163",
-      "weight": 1.0,
-      "source": "student_dashboard_schedulecard",
-      "target": "student_dashboard_todaylabel",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "frontend/src/pages/student/Dashboard.jsx",
-      "source_location": "L255",
-      "weight": 1.0,
-      "source": "student_dashboard_studentdashboard",
-      "target": "student_dashboard_todaylabel",
-      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -14870,5 +14501,5 @@
       "source_file": "gemini.md"
     }
   ],
-  "built_at_commit": "58d65b8f5afa0628ae42d4295d0c2f51d2d64072"
+  "built_at_commit": "d98cbbc0b69ca51743f0eb4adc78716dc8aec091"
 }
