@@ -621,7 +621,7 @@ router.post('/staff', asyncHandler(async (req: Request, res: Response): Promise<
   }
 
   // Check for existing user with same email
-  const existingUserByEmail = await prisma.user.findUnique({ where: { email } });
+  const existingUserByEmail = await prisma.user.findFirst({ where: { email: { equals: email, mode: 'insensitive' } } });
   if (existingUserByEmail && !existingUserByEmail.deletedAt) {
     res.status(409).json({ error: `A user with email "${email}" already exists` });
     return;
@@ -1023,7 +1023,7 @@ router.post('/students', asyncHandler(async (req: Request, res: Response): Promi
   }
 
   // Check for existing user with same email
-  const existingUserByEmail = await prisma.user.findUnique({ where: { email } });
+  const existingUserByEmail = await prisma.user.findFirst({ where: { email: { equals: email, mode: 'insensitive' } } });
   if (existingUserByEmail && !existingUserByEmail.deletedAt) {
     res.status(409).json({ error: `A user with email "${email}" already exists` });
     return;

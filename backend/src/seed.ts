@@ -8,7 +8,7 @@ async function seed() {
 
   // ─── Default Admin User ──────────────────────────────
   const adminEmail = 'admin@sts.com';
-  const existingAdmin = await prisma.user.findUnique({ where: { email: adminEmail } });
+  const existingAdmin = await prisma.user.findFirst({ where: { email: { equals: adminEmail, mode: 'insensitive' } } });
 
   if (!existingAdmin) {
     const admin = await prisma.user.create({

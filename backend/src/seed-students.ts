@@ -78,7 +78,7 @@ async function seedStudents() {
     const genderValue = student.gender === 'M' ? 'male' : 'female';
 
     // Check if email already exists
-    const existingUser = await prisma.user.findUnique({ where: { email } });
+    const existingUser = await prisma.user.findFirst({ where: { email: { equals: email, mode: 'insensitive' } } });
     if (existingUser && !existingUser.deletedAt) {
       console.log(`⏭️  Skipped (email exists): ${student.name} <${email}>`);
       skipped++;

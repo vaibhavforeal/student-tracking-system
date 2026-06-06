@@ -44,7 +44,7 @@ async function seedStaff() {
     const password = entry.name.charAt(0).toLowerCase() + '123';
 
     // Check if email already exists
-    const existingUser = await prisma.user.findUnique({ where: { email: entry.email } });
+    const existingUser = await prisma.user.findFirst({ where: { email: { equals: entry.email, mode: 'insensitive' } } });
     if (existingUser && !existingUser.deletedAt) {
       console.log(`⏭️  Skipped (email exists): ${entry.name} <${entry.email}>`);
       skipped++;
