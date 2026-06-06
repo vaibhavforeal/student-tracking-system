@@ -500,18 +500,18 @@ model Attendance {
   studentId String           @map("student_id")
   courseId   String           @map("course_id")
   date      DateTime         @db.Date
+  period    Int              @default(1)          // session number within the day (1, 2, …)
   status    AttendanceStatus
   markedBy  String           @map("marked_by")
-  createdAt DateTime         @default(now()) @map("created_at")
+  markedAt  DateTime         @default(now()) @map("marked_at")
 
   student Student @relation(fields: [studentId], references: [id])
   course  Course  @relation(fields: [courseId], references: [id])
   marker  Staff   @relation(fields: [markedBy], references: [id])
 
-  @@index([studentId, courseId])
+  @@unique([studentId, courseId, date, period])
   @@index([courseId, date])
   @@index([markedBy])
-  @@index([date])
   @@map("attendance")
 }
 

@@ -384,8 +384,9 @@ router.get('/attendance', async (req: Request, res: Response): Promise<void> => 
 
 // POST /api/teacher/attendance/bulk — bulk mark attendance
 router.post('/attendance/bulk', async (req: Request, res: Response): Promise<void> => {
-  const { courseId, sectionId, date, entries } = req.body;
+  const { courseId, sectionId, date, period, entries } = req.body;
   // entries = [{ studentId, status }]
+  // period = session number within the day (defaults to 1)
 
   if (!courseId || !sectionId || !date || !Array.isArray(entries) || entries.length === 0) {
     res.status(400).json({ error: 'courseId, sectionId, date, and entries are required' }); return;
@@ -402,17 +403,29 @@ router.post('/attendance/bulk', async (req: Request, res: Response): Promise<voi
   }
 
   const attendanceDate = new Date(date);
+  const sessionPeriod = period ? parseInt(period) : 1;
 
-  // Upsert each entry: delete existing for this date/course/student, then create
+  // Idempotent upsert using the @@unique([studentId, courseId, date, period]) constraint
   for (const entry of entries) {
-    await prisma.attendance.deleteMany({
-      where: { studentId: entry.studentId, courseId, date: attendanceDate },
-    });
-    await prisma.attendance.create({
-      data: {
+    await prisma.attendance.upsert({
+      where: {
+        studentId_courseId_date_period: {
+          studentId: entry.studentId,
+          courseId,
+          date: attendanceDate,
+          period: sessionPeriod,
+        },
+      },
+      update: {
+        status: entry.status,
+        markedBy: staff.id,
+        markedAt: new Date(),
+      },
+      create: {
         studentId: entry.studentId,
         courseId,
         date: attendanceDate,
+        period: sessionPeriod,
         status: entry.status,
         markedBy: staff.id,
       },
@@ -427,7 +440,7 @@ router.put('/attendance/:id', async (req: Request, res: Response): Promise<void>
   const { status } = req.body;
   const record = await prisma.attendance.update({
     where: { id: param(req.params.id) as string },
-    data: { status },
+    data: { status, markedAt: new Date() },
   });
   res.json({ record });
 });
