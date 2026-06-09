@@ -629,39 +629,12 @@
       "norm_label": "check()"
     },
     {
-      "label": "check-students.ts",
-      "file_type": "code",
-      "source_file": "backend/src/check-students.ts",
-      "source_location": "L1",
-      "id": "backend_src_check_students_ts",
-      "community": 57,
-      "norm_label": "check-students.ts"
-    },
-    {
-      "label": "prisma",
-      "file_type": "code",
-      "source_file": "backend/src/check-students.ts",
-      "source_location": "L2",
-      "id": "src_check_students_prisma",
-      "community": 57,
-      "norm_label": "prisma"
-    },
-    {
-      "label": "check()",
-      "file_type": "code",
-      "source_file": "backend/src/check-students.ts",
-      "source_location": "L4",
-      "id": "src_check_students_check",
-      "community": 57,
-      "norm_label": "check()"
-    },
-    {
       "label": "config.ts",
       "file_type": "code",
       "source_file": "backend/src/config.ts",
       "source_location": "L1",
       "id": "backend_src_config_ts",
-      "community": 0,
+      "community": 37,
       "norm_label": "config.ts"
     },
     {
@@ -670,7 +643,7 @@
       "source_file": "backend/src/config.ts",
       "source_location": "L7",
       "id": "src_config_config",
-      "community": 0,
+      "community": 37,
       "norm_label": "config"
     },
     {
@@ -679,7 +652,7 @@
       "source_file": "backend/src/index.ts",
       "source_location": "L1",
       "id": "backend_src_index_ts",
-      "community": 0,
+      "community": 28,
       "norm_label": "index.ts"
     },
     {
@@ -688,7 +661,7 @@
       "source_file": "backend/src/index.ts",
       "source_location": "L22",
       "id": "src_index_prisma",
-      "community": 0,
+      "community": 28,
       "norm_label": "prisma"
     },
     {
@@ -697,7 +670,7 @@
       "source_file": "backend/src/index.ts",
       "source_location": "L24",
       "id": "src_index_purgeoldtrash",
-      "community": 0,
+      "community": 28,
       "norm_label": "purgeoldtrash()"
     },
     {
@@ -706,35 +679,8 @@
       "source_file": "backend/src/index.ts",
       "source_location": "L55",
       "id": "src_index_app",
-      "community": 0,
+      "community": 28,
       "norm_label": "app"
-    },
-    {
-      "label": "seed-all.ts",
-      "file_type": "code",
-      "source_file": "backend/src/seed-all.ts",
-      "source_location": "L1",
-      "id": "backend_src_seed_all_ts",
-      "community": 12,
-      "norm_label": "seed-all.ts"
-    },
-    {
-      "label": "prisma",
-      "file_type": "code",
-      "source_file": "backend/src/seed-all.ts",
-      "source_location": "L4",
-      "id": "src_seed_all_prisma",
-      "community": 12,
-      "norm_label": "prisma"
-    },
-    {
-      "label": "seedAll()",
-      "file_type": "code",
-      "source_file": "backend/src/seed-all.ts",
-      "source_location": "L6",
-      "id": "src_seed_all_seedall",
-      "community": 12,
-      "norm_label": "seedall()"
     },
     {
       "label": "seed-staff.ts",
@@ -940,7 +886,7 @@
       "source_file": "backend/src/middleware/errorHandler.ts",
       "source_location": "L1",
       "id": "backend_src_middleware_errorhandler_ts",
-      "community": 0,
+      "community": 28,
       "norm_label": "errorhandler.ts"
     },
     {
@@ -949,7 +895,7 @@
       "source_file": "backend/src/middleware/errorHandler.ts",
       "source_location": "L8",
       "id": "middleware_errorhandler_errorhandler",
-      "community": 0,
+      "community": 28,
       "norm_label": "errorhandler()"
     },
     {
@@ -958,7 +904,7 @@
       "source_file": "backend/src/routes/academic.routes.ts",
       "source_location": "L1",
       "id": "backend_src_routes_academic_routes_ts",
-      "community": 0,
+      "community": 28,
       "norm_label": "academic.routes.ts"
     },
     {
@@ -967,7 +913,7 @@
       "source_file": "backend/src/routes/academic.routes.ts",
       "source_location": "L5",
       "id": "routes_academic_routes_router",
-      "community": 0,
+      "community": 28,
       "norm_label": "router"
     },
     {
@@ -976,7 +922,7 @@
       "source_file": "backend/src/routes/academic.routes.ts",
       "source_location": "L6",
       "id": "routes_academic_routes_prisma",
-      "community": 0,
+      "community": 28,
       "norm_label": "prisma"
     },
     {
@@ -985,7 +931,7 @@
       "source_file": "backend/src/routes/academic.routes.ts",
       "source_location": "L9",
       "id": "routes_academic_routes_qs",
-      "community": 0,
+      "community": 28,
       "norm_label": "qs()"
     },
     {
@@ -994,7 +940,7 @@
       "source_file": "backend/src/routes/academic.routes.ts",
       "source_location": "L16",
       "id": "routes_academic_routes_param",
-      "community": 0,
+      "community": 28,
       "norm_label": "param()"
     },
     {
@@ -1003,7 +949,7 @@
       "source_file": "backend/src/routes/academic.routes.ts",
       "source_location": "L24",
       "id": "routes_academic_routes_enforcestudentaccess",
-      "community": 0,
+      "community": 28,
       "norm_label": "enforcestudentaccess()"
     },
     {
@@ -1012,7 +958,7 @@
       "source_file": "backend/src/routes/admin.routes.ts",
       "source_location": "L1",
       "id": "backend_src_routes_admin_routes_ts",
-      "community": 9,
+      "community": 3,
       "norm_label": "admin.routes.ts"
     },
     {
@@ -1021,7 +967,7 @@
       "source_file": "backend/src/routes/admin.routes.ts",
       "source_location": "L11",
       "id": "routes_admin_routes_router",
-      "community": 9,
+      "community": 3,
       "norm_label": "router"
     },
     {
@@ -1030,7 +976,7 @@
       "source_file": "backend/src/routes/admin.routes.ts",
       "source_location": "L12",
       "id": "routes_admin_routes_prisma",
-      "community": 9,
+      "community": 3,
       "norm_label": "prisma"
     },
     {
@@ -1039,7 +985,7 @@
       "source_file": "backend/src/routes/admin.routes.ts",
       "source_location": "L15",
       "id": "routes_admin_routes_asynchandler",
-      "community": 9,
+      "community": 3,
       "norm_label": "asynchandler()"
     },
     {
@@ -1048,7 +994,7 @@
       "source_file": "backend/src/routes/admin.routes.ts",
       "source_location": "L19",
       "id": "routes_admin_routes_qs",
-      "community": 9,
+      "community": 3,
       "norm_label": "qs()"
     },
     {
@@ -1057,7 +1003,7 @@
       "source_file": "backend/src/routes/admin.routes.ts",
       "source_location": "L26",
       "id": "routes_admin_routes_param",
-      "community": 9,
+      "community": 3,
       "norm_label": "param()"
     },
     {
@@ -1066,7 +1012,7 @@
       "source_file": "backend/src/routes/admin.routes.ts",
       "source_location": "L35",
       "id": "routes_admin_routes_storage",
-      "community": 9,
+      "community": 3,
       "norm_label": "storage"
     },
     {
@@ -1075,52 +1021,52 @@
       "source_file": "backend/src/routes/admin.routes.ts",
       "source_location": "L47",
       "id": "routes_admin_routes_upload",
-      "community": 9,
+      "community": 3,
       "norm_label": "upload"
     },
     {
       "label": "docStorage",
       "file_type": "code",
       "source_file": "backend/src/routes/admin.routes.ts",
-      "source_location": "L869",
+      "source_location": "L782",
       "id": "routes_admin_routes_docstorage",
-      "community": 9,
+      "community": 3,
       "norm_label": "docstorage"
     },
     {
       "label": "docUpload",
       "file_type": "code",
       "source_file": "backend/src/routes/admin.routes.ts",
-      "source_location": "L881",
+      "source_location": "L794",
       "id": "routes_admin_routes_docupload",
-      "community": 9,
+      "community": 3,
       "norm_label": "docupload"
     },
     {
       "label": "bulkUploadStorage",
       "file_type": "code",
       "source_file": "backend/src/routes/admin.routes.ts",
-      "source_location": "L1256",
+      "source_location": "L1136",
       "id": "routes_admin_routes_bulkuploadstorage",
-      "community": 9,
+      "community": 3,
       "norm_label": "bulkuploadstorage"
     },
     {
       "label": "bulkUpload",
       "file_type": "code",
       "source_file": "backend/src/routes/admin.routes.ts",
-      "source_location": "L1268",
+      "source_location": "L1148",
       "id": "routes_admin_routes_bulkupload",
-      "community": 9,
+      "community": 3,
       "norm_label": "bulkupload"
     },
     {
       "label": "ParsedRow",
       "file_type": "code",
       "source_file": "backend/src/routes/admin.routes.ts",
-      "source_location": "L1425",
+      "source_location": "L1305",
       "id": "routes_admin_routes_parsedrow",
-      "community": 9,
+      "community": 3,
       "norm_label": "parsedrow"
     },
     {
@@ -1129,7 +1075,7 @@
       "source_file": "backend/src/routes/ai.routes.ts",
       "source_location": "L1",
       "id": "backend_src_routes_ai_routes_ts",
-      "community": 0,
+      "community": 37,
       "norm_label": "ai.routes.ts"
     },
     {
@@ -1138,7 +1084,7 @@
       "source_file": "backend/src/routes/ai.routes.ts",
       "source_location": "L7",
       "id": "routes_ai_routes_router",
-      "community": 0,
+      "community": 37,
       "norm_label": "router"
     },
     {
@@ -1147,7 +1093,7 @@
       "source_file": "backend/src/routes/ai.routes.ts",
       "source_location": "L8",
       "id": "routes_ai_routes_prisma",
-      "community": 0,
+      "community": 37,
       "norm_label": "prisma"
     },
     {
@@ -1156,7 +1102,7 @@
       "source_file": "backend/src/routes/ai.routes.ts",
       "source_location": "L32",
       "id": "routes_ai_routes_analyzewithgemini",
-      "community": 0,
+      "community": 37,
       "norm_label": "analyzewithgemini()"
     },
     {
@@ -1165,7 +1111,7 @@
       "source_file": "backend/src/routes/ai.routes.ts",
       "source_location": "L446",
       "id": "routes_ai_routes_levenshtein",
-      "community": 0,
+      "community": 37,
       "norm_label": "levenshtein()"
     },
     {
@@ -1174,7 +1120,7 @@
       "source_file": "backend/src/routes/ai.routes.ts",
       "source_location": "L462",
       "id": "routes_ai_routes_namesimilarity",
-      "community": 0,
+      "community": 37,
       "norm_label": "namesimilarity()"
     },
     {
@@ -1183,7 +1129,7 @@
       "source_file": "backend/src/routes/auth.routes.ts",
       "source_location": "L1",
       "id": "backend_src_routes_auth_routes_ts",
-      "community": 0,
+      "community": 30,
       "norm_label": "auth.routes.ts"
     },
     {
@@ -1192,7 +1138,7 @@
       "source_file": "backend/src/routes/auth.routes.ts",
       "source_location": "L7",
       "id": "routes_auth_routes_router",
-      "community": 0,
+      "community": 30,
       "norm_label": "router"
     },
     {
@@ -1201,7 +1147,7 @@
       "source_file": "backend/src/routes/auth.routes.ts",
       "source_location": "L8",
       "id": "routes_auth_routes_prisma",
-      "community": 0,
+      "community": 30,
       "norm_label": "prisma"
     },
     {
@@ -1336,7 +1282,7 @@
       "source_file": "backend/src/routes/teacher.routes.ts",
       "source_location": "L1",
       "id": "backend_src_routes_teacher_routes_ts",
-      "community": 0,
+      "community": 39,
       "norm_label": "teacher.routes.ts"
     },
     {
@@ -1345,7 +1291,7 @@
       "source_file": "backend/src/routes/teacher.routes.ts",
       "source_location": "L5",
       "id": "routes_teacher_routes_router",
-      "community": 0,
+      "community": 39,
       "norm_label": "router"
     },
     {
@@ -1354,7 +1300,7 @@
       "source_file": "backend/src/routes/teacher.routes.ts",
       "source_location": "L6",
       "id": "routes_teacher_routes_prisma",
-      "community": 0,
+      "community": 39,
       "norm_label": "prisma"
     },
     {
@@ -1363,7 +1309,7 @@
       "source_file": "backend/src/routes/teacher.routes.ts",
       "source_location": "L9",
       "id": "routes_teacher_routes_qs",
-      "community": 0,
+      "community": 39,
       "norm_label": "qs()"
     },
     {
@@ -1372,7 +1318,7 @@
       "source_file": "backend/src/routes/teacher.routes.ts",
       "source_location": "L16",
       "id": "routes_teacher_routes_param",
-      "community": 0,
+      "community": 39,
       "norm_label": "param()"
     },
     {
@@ -1381,7 +1327,7 @@
       "source_file": "backend/src/routes/teacher.routes.ts",
       "source_location": "L134",
       "id": "routes_teacher_routes_verifyteacheraccess",
-      "community": 0,
+      "community": 39,
       "norm_label": "verifyteacheraccess()"
     },
     {
@@ -1570,7 +1516,7 @@
       "source_file": "backend/src/types/express.d.ts",
       "source_location": "L1",
       "id": "backend_src_types_express_d_ts",
-      "community": 0,
+      "community": 30,
       "norm_label": "express.d.ts"
     },
     {
@@ -1579,7 +1525,7 @@
       "source_file": "backend/src/types/express.d.ts",
       "source_location": "L5",
       "id": "types_express_d_request",
-      "community": 0,
+      "community": 30,
       "norm_label": "request"
     },
     {
@@ -1588,7 +1534,7 @@
       "source_file": "backend/src/utils/jwt.ts",
       "source_location": "L1",
       "id": "backend_src_utils_jwt_ts",
-      "community": 0,
+      "community": 30,
       "norm_label": "jwt.ts"
     },
     {
@@ -1597,7 +1543,7 @@
       "source_file": "backend/src/utils/jwt.ts",
       "source_location": "L4",
       "id": "utils_jwt_tokenpayload",
-      "community": 0,
+      "community": 30,
       "norm_label": "tokenpayload"
     },
     {
@@ -1606,7 +1552,7 @@
       "source_file": "backend/src/utils/jwt.ts",
       "source_location": "L10",
       "id": "utils_jwt_generateaccesstoken",
-      "community": 0,
+      "community": 30,
       "norm_label": "generateaccesstoken()"
     },
     {
@@ -1615,7 +1561,7 @@
       "source_file": "backend/src/utils/jwt.ts",
       "source_location": "L16",
       "id": "utils_jwt_generaterefreshtoken",
-      "community": 0,
+      "community": 30,
       "norm_label": "generaterefreshtoken()"
     },
     {
@@ -1633,7 +1579,7 @@
       "source_file": "backend/src/utils/jwt.ts",
       "source_location": "L26",
       "id": "utils_jwt_verifyrefreshtoken",
-      "community": 0,
+      "community": 30,
       "norm_label": "verifyrefreshtoken()"
     },
     {
@@ -2182,7 +2128,7 @@
       "source_file": "frontend/src/components/AiAssistant.jsx",
       "source_location": "L1",
       "id": "frontend_src_components_aiassistant_jsx",
-      "community": 28,
+      "community": 29,
       "norm_label": "aiassistant.jsx"
     },
     {
@@ -2191,7 +2137,7 @@
       "source_file": "frontend/src/components/AiAssistant.jsx",
       "source_location": "L6",
       "id": "components_aiassistant_suggestions",
-      "community": 28,
+      "community": 29,
       "norm_label": "suggestions"
     },
     {
@@ -2200,7 +2146,7 @@
       "source_file": "frontend/src/components/AiAssistant.jsx",
       "source_location": "L14",
       "id": "components_aiassistant_rendermarkdown",
-      "community": 28,
+      "community": 29,
       "norm_label": "rendermarkdown()"
     },
     {
@@ -2209,7 +2155,7 @@
       "source_file": "frontend/src/components/AiAssistant.jsx",
       "source_location": "L80",
       "id": "components_aiassistant_processinline",
-      "community": 28,
+      "community": 29,
       "norm_label": "processinline()"
     },
     {
@@ -2218,7 +2164,7 @@
       "source_file": "frontend/src/components/AiAssistant.jsx",
       "source_location": "L150",
       "id": "components_aiassistant_aiassistant",
-      "community": 28,
+      "community": 29,
       "norm_label": "aiassistant()"
     },
     {
@@ -2596,7 +2542,7 @@
       "source_file": "frontend/src/components/ui/DesignHelpers.jsx",
       "source_location": "L1",
       "id": "frontend_src_components_ui_designhelpers_jsx",
-      "community": 2,
+      "community": 46,
       "norm_label": "designhelpers.jsx"
     },
     {
@@ -2605,7 +2551,7 @@
       "source_file": "frontend/src/components/ui/DesignHelpers.jsx",
       "source_location": "L8",
       "id": "ui_designhelpers_dept_hue",
-      "community": 2,
+      "community": 46,
       "norm_label": "dept_hue"
     },
     {
@@ -2614,7 +2560,7 @@
       "source_file": "frontend/src/components/ui/DesignHelpers.jsx",
       "source_location": "L17",
       "id": "ui_designhelpers_depthuekey",
-      "community": 2,
+      "community": 46,
       "norm_label": "depthuekey()"
     },
     {
@@ -2623,7 +2569,7 @@
       "source_file": "frontend/src/components/ui/DesignHelpers.jsx",
       "source_location": "L21",
       "id": "ui_designhelpers_deptcolor",
-      "community": 2,
+      "community": 46,
       "norm_label": "deptcolor()"
     },
     {
@@ -2632,7 +2578,7 @@
       "source_file": "frontend/src/components/ui/DesignHelpers.jsx",
       "source_location": "L24",
       "id": "ui_designhelpers_avatar_hues",
-      "community": 2,
+      "community": 46,
       "norm_label": "avatar_hues"
     },
     {
@@ -2641,7 +2587,7 @@
       "source_file": "frontend/src/components/ui/DesignHelpers.jsx",
       "source_location": "L25",
       "id": "ui_designhelpers_huefor",
-      "community": 56,
+      "community": 46,
       "norm_label": "huefor()"
     },
     {
@@ -2659,7 +2605,7 @@
       "source_file": "frontend/src/components/ui/DesignHelpers.jsx",
       "source_location": "L45",
       "id": "ui_designhelpers_depttag",
-      "community": 2,
+      "community": 46,
       "norm_label": "depttag()"
     },
     {
@@ -2668,7 +2614,7 @@
       "source_file": "frontend/src/components/ui/DesignHelpers.jsx",
       "source_location": "L55",
       "id": "ui_designhelpers_miniavatar",
-      "community": 56,
+      "community": 46,
       "norm_label": "miniavatar()"
     },
     {
@@ -2767,7 +2713,7 @@
       "source_file": "frontend/src/components/ui/Icon.jsx",
       "source_location": "L1",
       "id": "frontend_src_components_ui_icon_jsx",
-      "community": 46,
+      "community": 54,
       "norm_label": "icon.jsx"
     },
     {
@@ -2776,7 +2722,7 @@
       "source_file": "frontend/src/components/ui/Icon.jsx",
       "source_location": "L6",
       "id": "ui_icon_icons",
-      "community": 46,
+      "community": 54,
       "norm_label": "icons"
     },
     {
@@ -2785,7 +2731,7 @@
       "source_file": "frontend/src/components/ui/Icon.jsx",
       "source_location": "L64",
       "id": "ui_icon_icon",
-      "community": 46,
+      "community": 54,
       "norm_label": "icon()"
     },
     {
@@ -2884,7 +2830,7 @@
       "source_file": "frontend/src/pages/admin/Analytics.jsx",
       "source_location": "L11",
       "id": "admin_analytics_analytics",
-      "community": 28,
+      "community": 29,
       "norm_label": "analytics()"
     },
     {
@@ -2947,7 +2893,7 @@
       "source_file": "frontend/src/pages/admin/Dashboard.jsx",
       "source_location": "L37",
       "id": "admin_dashboard_admindashboard",
-      "community": 1,
+      "community": 29,
       "norm_label": "admindashboard()"
     },
     {
@@ -2956,7 +2902,7 @@
       "source_file": "frontend/src/pages/admin/ManageAssignments.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_admin_manageassignments_jsx",
-      "community": 2,
+      "community": 46,
       "norm_label": "manageassignments.jsx"
     },
     {
@@ -2965,7 +2911,7 @@
       "source_file": "frontend/src/pages/admin/ManageAssignments.jsx",
       "source_location": "L8",
       "id": "admin_manageassignments_manageassignments",
-      "community": 2,
+      "community": 46,
       "norm_label": "manageassignments()"
     },
     {
@@ -3023,10 +2969,19 @@
       "norm_label": "type_label"
     },
     {
+      "label": "getStudentCount()",
+      "file_type": "code",
+      "source_file": "frontend/src/pages/admin/ManageCourses.jsx",
+      "source_location": "L25",
+      "id": "admin_managecourses_getstudentcount",
+      "community": 55,
+      "norm_label": "getstudentcount()"
+    },
+    {
       "label": "ManageCourses()",
       "file_type": "code",
       "source_file": "frontend/src/pages/admin/ManageCourses.jsx",
-      "source_location": "L26",
+      "source_location": "L36",
       "id": "admin_managecourses_managecourses",
       "community": 55,
       "norm_label": "managecourses()"
@@ -3055,7 +3010,7 @@
       "source_file": "frontend/src/pages/admin/ManageFeedback.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_admin_managefeedback_jsx",
-      "community": 56,
+      "community": 8,
       "norm_label": "managefeedback.jsx"
     },
     {
@@ -3064,7 +3019,7 @@
       "source_file": "frontend/src/pages/admin/ManageFeedback.jsx",
       "source_location": "L7",
       "id": "admin_managefeedback_categories",
-      "community": 56,
+      "community": 8,
       "norm_label": "categories"
     },
     {
@@ -3073,7 +3028,7 @@
       "source_file": "frontend/src/pages/admin/ManageFeedback.jsx",
       "source_location": "L18",
       "id": "admin_managefeedback_status_tabs",
-      "community": 56,
+      "community": 8,
       "norm_label": "status_tabs"
     },
     {
@@ -3082,7 +3037,7 @@
       "source_file": "frontend/src/pages/admin/ManageFeedback.jsx",
       "source_location": "L24",
       "id": "admin_managefeedback_managefeedback",
-      "community": 56,
+      "community": 8,
       "norm_label": "managefeedback()"
     },
     {
@@ -3289,7 +3244,7 @@
       "source_file": "frontend/src/pages/admin/Reports.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_admin_reports_jsx",
-      "community": 46,
+      "community": 54,
       "norm_label": "reports.jsx"
     },
     {
@@ -3298,7 +3253,7 @@
       "source_file": "frontend/src/pages/admin/Reports.jsx",
       "source_location": "L7",
       "id": "admin_reports_reporttypes",
-      "community": 46,
+      "community": 54,
       "norm_label": "reporttypes"
     },
     {
@@ -3307,7 +3262,7 @@
       "source_file": "frontend/src/pages/admin/Reports.jsx",
       "source_location": "L14",
       "id": "admin_reports_reports",
-      "community": 46,
+      "community": 54,
       "norm_label": "reports()"
     },
     {
@@ -3883,7 +3838,7 @@
       "source_file": "frontend/src/pages/student/Profile.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_student_profile_jsx",
-      "community": 8,
+      "community": 41,
       "norm_label": "profile.jsx"
     },
     {
@@ -3892,7 +3847,7 @@
       "source_file": "frontend/src/pages/student/Profile.jsx",
       "source_location": "L8",
       "id": "student_profile_infoitem",
-      "community": 8,
+      "community": 41,
       "norm_label": "infoitem()"
     },
     {
@@ -3901,7 +3856,7 @@
       "source_file": "frontend/src/pages/student/Profile.jsx",
       "source_location": "L21",
       "id": "student_profile_section",
-      "community": 8,
+      "community": 41,
       "norm_label": "section()"
     },
     {
@@ -3910,7 +3865,7 @@
       "source_file": "frontend/src/pages/student/Profile.jsx",
       "source_location": "L34",
       "id": "student_profile_profile",
-      "community": 8,
+      "community": 41,
       "norm_label": "profile()"
     },
     {
@@ -3937,7 +3892,7 @@
       "source_file": "frontend/src/pages/teacher/Attendance.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_teacher_attendance_jsx",
-      "community": 8,
+      "community": 12,
       "norm_label": "attendance.jsx"
     },
     {
@@ -3946,7 +3901,7 @@
       "source_file": "frontend/src/pages/teacher/Attendance.jsx",
       "source_location": "L5",
       "id": "teacher_attendance_status_options",
-      "community": 8,
+      "community": 12,
       "norm_label": "status_options"
     },
     {
@@ -3955,7 +3910,7 @@
       "source_file": "frontend/src/pages/teacher/Attendance.jsx",
       "source_location": "L6",
       "id": "teacher_attendance_statusstyles",
-      "community": 8,
+      "community": 12,
       "norm_label": "statusstyles"
     },
     {
@@ -3964,7 +3919,7 @@
       "source_file": "frontend/src/pages/teacher/Attendance.jsx",
       "source_location": "L12",
       "id": "teacher_attendance_teacherattendance",
-      "community": 8,
+      "community": 12,
       "norm_label": "teacherattendance()"
     },
     {
@@ -4153,7 +4108,7 @@
       "source_file": "design.md",
       "source_location": "L1",
       "id": "design_md",
-      "community": 3,
+      "community": 27,
       "norm_label": "design.md"
     },
     {
@@ -4162,7 +4117,7 @@
       "source_file": "design.md",
       "source_location": "L1",
       "id": "student_tracking_system_master_design_student_tracking_system_design_document",
-      "community": 3,
+      "community": 27,
       "norm_label": "\ud83c\udf93 student tracking system \u2014 design document"
     },
     {
@@ -4171,7 +4126,7 @@
       "source_file": "design.md",
       "source_location": "L9",
       "id": "student_tracking_system_master_design_table_of_contents",
-      "community": 3,
+      "community": 27,
       "norm_label": "table of contents"
     },
     {
@@ -4180,7 +4135,7 @@
       "source_file": "design.md",
       "source_location": "L26",
       "id": "student_tracking_system_master_design_overview",
-      "community": 3,
+      "community": 27,
       "norm_label": "overview"
     },
     {
@@ -4189,7 +4144,7 @@
       "source_file": "design.md",
       "source_location": "L30",
       "id": "student_tracking_system_master_design_goals",
-      "community": 3,
+      "community": 27,
       "norm_label": "goals"
     },
     {
@@ -4198,7 +4153,7 @@
       "source_file": "design.md",
       "source_location": "L40",
       "id": "student_tracking_system_master_design_architecture",
-      "community": 3,
+      "community": 27,
       "norm_label": "architecture"
     },
     {
@@ -4207,7 +4162,7 @@
       "source_file": "design.md",
       "source_location": "L42",
       "id": "student_tracking_system_master_design_high_level_architecture",
-      "community": 3,
+      "community": 27,
       "norm_label": "high-level architecture"
     },
     {
@@ -4216,7 +4171,7 @@
       "source_file": "design.md",
       "source_location": "L95",
       "id": "student_tracking_system_master_design_data_flow",
-      "community": 3,
+      "community": 27,
       "norm_label": "data flow"
     },
     {
@@ -4225,7 +4180,7 @@
       "source_file": "design.md",
       "source_location": "L112",
       "id": "student_tracking_system_master_design_technology_stack",
-      "community": 59,
+      "community": 27,
       "norm_label": "technology stack"
     },
     {
@@ -4234,7 +4189,7 @@
       "source_file": "design.md",
       "source_location": "L114",
       "id": "student_tracking_system_master_design_backend",
-      "community": 59,
+      "community": 27,
       "norm_label": "backend"
     },
     {
@@ -4243,7 +4198,7 @@
       "source_file": "design.md",
       "source_location": "L134",
       "id": "student_tracking_system_master_design_frontend",
-      "community": 59,
+      "community": 27,
       "norm_label": "frontend"
     },
     {
@@ -4432,7 +4387,7 @@
       "source_file": "design.md",
       "source_location": "L328",
       "id": "student_tracking_system_master_design_authentication_authorization",
-      "community": 39,
+      "community": 27,
       "norm_label": "authentication & authorization"
     },
     {
@@ -4441,7 +4396,7 @@
       "source_file": "design.md",
       "source_location": "L330",
       "id": "student_tracking_system_master_design_jwt_strategy_dual_token",
-      "community": 39,
+      "community": 27,
       "norm_label": "jwt strategy (dual token)"
     },
     {
@@ -4450,7 +4405,7 @@
       "source_file": "design.md",
       "source_location": "L343",
       "id": "student_tracking_system_master_design_token_flow",
-      "community": 39,
+      "community": 27,
       "norm_label": "token flow"
     },
     {
@@ -4459,7 +4414,7 @@
       "source_file": "design.md",
       "source_location": "L351",
       "id": "student_tracking_system_master_design_role_based_access_control",
-      "community": 39,
+      "community": 27,
       "norm_label": "role-based access control"
     },
     {
@@ -4468,7 +4423,7 @@
       "source_file": "design.md",
       "source_location": "L373",
       "id": "student_tracking_system_master_design_security_measures",
-      "community": 39,
+      "community": 27,
       "norm_label": "security measures"
     },
     {
@@ -4477,7 +4432,7 @@
       "source_file": "design.md",
       "source_location": "L384",
       "id": "student_tracking_system_master_design_frontend_architecture",
-      "community": 37,
+      "community": 27,
       "norm_label": "frontend architecture"
     },
     {
@@ -4486,7 +4441,7 @@
       "source_file": "design.md",
       "source_location": "L386",
       "id": "student_tracking_system_master_design_component_tree",
-      "community": 37,
+      "community": 27,
       "norm_label": "component tree"
     },
     {
@@ -4495,7 +4450,7 @@
       "source_file": "design.md",
       "source_location": "L442",
       "id": "student_tracking_system_master_design_state_management",
-      "community": 37,
+      "community": 27,
       "norm_label": "state management"
     },
     {
@@ -4504,7 +4459,7 @@
       "source_file": "design.md",
       "source_location": "L460",
       "id": "student_tracking_system_master_design_api_client",
-      "community": 37,
+      "community": 27,
       "norm_label": "api client"
     },
     {
@@ -4513,7 +4468,7 @@
       "source_file": "design.md",
       "source_location": "L473",
       "id": "student_tracking_system_master_design_shared_components",
-      "community": 37,
+      "community": 27,
       "norm_label": "shared components"
     },
     {
@@ -4648,7 +4603,7 @@
       "source_file": "design.md",
       "source_location": "L568",
       "id": "student_tracking_system_master_design_ui_ux_design",
-      "community": 43,
+      "community": 27,
       "norm_label": "ui / ux design"
     },
     {
@@ -4657,7 +4612,7 @@
       "source_file": "design.md",
       "source_location": "L570",
       "id": "student_tracking_system_master_design_design_system",
-      "community": 43,
+      "community": 27,
       "norm_label": "design system"
     },
     {
@@ -4666,7 +4621,7 @@
       "source_file": "design.md",
       "source_location": "L577",
       "id": "student_tracking_system_master_design_color_palette",
-      "community": 43,
+      "community": 27,
       "norm_label": "color palette"
     },
     {
@@ -4675,7 +4630,7 @@
       "source_file": "design.md",
       "source_location": "L590",
       "id": "student_tracking_system_master_design_layout",
-      "community": 43,
+      "community": 27,
       "norm_label": "layout"
     },
     {
@@ -4684,7 +4639,7 @@
       "source_file": "design.md",
       "source_location": "L610",
       "id": "student_tracking_system_master_design_responsive_behavior",
-      "community": 43,
+      "community": 27,
       "norm_label": "responsive behavior"
     },
     {
@@ -4693,7 +4648,7 @@
       "source_file": "design.md",
       "source_location": "L617",
       "id": "student_tracking_system_master_design_deployment_infrastructure",
-      "community": 30,
+      "community": 27,
       "norm_label": "deployment & infrastructure"
     },
     {
@@ -4702,7 +4657,7 @@
       "source_file": "design.md",
       "source_location": "L619",
       "id": "student_tracking_system_master_design_development",
-      "community": 30,
+      "community": 27,
       "norm_label": "development"
     },
     {
@@ -4711,7 +4666,7 @@
       "source_file": "design.md",
       "source_location": "L629",
       "id": "student_tracking_system_master_design_production",
-      "community": 30,
+      "community": 27,
       "norm_label": "production"
     },
     {
@@ -4720,7 +4675,7 @@
       "source_file": "design.md",
       "source_location": "L643",
       "id": "student_tracking_system_master_design_environment_variables",
-      "community": 30,
+      "community": 27,
       "norm_label": "environment variables"
     },
     {
@@ -4729,7 +4684,7 @@
       "source_file": "design.md",
       "source_location": "L668",
       "id": "student_tracking_system_master_design_process_management",
-      "community": 30,
+      "community": 27,
       "norm_label": "process management"
     },
     {
@@ -4738,7 +4693,7 @@
       "source_file": "design.md",
       "source_location": "L673",
       "id": "student_tracking_system_master_design_database_management",
-      "community": 30,
+      "community": 27,
       "norm_label": "database management"
     },
     {
@@ -4747,7 +4702,7 @@
       "source_file": "design.md",
       "source_location": "L685",
       "id": "student_tracking_system_master_design_security_considerations",
-      "community": 3,
+      "community": 27,
       "norm_label": "security considerations"
     },
     {
@@ -4756,7 +4711,7 @@
       "source_file": "design.md",
       "source_location": "L702",
       "id": "student_tracking_system_master_design_future_roadmap",
-      "community": 44,
+      "community": 27,
       "norm_label": "future roadmap"
     },
     {
@@ -4765,7 +4720,7 @@
       "source_file": "design.md",
       "source_location": "L704",
       "id": "student_tracking_system_master_design_short_term",
-      "community": 44,
+      "community": 27,
       "norm_label": "short term"
     },
     {
@@ -4774,7 +4729,7 @@
       "source_file": "design.md",
       "source_location": "L710",
       "id": "student_tracking_system_master_design_medium_term",
-      "community": 44,
+      "community": 27,
       "norm_label": "medium term"
     },
     {
@@ -4783,7 +4738,7 @@
       "source_file": "design.md",
       "source_location": "L717",
       "id": "student_tracking_system_master_design_long_term",
-      "community": 44,
+      "community": 27,
       "norm_label": "long term"
     },
     {
@@ -4792,7 +4747,7 @@
       "source_file": "design.md",
       "source_location": "L726",
       "id": "student_tracking_system_master_design_file_structure_reference",
-      "community": 3,
+      "community": 27,
       "norm_label": "file structure reference"
     },
     {
@@ -5496,15 +5451,6 @@
       "id": "frontend_readme_expanding_the_eslint_configuration",
       "community": 31,
       "norm_label": "expanding the eslint configuration"
-    },
-    {
-      "label": "getStudentCount()",
-      "file_type": "code",
-      "source_file": "frontend/src/pages/admin/ManageCourses.jsx",
-      "source_location": "L25",
-      "community": 55,
-      "norm_label": "getstudentcount()",
-      "id": "admin_managecourses_getstudentcount"
     },
     {
       "label": "initials()",
@@ -6529,26 +6475,6 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "backend/src/check-students.ts",
-      "source_location": "L4",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "backend_src_check_students_ts",
-      "target": "src_check_students_check"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "backend/src/check-students.ts",
-      "source_location": "L2",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "backend_src_check_students_ts",
-      "target": "src_check_students_prisma"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
       "source_file": "backend/src/config.ts",
       "source_location": "L7",
       "weight": 1.0,
@@ -6805,26 +6731,6 @@
       "confidence_score": 1.0,
       "source": "backend_src_index_ts",
       "target": "src_index_purgeoldtrash"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "backend/src/seed-all.ts",
-      "source_location": "L4",
-      "weight": 1.0,
-      "source": "backend_src_seed_all_ts",
-      "target": "src_seed_all_prisma",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "backend/src/seed-all.ts",
-      "source_location": "L6",
-      "weight": 1.0,
-      "source": "backend_src_seed_all_ts",
-      "target": "src_seed_all_seedall",
-      "confidence_score": 1.0
     },
     {
       "relation": "contains",

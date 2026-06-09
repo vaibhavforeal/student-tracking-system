@@ -1,11 +1,11 @@
-# Graph Report - student-tracking-system-master  (2026-06-09)
+# Graph Report - student-tracking-system-master  (2026-06-08)
 
 ## Corpus Check
-- 107 files · ~152,772 words
+- 104 files · ~151,053 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 640 nodes · 895 edges · 59 communities (48 shown, 11 thin omitted)
+- 634 nodes · 891 edges · 57 communities (45 shown, 12 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 5 edges (avg confidence: 0.82)
 - Token cost: 0 input · 0 output
 
@@ -52,8 +52,6 @@
 - [[_COMMUNITY_Community 37|Community 37]]
 - [[_COMMUNITY_Community 39|Community 39]]
 - [[_COMMUNITY_Community 40|Community 40]]
-- [[_COMMUNITY_Community 43|Community 43]]
-- [[_COMMUNITY_Community 44|Community 44]]
 - [[_COMMUNITY_Community 45|Community 45]]
 - [[_COMMUNITY_Community 46|Community 46]]
 - [[_COMMUNITY_Community 47|Community 47]]
@@ -63,11 +61,10 @@
 - [[_COMMUNITY_Community 51|Community 51]]
 - [[_COMMUNITY_Community 52|Community 52]]
 - [[_COMMUNITY_Community 53|Community 53]]
+- [[_COMMUNITY_Community 54|Community 54]]
 - [[_COMMUNITY_Community 55|Community 55]]
 - [[_COMMUNITY_Community 56|Community 56]]
-- [[_COMMUNITY_Community 57|Community 57]]
 - [[_COMMUNITY_Community 58|Community 58]]
-- [[_COMMUNITY_Community 59|Community 59]]
 - [[_COMMUNITY_Community 60|Community 60]]
 
 ## God Nodes (most connected - your core abstractions)
@@ -98,23 +95,19 @@
 - **Student Lifecycle Management** — student_status_lifecycle, semester_promotion_flow, auto_graduate_feature, soft_delete_pattern [INFERRED 0.85]
 - **Role-Based Access System** — role_based_access, admin_role, teacher_role, student_role [EXTRACTED 1.00]
 
-## Communities (59 total, 11 thin omitted)
+## Communities (57 total, 12 thin omitted)
 
 ### Community 0 - "Backend Core & Routes"
-Cohesion: 0.05
-Nodes (34): authenticate(), authorize(), prisma, Request, errorHandler(), prisma, router, levenshtein() (+26 more)
+Cohesion: 0.12
+Nodes (13): authenticate(), authorize(), prisma, Request, prisma, router, prisma, router (+5 more)
 
 ### Community 1 - "Student Detail & Auth Pages"
-Cohesion: 0.20
-Nodes (9): AdminDashboard(), ManageUsers(), StudentDetail(), Login(), ROLES, ProtectedRoute(), App(), useAuthStore (+1 more)
-
-### Community 2 - "Analytics & Feedback Dashboard"
-Cohesion: 0.19
-Nodes (7): AVATAR_HUES, DEPT_HUE, deptColor(), deptHueKey(), DeptTag(), Meter(), StatTile()
+Cohesion: 0.22
+Nodes (8): ManageUsers(), StudentDetail(), Login(), ROLES, ProtectedRoute(), App(), useAuthStore, TeacherDashboard()
 
 ### Community 3 - "Admin Entity Management"
-Cohesion: 0.20
-Nodes (9): Architecture, Data Flow, File Structure Reference, Goals, High-Level Architecture, Overview, Security Considerations, 🎓 Student Tracking System — Design Document (+1 more)
+Cohesion: 0.15
+Nodes (9): bulkUpload, bulkUploadStorage, docStorage, docUpload, ParsedRow, prisma, router, storage (+1 more)
 
 ### Community 4 - "Frontend Dependencies"
 Cohesion: 0.06
@@ -133,12 +126,12 @@ Cohesion: 0.10
 Nodes (19): compilerOptions, baseUrl, declaration, declarationMap, esModuleInterop, forceConsistentCasingInFileNames, lib, module (+11 more)
 
 ### Community 8 - "Community 8"
-Cohesion: 0.10
-Nodes (7): client, failedQueue, CATEGORIES, statusStyles, STATUS_OPTIONS, statusStyles, ASSESSMENT_TYPES
+Cohesion: 0.11
+Nodes (7): CATEGORIES, STATUS_TABS, client, failedQueue, CATEGORIES, statusStyles, ASSESSMENT_TYPES
 
 ### Community 9 - "WhatsApp & Notifications"
-Cohesion: 0.10
-Nodes (22): bulkUpload, bulkUploadStorage, docStorage, docUpload, ParsedRow, prisma, router, storage (+14 more)
+Cohesion: 0.21
+Nodes (13): prisma, router, CourseAttendance, generateAttendancePDF(), StudentAttendanceData, authHeaders(), formatPhoneNumber(), isWhatsAppConfigured() (+5 more)
 
 ### Community 10 - "Student Seed Data"
 Cohesion: 0.28
@@ -173,20 +166,20 @@ Cohesion: 0.29
 Nodes (6): 📅 2026-03-19 — Session 1: Initialization + Discovery, 📐 Architecture Notes, ✅ Discovery Answers (Confirmed), findings.md — Research, Discoveries & Constraints, 📦 Resources to Research, 🏗️ Stack Decision
 
 ### Community 27 - "Community 27"
-Cohesion: 0.20
-Nodes (10): Admin Routes (`/api/admin`), AI Routes (`/api/ai`), API Design, Auth Routes (`/api/auth`), Error Response Format, Integration Routes, Report Routes (`/api/reports`), Route Organization (+2 more)
+Cohesion: 0.04
+Nodes (47): Admin Routes (`/api/admin`), AI Routes (`/api/ai`), API Client, API Design, Architecture, Auth Routes (`/api/auth`), Authentication & Authorization, Backend (+39 more)
 
 ### Community 28 - "Community 28"
-Cohesion: 0.40
-Nodes (4): Analytics(), processInline(), renderMarkdown(), SUGGESTIONS
+Cohesion: 0.18
+Nodes (5): errorHandler(), prisma, router, app, prisma
 
 ### Community 29 - "Community 29"
-Cohesion: 0.09
-Nodes (14): BAR_PALETTE, CHART_COLORS, MONTHS, PIE_COLORS, STATUS_COLORS, ATTENDANCE_TREND, DEADLINES, GRADE_DIST (+6 more)
+Cohesion: 0.07
+Nodes (19): Analytics(), BAR_PALETTE, CHART_COLORS, MONTHS, PIE_COLORS, STATUS_COLORS, AdminDashboard(), ATTENDANCE_TREND (+11 more)
 
 ### Community 30 - "Community 30"
-Cohesion: 0.33
-Nodes (6): Database Management, Deployment & Infrastructure, Development, Environment Variables, Process Management, Production
+Cohesion: 0.31
+Nodes (7): prisma, router, Request, generateAccessToken(), generateRefreshToken(), TokenPayload, verifyRefreshToken()
 
 ### Community 31 - "Community 31"
 Cohesion: 0.50
@@ -209,28 +202,20 @@ Cohesion: 0.20
 Nodes (10): Academic Structure, Core Entities (30 models, 18 enums), Data Model, Engagement, Entity Relationship Overview, Key Design Decisions, Organizational Hierarchy, People (+2 more)
 
 ### Community 37 - "Community 37"
-Cohesion: 0.40
-Nodes (5): API Client, Component Tree, Frontend Architecture, Shared Components, State Management
+Cohesion: 0.32
+Nodes (5): levenshtein(), nameSimilarity(), prisma, router, config
 
 ### Community 39 - "Community 39"
 Cohesion: 0.40
-Nodes (5): Authentication & Authorization, JWT Strategy (Dual Token), Role-Based Access Control, Security Measures, Token Flow
+Nodes (4): param(), prisma, router, verifyTeacherAccess()
 
 ### Community 40 - "Community 40"
 Cohesion: 0.50
 Nodes (3): fs, mappings, path
 
-### Community 43 - "Community 43"
-Cohesion: 0.40
-Nodes (5): Color Palette, Design System, Layout, Responsive Behavior, UI / UX Design
-
-### Community 44 - "Community 44"
-Cohesion: 0.50
-Nodes (4): Future Roadmap, Long Term, Medium Term, Short Term
-
 ### Community 46 - "Community 46"
-Cohesion: 0.15
-Nodes (6): ROLE_COLORS, ROLE_TABS, reportTypes, PageHead(), StatusBadge(), ICONS
+Cohesion: 0.17
+Nodes (11): ROLE_COLORS, ROLE_TABS, AVATAR_HUES, DEPT_HUE, deptColor(), deptHueKey(), DeptTag(), hueFor() (+3 more)
 
 ### Community 47 - "Community 47"
 Cohesion: 0.47
@@ -257,39 +242,35 @@ Cohesion: 0.15
 Nodes (7): EMPTY_FORM, TYPE_BADGE, TYPE_LABEL, AVATAR_HUES, DEPT_HUE, deptColor(), deptHueKey()
 
 ### Community 56 - "Community 56"
-Cohesion: 0.19
-Nodes (11): CATEGORIES, STATUS_TABS, DESG_COLORS, DESIGNATION_OPTIONS, ManageStaff(), ManageStudents(), STATUS_TABS, hueFor() (+3 more)
+Cohesion: 0.31
+Nodes (7): DESG_COLORS, DESIGNATION_OPTIONS, ManageStaff(), ManageStudents(), STATUS_TABS, initials(), initials()
 
 ### Community 58 - "Community 58"
 Cohesion: 0.18
 Nodes (9): COURSE_COLORS, DEMO_FEED, DEMO_SCHEDULE, greetWord(), ScheduleCard(), StudentDashboard(), todayLabel(), AreaChart() (+1 more)
-
-### Community 59 - "Community 59"
-Cohesion: 0.67
-Nodes (3): Backend, Frontend, Technology Stack
 
 ### Community 60 - "Community 60"
 Cohesion: 0.40
 Nodes (3): DOCUMENT_TYPES, EDUCATION_LEVELS, TeacherProfile()
 
 ## Knowledge Gaps
-- **318 isolated node(s):** `name`, `version`, `description`, `main`, `dev` (+313 more)
+- **316 isolated node(s):** `name`, `version`, `description`, `main`, `dev` (+311 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **11 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **12 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `🎓 Student Tracking System — Design Document` connect `Admin Entity Management` to `Community 34`, `Community 36`, `Community 37`, `Community 39`, `Community 59`, `Community 43`, `Community 44`, `Community 27`, `Community 30`?**
+- **Why does `🎓 Student Tracking System — Design Document` connect `Community 27` to `Community 34`, `Community 36`?**
   _High betweenness centrality (0.011) - this node is a cross-community bridge._
-- **Why does `PageHead()` connect `Community 46` to `Analytics & Feedback Dashboard`, `Community 38`, `Community 47`, `Community 48`, `Community 55`, `Community 56`, `Community 24`, `Community 58`, `Community 29`?**
+- **Why does `PageHead()` connect `Community 46` to `Analytics & Feedback Dashboard`, `Community 38`, `Community 8`, `Community 47`, `Community 48`, `Community 54`, `Community 55`, `Community 56`, `Community 24`, `Community 58`, `Community 29`?**
   _High betweenness centrality (0.005) - this node is a cross-community bridge._
-- **Why does `Key Features` connect `Community 34` to `Admin Entity Management`?**
+- **Why does `Key Features` connect `Community 34` to `Community 27`?**
   _High betweenness centrality (0.004) - this node is a cross-community bridge._
 - **What connects `name`, `version`, `description` to the rest of the system?**
-  _329 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _327 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Backend Core & Routes` be split into smaller, more focused modules?**
-  _Cohesion score 0.05493863237872589 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.11857707509881422 - nodes in this community are weakly interconnected._
 - **Should `Frontend Dependencies` be split into smaller, more focused modules?**
   _Cohesion score 0.0625 - nodes in this community are weakly interconnected._
 - **Should `Backend Dependencies` be split into smaller, more focused modules?**

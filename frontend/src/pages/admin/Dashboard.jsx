@@ -3,7 +3,8 @@ import client from '../../api/client';
 import useAuthStore from '../../store/authStore';
 import Icon from '../../components/ui/Icon';
 import { AreaChart, MiniBars } from '../../components/ui/DesignCharts';
-import { StatTile, deptColor } from '../../components/ui/DesignHelpers';
+import { StatTile } from '../../components/ui/DesignHelpers';
+import { deptColor } from '../../components/ui/DesignUtils';
 
 /* ─── Mock chart data (until backend endpoints are added) ─── */
 const MONTHS = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];

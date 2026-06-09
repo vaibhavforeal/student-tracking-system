@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
-import { X } from 'lucide-react';
+import { X, AlertTriangle } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import client from '../../api/client';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import Icon from '../../components/ui/Icon';
-import { PageHead, DeptTag, StatTile } from '../../components/ui/DesignHelpers';
+import { PageHead, DeptTag } from '../../components/ui/DesignHelpers';
 
 export default function ManageSections() {
   const navigate = useNavigate();
@@ -19,6 +19,7 @@ export default function ManageSections() {
   const [filterBatch, setFilterBatch] = useState('');
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState('');
 
   const fetchData = useCallback(async () => {
     try {
@@ -32,13 +33,22 @@ export default function ManageSections() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  const openCreate = () => { setEditing(null); setForm({ name: '', batchId: batches[0]?.id || '' }); setShowModal(true); };
-  const openEdit = (s) => { setEditing(s); setForm({ name: s.name, batchId: s.batchId }); setShowModal(true); };
+  const openCreate = useCallback(() => { setEditing(null); setForm({ name: '', batchId: batches[0]?.id || '' }); setError(''); setShowModal(true); }, [batches]);
+  const openEdit = (s) => { setEditing(s); setForm({ name: s.name, batchId: s.batchId }); setError(''); setShowModal(true); };
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); setSaving(true);
-    try { if (editing) await client.put(`/admin/sections/${editing.id}`, form); else await client.post('/admin/sections', form); setShowModal(false); fetchData(); }
-    catch (err) { alert(err.response?.data?.error || 'Error'); } finally { setSaving(false); }
+    e.preventDefault(); setSaving(true); setError('');
+    try {
+      if (editing) await client.put(`/admin/sections/${editing.id}`, form);
+      else await client.post('/admin/sections', form);
+      setShowModal(false);
+      fetchData();
+    }
+    catch (err) {
+      setError(err.response?.data?.error || 'Error');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDelete = async () => {
@@ -47,7 +57,7 @@ export default function ManageSections() {
     catch (err) { alert(err.response?.data?.error || 'Failed'); } finally { setDeleting(false); }
   };
 
-  useEffect(() => { if (location.state?.openAddModal) { openCreate(); navigate(location.pathname, { replace: true, state: {} }); } }, [location.state, navigate, location.pathname]);
+  useEffect(() => { if (location.state?.openAddModal) { openCreate(); navigate(location.pathname, { replace: true, state: {} }); } }, [location.state, navigate, location.pathname, openCreate]);
 
   if (loading) return <div className="loading-container"><div className="spinner spinner-lg" /></div>;
 
@@ -56,12 +66,6 @@ export default function ManageSections() {
       <PageHead title="Sections" sub="Manage batch sections">
         <button className="rd-btn rd-btn-primary" onClick={openCreate}><Icon name="plus" /> Add Section</button>
       </PageHead>
-
-      {/* ─── Stat tiles ─── */}
-      <div className="rd-stat-grid" style={{ marginBottom: '20px' }}>
-        <StatTile icon="clipboard" label="Total Sections" value={sections.length}
-          tint="var(--info)" soft="var(--info-soft)" delay={0} />
-      </div>
 
       <div className="rd-toolbar">
         <select className="rd-chip-select" value={filterBatch} onChange={e => setFilterBatch(e.target.value)}>
@@ -102,6 +106,7 @@ export default function ManageSections() {
             <div className="modal-header"><h2>{editing ? 'Edit Section' : 'Add Section'}</h2><button className="btn btn-ghost" onClick={() => setShowModal(false)}><X size={20} /></button></div>
             <form onSubmit={handleSubmit}>
               <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+                {error && <div style={{ padding: '10px 14px', borderRadius: 8, backgroundColor: 'var(--bad-soft)', border: '1px solid var(--bad)', color: 'var(--bad)', fontSize: 14, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6 }}><AlertTriangle size={16} /> {error}</div>}
                 <div className="form-group"><label className="form-label">Section Name</label><input className="form-input" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required placeholder="e.g. Section A" /></div>
                 <div className="form-group"><label className="form-label">Batch</label><select className="form-select" value={form.batchId} onChange={e => setForm({ ...form, batchId: e.target.value })} required><option value="">Select Batch</option>{batches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}</select></div>
               </div>

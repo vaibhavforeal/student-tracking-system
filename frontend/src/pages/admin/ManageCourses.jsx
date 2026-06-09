@@ -5,7 +5,8 @@ import client from '../../api/client';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import SyllabusEditor from '../../components/SyllabusEditor';
 import Icon from '../../components/ui/Icon';
-import { PageHead, StatTile, deptColor } from '../../components/ui/DesignHelpers';
+import { PageHead, StatTile } from '../../components/ui/DesignHelpers';
+import { deptColor } from '../../components/ui/DesignUtils';
 
 const EMPTY_FORM = { code: '', name: '', credits: '3', semester: '1', type: 'theory', isMandatory: false, departments: [] };
 
@@ -21,16 +22,6 @@ const TYPE_LABEL = {
   elective: 'Elective'
 };
 
-const getStudentCount = (code) => {
-  if (code.includes('301')) return 142;
-  if (code.includes('402')) return 138;
-  if (code.includes('201')) return 98;
-  if (code.includes('305')) return 74;
-  
-  // Deterministic fallback based on course code digits
-  const num = parseInt(code.replace(/\D/g, '')) || 50;
-  return 60 + (num % 90);
-};
 
 export default function ManageCourses() {
   const navigate = useNavigate();
@@ -43,6 +34,7 @@ export default function ManageCourses() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [filterDept, setFilterDept] = useState('');
+  const [filterSem, setFilterSem] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [searchQ, setSearchQ] = useState('');
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -57,20 +49,23 @@ export default function ManageCourses() {
 
   const fetchData = useCallback(async () => {
     try {
+      const params = {};
+      if (filterDept) params.departmentId = filterDept;
+      if (filterSem) params.semester = filterSem;
       const [courseRes, deptRes] = await Promise.all([
-        client.get('/admin/courses', { params: filterDept ? { departmentId: filterDept } : {} }),
+        client.get('/admin/courses', { params }),
         client.get('/admin/departments'),
       ]);
       setCourses(courseRes.data.courses);
       setDepartments(deptRes.data.departments);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
-  }, [filterDept]);
+  }, [filterDept, filterSem]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
   useEffect(() => { if (error) { const t = setTimeout(() => setError(''), 4000); return () => clearTimeout(t); } }, [error]);
 
-  const openCreate = () => { setEditing(null); setError(''); setActiveTab(0); setForm({ ...EMPTY_FORM, departments: departments.length > 0 ? [{ departmentId: departments[0].id, units: [] }] : [] }); setShowModal(true); };
+  const openCreate = useCallback(() => { setEditing(null); setError(''); setActiveTab(0); setForm({ ...EMPTY_FORM, departments: departments.length > 0 ? [{ departmentId: departments[0].id, units: [] }] : [] }); setShowModal(true); }, [departments]);
   const openEdit = (c) => { setEditing(c); setError(''); setForm({ code: c.code, name: c.name, credits: c.credits.toString(), semester: c.semester.toString(), type: c.type, isMandatory: c.isMandatory, departments: [] }); setShowModal(true); };
 
   const handleSubmit = async (e) => {
@@ -93,7 +88,7 @@ export default function ManageCourses() {
   const toggleMandatory = (val) => { if (val) { setForm({ ...form, isMandatory: true, departments: departments.map(d => ({ departmentId: d.id, units: [] })) }); setActiveTab(0); } else { setForm({ ...form, isMandatory: false, departments: [{ departmentId: departments[0]?.id || '', units: [] }] }); } };
   const copyFromDept = (targetIdx, sourceIdx) => { if (sourceIdx === '' || sourceIdx === undefined) return; const src = form.departments[parseInt(sourceIdx)]; if (!src) return; const updated = form.departments.map((d, i) => i === targetIdx ? { ...d, units: JSON.parse(JSON.stringify(src.units)) } : d); setForm({ ...form, departments: updated }); };
 
-  useEffect(() => { if (location.state?.openAddModal) { openCreate(); navigate(location.pathname, { replace: true, state: {} }); } }, [location.state, navigate, location.pathname]);
+  useEffect(() => { if (location.state?.openAddModal) { openCreate(); navigate(location.pathname, { replace: true, state: {} }); } }, [location.state, navigate, location.pathname, openCreate]);
 
   if (loading) return <div className="loading-container"><div className="spinner spinner-lg" /></div>;
 
@@ -129,6 +124,12 @@ export default function ManageCourses() {
             <option value="">All Departments</option>
             {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
           </select>
+          <select className="rd-chip-select" value={filterSem} onChange={e => setFilterSem(e.target.value)}>
+            <option value="">All Semesters</option>
+            {[1, 2, 3, 4, 5, 6, 7, 8].map(sem => (
+              <option key={sem} value={sem.toString()}>Semester {sem}</option>
+            ))}
+          </select>
         </div>
       </div>
 
@@ -140,7 +141,7 @@ export default function ManageCourses() {
         ) : filtered.map(c => {
           const tb = TYPE_BADGE[c.type] || { color: 'var(--color-gray-600)', bg: 'var(--color-gray-100)' };
           return (
-            <div className="rd-card rd-card-pad fade-up" key={c.id} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div className="rd-card fade-up" key={c.id} style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '12px 16px' }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
                 <span className="rd-badge" style={{ background: '#f3e8ff', color: '#9333ea', fontWeight: 600 }}>{c.code}</span>
                 <div style={{ display: 'flex', gap: 6 }}>
@@ -154,13 +155,13 @@ export default function ManageCourses() {
               </div>
               
               <div>
-                <h3 style={{ fontFamily: 'var(--font-family)', fontWeight: 600, fontSize: '1.2rem', color: 'var(--color-gray-800)', letterSpacing: '-0.3px', margin: '6px 0 0 0', lineHeight: 1.25 }}>
+                <h3 style={{ fontFamily: 'var(--font-family)', fontWeight: 600, fontSize: '1.15rem', color: 'var(--color-gray-800)', letterSpacing: '-0.3px', margin: 0, lineHeight: 1.25 }}>
                   {c.name}
                   {c.isMandatory && <span className="rd-badge" style={{ color: 'var(--accent)', background: 'var(--accent-soft)', fontSize: 11, fontWeight: 600, marginLeft: 8 }}>Mandatory</span>}
                 </h3>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 13, color: 'var(--color-gray-500)', flexWrap: 'wrap', marginTop: 4 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 12.5, color: 'var(--color-gray-500)', flexWrap: 'wrap', marginTop: 0 }}>
                 {(c.departments || []).map((d, idx) => (
                   <span key={d.id || idx} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginRight: 4 }}>
                     <span style={{ width: 8, height: 8, borderRadius: '99px', background: deptColor(d.code) }} />
@@ -175,9 +176,9 @@ export default function ManageCourses() {
                 </span>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--color-gray-100)', paddingTop: 12, marginTop: 'auto', gap: 10 }}>
-                <span style={{ fontSize: 13.5, color: 'var(--color-gray-500)' }}>
-                  <b style={{ color: 'var(--color-gray-800)', fontWeight: 600 }}>{getStudentCount(c.code)}</b> enrolled
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--color-gray-100)', paddingTop: 8, marginTop: 'auto', gap: 10 }}>
+                <span style={{ fontSize: 13, color: 'var(--color-gray-500)' }}>
+                  <b style={{ color: 'var(--color-gray-800)', fontWeight: 600 }}>{c.enrolledCount ?? 0}</b> enrolled
                 </span>
                 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -191,7 +192,7 @@ export default function ManageCourses() {
                     // Open syllabus for department
                     const cd = c.courseDepartments?.[0];
                     if (cd) openSyllabusEditor(c.id, cd.department.id, cd.department.name, cd.units || []);
-                  }} style={{ border: '1px solid var(--color-gray-200)', borderRadius: '30px', padding: '5px 12px', display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12.5, fontWeight: 500, background: 'transparent', color: 'var(--color-gray-700)', cursor: 'pointer' }}>
+                  }} style={{ border: '1px solid var(--color-gray-200)', borderRadius: '30px', padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 500, background: 'transparent', color: 'var(--color-gray-700)', cursor: 'pointer' }}>
                     <Icon name="eye" style={{ width: 14, height: 14, color: 'var(--color-gray-600)' }} /> Details
                   </button>
                 </div>

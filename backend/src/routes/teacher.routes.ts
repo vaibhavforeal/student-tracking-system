@@ -277,14 +277,47 @@ router.get('/my-profile', async (req: Request, res: Response): Promise<void> => 
       documents: { orderBy: { uploadedAt: 'desc' } },
       classAssignments: {
         include: {
-          course: { select: { code: true, name: true, semester: true } },
-          section: { select: { name: true, batch: { select: { name: true, degree: true } } } },
+          course: {
+            select: {
+              id: true,
+              code: true,
+              name: true,
+              courseDepartments: { select: { semester: true, departmentId: true } },
+            },
+          },
+          section: {
+            select: {
+              name: true,
+              batch: { select: { name: true, degree: true, departmentId: true } },
+            },
+          },
         },
       },
     },
   });
   if (!staff) { res.status(404).json({ error: 'Staff profile not found' }); return; }
-  res.json({ staff });
+
+  // Map to maintain backward compatibility for course.semester on the frontend
+  const staffJson = JSON.parse(JSON.stringify(staff));
+  if (staffJson.classAssignments) {
+    staffJson.classAssignments = staffJson.classAssignments.map((ca: any) => {
+      const deptId = ca.section?.batch?.departmentId;
+      const cdMatch = ca.course?.courseDepartments?.find((cd: any) => cd.departmentId === deptId);
+      const derivedSemester = cdMatch ? cdMatch.semester : 1;
+
+      return {
+        ...ca,
+        course: ca.course ? {
+          id: ca.course.id,
+          code: ca.course.code,
+          name: ca.course.name,
+          semester: derivedSemester,
+        } : null,
+      };
+    });
+  }
+
+  res.json({ staff: staffJson });
 });
 
 // ─── TEACHER DASHBOARD & HELPERS ─────────────────────
@@ -299,11 +332,43 @@ router.get('/my-courses', async (req: Request, res: Response): Promise<void> => 
   const assignments = await prisma.classAssignment.findMany({
     where: { staffId: staff.id },
     include: {
-      course: { select: { id: true, code: true, name: true, semester: true, type: true } },
-      section: { select: { id: true, name: true, batch: { select: { name: true, degree: true, startYear: true, endYear: true } } } },
+      course: {
+        select: {
+          id: true,
+          code: true,
+          name: true,
+          type: true,
+          courseDepartments: { select: { semester: true, departmentId: true } },
+        },
+      },
+      section: {
+        select: {
+          id: true,
+          name: true,
+          batch: { select: { name: true, degree: true, startYear: true, endYear: true, departmentId: true } },
+        },
+      },
     },
   });
-  res.json({ assignments, staffId: staff.id });
+
+  const enrichedAssignments = assignments.map((assignment) => {
+    const deptId = assignment.section.batch.departmentId;
+    const cdMatch = assignment.course.courseDepartments.find((cd) => cd.departmentId === deptId);
+    const derivedSemester = cdMatch ? cdMatch.semester : 1;
+
+    return {
+      ...assignment,
+      course: {
+        id: assignment.course.id,
+        code: assignment.course.code,
+        name: assignment.course.name,
+        type: assignment.course.type,
+        semester: derivedSemester,
+      },
+    };
+  });
+
+  res.json({ assignments: enrichedAssignments, staffId: staff.id });
 });
 
 // GET /api/teacher/dashboard-stats

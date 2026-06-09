@@ -127,18 +127,17 @@ export default function GlobalSearch({ isOpen, onClose }) {
       .filter(item => item.score > 0)
       .sort((a, b) => b.score - a.score);
   }, [query, items]);
-
-  // Reset selected index when results change
-  useEffect(() => {
-    setSelectedIndex(0);
-  }, [filtered]);
+  const activeIndex = filtered.length ? Math.min(selectedIndex, filtered.length - 1) : 0;
 
   // Focus input when opened
   useEffect(() => {
     if (isOpen) {
-      setQuery('');
-      setSelectedIndex(0);
-      setTimeout(() => inputRef.current?.focus(), 50);
+      const timer = setTimeout(() => {
+        setQuery('');
+        setSelectedIndex(0);
+        inputRef.current?.focus();
+      }, 50);
+      return () => clearTimeout(timer);
     }
   }, [isOpen]);
 
@@ -160,19 +159,21 @@ export default function GlobalSearch({ isOpen, onClose }) {
   const handleKeyDown = useCallback((e) => {
     if (e.key === 'ArrowDown') {
       e.preventDefault();
+      if (filtered.length === 0) return;
       setSelectedIndex(prev => (prev + 1) % filtered.length);
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
+      if (filtered.length === 0) return;
       setSelectedIndex(prev => (prev - 1 + filtered.length) % filtered.length);
     } else if (e.key === 'Enter') {
       e.preventDefault();
-      if (filtered[selectedIndex]) {
-        handleSelect(filtered[selectedIndex]);
+      if (filtered[activeIndex]) {
+        handleSelect(filtered[activeIndex]);
       }
     } else if (e.key === 'Escape') {
       onClose();
     }
-  }, [filtered, selectedIndex, handleSelect, onClose]);
+  }, [filtered, activeIndex, handleSelect, onClose]);
 
   // Highlight the matched text in the label
   const highlightMatch = (label, q) => {
@@ -202,13 +203,13 @@ export default function GlobalSearch({ isOpen, onClose }) {
             className="gs-input"
             placeholder="Search pages, options, or features…"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => { setQuery(e.target.value); setSelectedIndex(0); }}
             onKeyDown={handleKeyDown}
             autoComplete="off"
             spellCheck={false}
           />
           {query && (
-            <button className="gs-clear" onClick={() => { setQuery(''); inputRef.current?.focus(); }}>
+            <button className="gs-clear" onClick={() => { setQuery(''); setSelectedIndex(0); inputRef.current?.focus(); }}>
               <X className="idata" style={{ width: '14px', height: '14px' }} />
             </button>
           )}
@@ -233,7 +234,7 @@ export default function GlobalSearch({ isOpen, onClose }) {
                 return (
                   <button
                     key={item.to + '-' + item.label}
-                    className={`gs-item ${idx === selectedIndex ? 'gs-active' : ''}`}
+                    className={`gs-item ${idx === activeIndex ? 'gs-active' : ''}`}
                     onClick={() => handleSelect(item)}
                     onMouseEnter={() => setSelectedIndex(idx)}
                   >

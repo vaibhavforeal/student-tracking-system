@@ -101,15 +101,35 @@ export function LabeledBars({ data, height = 240, suffix = '' }) {
 export function PieChart({ data, size = 180 }) {
   const total = data.reduce((s, d) => s + d.value, 0);
   const r = size / 2, ir = r * 0.62, cx = r, cy = r;
-  let acc = 0;
-  const arcs = data.map(d => {
-    const a0 = (acc / total) * Math.PI * 2 - Math.PI / 2;
-    acc += d.value;
-    const a1 = (acc / total) * Math.PI * 2 - Math.PI / 2;
+
+  if (total <= 0) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap', justifyContent: 'center' }}>
+        <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
+          <svg width={size} height={size}>
+            <circle cx={cx} cy={cy} r={r} fill="var(--surface-3)" />
+            <circle cx={cx} cy={cy} r={ir} fill="var(--surface)" />
+          </svg>
+          <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', textAlign: 'center' }}>
+            <div>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: size * 0.18, fontWeight: 600, lineHeight: 1 }}>0</div>
+              <div style={{ fontSize: 11, color: 'var(--faint)', fontWeight: 600 }}>Total</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const arcs = data.map((item, index) => {
+    const start = data.slice(0, index).reduce((sum, d) => sum + d.value, 0);
+    const end = start + item.value;
+    const a0 = (start / total) * Math.PI * 2 - Math.PI / 2;
+    const a1 = (end / total) * Math.PI * 2 - Math.PI / 2;
     const large = a1 - a0 > Math.PI ? 1 : 0;
     const p = (ang, rad) => [cx + Math.cos(ang) * rad, cy + Math.sin(ang) * rad];
     const [x0, y0] = p(a0, r), [x1, y1] = p(a1, r), [x2, y2] = p(a1, ir), [x3, y3] = p(a0, ir);
-    return { d: `M${x0} ${y0} A${r} ${r} 0 ${large} 1 ${x1} ${y1} L${x2} ${y2} A${ir} ${ir} 0 ${large} 0 ${x3} ${y3} Z`, color: d.color };
+    return { d: `M${x0} ${y0} A${r} ${r} 0 ${large} 1 ${x1} ${y1} L${x2} ${y2} A${ir} ${ir} 0 ${large} 0 ${x3} ${y3} Z`, color: item.color };
   });
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap', justifyContent: 'center' }}>

@@ -80,6 +80,14 @@ router.get('/departments', asyncHandler(async (req: Request, res: Response): Pro
           staff: true,
         },
       },
+      staff: {
+        where: { designation: 'HOD', deletedAt: null },
+        include: {
+          user: {
+            select: { name: true },
+          },
+        },
+      },
     },
     orderBy: { name: 'asc' },
   });
@@ -101,7 +109,9 @@ router.get('/departments', asyncHandler(async (req: Request, res: Response): Pro
     if (agg && Number(agg.total) > 0) {
       attendancePercentage = Math.round((Number(agg.present) / Number(agg.total)) * 100);
     }
-    return { ...d, attendancePercentage };
+    const hod = d.staff && d.staff.length > 0 ? d.staff[0] : null;
+    const { staff, ...rest } = d;
+    return { ...rest, hod, attendancePercentage };
   });
 
   res.json({ departments: departmentsWithAttendance });
@@ -134,7 +144,14 @@ router.post('/departments', asyncHandler(async (req: Request, res: Response): Pr
     // Backfill: create empty CourseDepartment rows for every mandatory course
     const mandatoryCourses = await tx.course.findMany({
       where: { isMandatory: true, deletedAt: null },
-      select: { id: true },
+      select: {
+        id: true,
+        courseDepartments: {
+          where: { deletedAt: null },
+          select: { semester: true },
+          take: 1,
+        },
+      },
     });
 
     if (mandatoryCourses.length > 0) {
@@ -142,6 +159,7 @@ router.post('/departments', asyncHandler(async (req: Request, res: Response): Pr
         data: mandatoryCourses.map((c) => ({
           courseId: c.id,
           departmentId: dept.id,
+          semester: c.courseDepartments[0]?.semester ?? 1,
         })),
       });
     }
@@ -160,13 +178,26 @@ router.get('/departments/:id', asyncHandler(async (req: Request, res: Response):
       batches: { where: { deletedAt: null } },
       courseDepartments: {
         where: { deletedAt: null },
-        include: { course: { select: { id: true, code: true, name: true, type: true, semester: true, credits: true, isMandatory: true } } },
+        include: { course: { select: { id: true, code: true, name: true, type: true, credits: true, isMandatory: true } } },
       },
       staff: { where: { deletedAt: null }, include: { user: { select: { name: true, email: true } } } },
     },
   });
   if (!department) { res.status(404).json({ error: 'Department not found' }); return; }
-  res.json({ department });
+
+  // Map to maintain backward compatibility for cd.course.semester on the frontend
+  const deptJson = JSON.parse(JSON.stringify(department));
+  if (deptJson.courseDepartments) {
+    deptJson.courseDepartments = deptJson.courseDepartments.map((cd: any) => ({
+      ...cd,
+      course: cd.course ? {
+        ...cd.course,
+        semester: cd.semester,
+      } : null,
+    }));
+  }
+
+  res.json({ department: deptJson });
 }));
 
 // PUT /api/admin/departments/:id
@@ -276,19 +307,61 @@ router.get('/sections', asyncHandler(async (req: Request, res: Response): Promis
 // POST /api/admin/sections
 router.post('/sections', asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { name, batchId } = req.body;
-  if (!name || !batchId) { res.status(400).json({ error: 'Name and batch are required' }); return; }
-  const section = await prisma.section.create({ data: { name, batchId } });
-  res.status(201).json({ section });
+  const normalisedName = name?.trim().toUpperCase();
+
+  if (!normalisedName || !batchId) {
+    res.status(400).json({ error: 'Name and batchId are required' });
+    return;
+  }
+
+  try {
+    const section = await prisma.section.create({
+      data: { name: normalisedName, batchId },
+    });
+    res.status(201).json({ section });
+  } catch (e: any) {
+    if (e.code === 'P2002') {
+      res.status(409).json({
+        error: `Section '${normalisedName}' already exists in this batch`,
+      });
+      return;
+    }
+    throw e;
+  }
 }));
 
 // PUT /api/admin/sections/:id
 router.put('/sections/:id', asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { name, batchId } = req.body;
-  const section = await prisma.section.update({
-    where: { id: param(req.params.id) },
-    data: { ...(name && { name }), ...(batchId && { batchId }) },
-  });
-  res.json({ section });
+  const sectionId = param(req.params.id);
+
+  const existingSection = await prisma.section.findUnique({ where: { id: sectionId } });
+  if (!existingSection) {
+    res.status(404).json({ error: 'Section not found' });
+    return;
+  }
+
+  const targetName = name ? name.trim().toUpperCase() : existingSection.name;
+  const targetBatchId = batchId || existingSection.batchId;
+
+  try {
+    const section = await prisma.section.update({
+      where: { id: sectionId },
+      data: {
+        ...(name && { name: targetName }),
+        ...(batchId && { batchId: targetBatchId }),
+      },
+    });
+    res.json({ section });
+  } catch (e: any) {
+    if (e.code === 'P2002') {
+      res.status(409).json({
+        error: `Section '${targetName}' already exists in this batch`,
+      });
+      return;
+    }
+    throw e;
+  }
 }));
 
 // DELETE /api/admin/sections/:id
@@ -306,8 +379,15 @@ router.get('/courses', asyncHandler(async (req: Request, res: Response): Promise
   const needsSyllabus = qs(req.query.needsSyllabus); // departmentId filter for "needs syllabus" view
 
   const where: any = { deletedAt: null };
-  if (semester) where.semester = parseInt(semester);
-  if (departmentId) {
+  if (semester) {
+    where.courseDepartments = {
+      some: {
+        semester: parseInt(semester),
+        deletedAt: null,
+        ...(departmentId ? { departmentId } : {}),
+      },
+    };
+  } else if (departmentId) {
     where.courseDepartments = { some: { departmentId, deletedAt: null } };
   }
 
@@ -322,17 +402,46 @@ router.get('/courses', asyncHandler(async (req: Request, res: Response): Promise
         },
       },
     },
-    orderBy: [{ semester: 'asc' }, { name: 'asc' }],
+    orderBy: [{ name: 'asc' }],
   });
 
-  // Enrich each course with department names and needsSyllabusCount
-  const enriched = courses.map((c) => {
+  // Enrich each course with department names, needsSyllabusCount, and real-time enrolled student count
+  const enriched = await Promise.all(courses.map(async (c) => {
     const needsSyllabusCount = c.courseDepartments.filter((cd) => cd._count.units === 0).length;
+    
+    const cdMatch = departmentId
+      ? c.courseDepartments.find((cd) => cd.departmentId === departmentId)
+      : c.courseDepartments[0];
+    const derivedSemester = cdMatch ? cdMatch.semester : 1;
+
+    const enrolledCount = await prisma.student.count({
+      where: {
+        deletedAt: null,
+        status: 'active',
+        semester: derivedSemester,
+        ...(c.isMandatory ? {} : {
+          batch: {
+            departmentId: {
+              in: c.courseDepartments.map(cd => cd.departmentId)
+            }
+          }
+        })
+      }
+    });
+
     return {
       ...c,
+      semester: derivedSemester,
       departments: c.courseDepartments.map((cd) => cd.department),
       needsSyllabusCount,
+      enrolledCount,
     };
+  }));
+
+  // Sort by semester asc, then name asc
+  enriched.sort((a, b) => {
+    if (a.semester !== b.semester) return a.semester - b.semester;
+    return a.name.localeCompare(b.name);
   });
 
   // Optional: filter to only courses that need syllabus for a specific department
@@ -385,7 +494,6 @@ router.post('/courses', asyncHandler(async (req: Request, res: Response): Promis
         code: upperCode,
         name,
         credits: parseInt(credits),
-        semester: parseInt(semester),
         type,
         isMandatory: mandatory,
       },
@@ -404,7 +512,7 @@ router.post('/courses', asyncHandler(async (req: Request, res: Response): Promis
         if (!providedDeptIds.has(dept.id)) {
           // Auto-create empty CourseDepartment ("needs syllabus" state)
           await tx.courseDepartment.create({
-            data: { courseId: newCourse.id, departmentId: dept.id },
+            data: { courseId: newCourse.id, departmentId: dept.id, semester: parseInt(semester) },
           });
         }
       }
@@ -413,7 +521,7 @@ router.post('/courses', asyncHandler(async (req: Request, res: Response): Promis
     // Create CourseDepartment rows for provided departments (with optional syllabus)
     for (const dept of departments) {
       const cd = await tx.courseDepartment.create({
-        data: { courseId: newCourse.id, departmentId: dept.departmentId },
+        data: { courseId: newCourse.id, departmentId: dept.departmentId, semester: parseInt(semester) },
       });
 
       // Create syllabus units + topics if provided
@@ -458,7 +566,13 @@ router.post('/courses', asyncHandler(async (req: Request, res: Response): Promis
     },
   });
 
-  res.status(201).json({ course: full });
+  // Maintain backward compatibility by enriching full response
+  const fullEnriched = full ? {
+    ...full,
+    semester: parseInt(semester),
+  } : null;
+
+  res.status(201).json({ course: fullEnriched });
 }));
 
 // PUT /api/admin/courses/:id — edit shared fields only
@@ -471,13 +585,22 @@ router.put('/courses/:id', asyncHandler(async (req: Request, res: Response): Pro
     return;
   }
 
+  const courseId = param(req.params.id);
+
+  // Update related CourseDepartment semesters first if semester is provided
+  if (semester) {
+    await prisma.courseDepartment.updateMany({
+      where: { courseId, deletedAt: null },
+      data: { semester: parseInt(semester) },
+    });
+  }
+
   const course = await prisma.course.update({
-    where: { id: param(req.params.id) },
+    where: { id: courseId },
     data: {
       ...(code && { code: code.toUpperCase() }),
       ...(name && { name }),
       ...(credits && { credits: parseInt(credits) }),
-      ...(semester && { semester: parseInt(semester) }),
       ...(type && { type }),
     },
     include: {
@@ -490,7 +613,16 @@ router.put('/courses/:id', asyncHandler(async (req: Request, res: Response): Pro
       },
     },
   });
-  res.json({ course });
+
+  const derivedSemester = course.courseDepartments[0]?.semester || 1;
+
+  res.json({
+    course: {
+      ...course,
+      semester: derivedSemester,
+      departments: course.courseDepartments.map((cd) => cd.department),
+    }
+  });
 }));
 
 // DELETE /api/admin/courses/:id (soft delete course + its CourseDepartment rows)
@@ -531,8 +663,15 @@ router.put('/courses/:courseId/departments/:departmentId/syllabus', asyncHandler
     if (!course) { res.status(404).json({ error: 'Course not found' }); return; }
     if (!dept) { res.status(404).json({ error: 'Department not found' }); return; }
 
+    // Fetch another department mapping for this course to copy the semester, fallback to 1
+    const existingCD = await prisma.courseDepartment.findFirst({
+      where: { courseId, deletedAt: null },
+      select: { semester: true }
+    });
+    const semesterVal = existingCD?.semester || 1;
+
     cd = await prisma.courseDepartment.create({
-      data: { courseId, departmentId },
+      data: { courseId, departmentId, semester: semesterVal },
     });
   }
 
@@ -763,14 +902,47 @@ router.get('/staff/:id', asyncHandler(async (req: Request, res: Response): Promi
       documents: { orderBy: { uploadedAt: 'desc' } },
       classAssignments: {
         include: {
-          course: { select: { code: true, name: true, semester: true } },
-          section: { select: { name: true, batch: { select: { name: true, degree: true } } } },
+          course: {
+            select: {
+              id: true,
+              code: true,
+              name: true,
+              courseDepartments: { select: { semester: true, departmentId: true } },
+            },
+          },
+          section: {
+            select: {
+              name: true,
+              batch: { select: { name: true, degree: true, departmentId: true } },
+            },
+          },
         },
       },
     },
   });
   if (!staff) { res.status(404).json({ error: 'Staff not found' }); return; }
-  res.json({ staff });
+
+  // Map to maintain backward compatibility for course.semester on the frontend
+  const staffJson = JSON.parse(JSON.stringify(staff));
+  if (staffJson && staffJson.classAssignments) {
+    staffJson.classAssignments = staffJson.classAssignments.map((ca: any) => {
+      const deptId = ca.section?.batch?.departmentId;
+      const cdMatch = ca.course?.courseDepartments?.find((cd: any) => cd.departmentId === deptId);
+      const derivedSemester = cdMatch ? cdMatch.semester : 1;
+
+      return {
+        ...ca,
+        course: ca.course ? {
+          id: ca.course.id,
+          code: ca.course.code,
+          name: ca.course.name,
+          semester: derivedSemester,
+        } : null,
+      };
+    });
+  }
+
+  res.json({ staff: staffJson });
 }));
 
 // PUT /api/admin/staff/:id/personal — upsert personal details
@@ -1016,7 +1188,7 @@ router.post('/students', asyncHandler(async (req: Request, res: Response): Promi
   }
 
   // Check for existing student with same enrollment number
-  const existingStudent = await prisma.student.findUnique({ where: { enrollmentNo } });
+  const existingStudent = await prisma.student.findFirst({ where: { enrollmentNo: { equals: enrollmentNo, mode: 'insensitive' } } });
   if (existingStudent && !existingStudent.deletedAt) {
     res.status(409).json({ error: `A student with enrollment number "${enrollmentNo}" already exists` });
     return;
@@ -2103,13 +2275,64 @@ router.delete('/trash/:type/:id', asyncHandler(async (req: Request, res: Respons
   await prisma.$transaction(async (tx) => {
     switch (type) {
       case 'departments': {
-        // Check for active children
-        const activeBatches = await tx.batch.count({ where: { departmentId: id, deletedAt: null } });
-        const activeCourseDepts = await tx.courseDepartment.count({ where: { departmentId: id, deletedAt: null } });
-        const activeStaff = await tx.staff.count({ where: { departmentId: id, deletedAt: null } });
-        if (activeBatches > 0 || activeCourseDepts > 0 || activeStaff > 0) {
-          throw new Error('Cannot delete department — it still has active batches, courses, or staff');
+        // Get all soft-deleted batches in this department
+        const batches = await tx.batch.findMany({ where: { departmentId: id } });
+        const batchIds = batches.map(b => b.id);
+
+        if (batchIds.length > 0) {
+          // Get all sections in these batches
+          const sections = await tx.section.findMany({ where: { batchId: { in: batchIds } } });
+          const sectionIds = sections.map(s => s.id);
+
+          // Get all students in these batches
+          const students = await tx.student.findMany({ where: { batchId: { in: batchIds } } });
+          const studentIds = students.map(s => s.id);
+
+          if (studentIds.length > 0) {
+            // Delete student sub-entities
+            await tx.mark.deleteMany({ where: { studentId: { in: studentIds } } });
+            await tx.attendance.deleteMany({ where: { studentId: { in: studentIds } } });
+            await tx.studentHealth.deleteMany({ where: { studentId: { in: studentIds } } });
+            await tx.studentSkill.deleteMany({ where: { studentId: { in: studentIds } } });
+            await tx.parent.deleteMany({ where: { studentId: { in: studentIds } } });
+            await tx.financialAid.deleteMany({ where: { studentId: { in: studentIds } } });
+            await tx.previousEducation.deleteMany({ where: { studentId: { in: studentIds } } });
+            await tx.studentHobby.deleteMany({ where: { studentId: { in: studentIds } } });
+            await tx.skillCourseEnrollment.deleteMany({ where: { studentId: { in: studentIds } } });
+            await tx.notificationLog.deleteMany({ where: { studentId: { in: studentIds } } });
+            await tx.studentFeedback.deleteMany({ where: { studentId: { in: studentIds } } });
+
+            // Delete student user records
+            const studentUserIds = students.map(s => s.userId).filter(Boolean);
+            await tx.student.deleteMany({ where: { id: { in: studentIds } } });
+            await tx.user.deleteMany({ where: { id: { in: studentUserIds } } });
+          }
+
+          if (sectionIds.length > 0) {
+            await tx.classAssignment.deleteMany({ where: { sectionId: { in: sectionIds } } });
+            await tx.section.deleteMany({ where: { id: { in: sectionIds } } });
+          }
+
+          await tx.batch.deleteMany({ where: { id: { in: batchIds } } });
         }
+
+        // Get all soft-deleted staff in this department
+        const staffList = await tx.staff.findMany({ where: { departmentId: id } });
+        const staffIds = staffList.map(s => s.id);
+
+        if (staffIds.length > 0) {
+          await tx.mark.deleteMany({ where: { gradedBy: { in: staffIds } } });
+          await tx.attendance.deleteMany({ where: { markedBy: { in: staffIds } } });
+          await tx.classAssignment.deleteMany({ where: { staffId: { in: staffIds } } });
+          await tx.staffEducation.deleteMany({ where: { staffId: { in: staffIds } } });
+          await tx.staffDocument.deleteMany({ where: { staffId: { in: staffIds } } });
+          await tx.staffPersonalDetail.deleteMany({ where: { staffId: { in: staffIds } } });
+          
+          const staffUserIds = staffList.map(s => s.userId).filter(Boolean);
+          await tx.staff.deleteMany({ where: { id: { in: staffIds } } });
+          await tx.user.deleteMany({ where: { id: { in: staffUserIds } } });
+        }
+
         // Clean up any soft-deleted courseDepartment rows for this department
         await tx.courseDepartment.deleteMany({ where: { departmentId: id } });
         await tx.department.delete({ where: { id } });
@@ -2117,20 +2340,68 @@ router.delete('/trash/:type/:id', asyncHandler(async (req: Request, res: Respons
       }
 
       case 'batches': {
-        const activeStudents = await tx.student.count({ where: { batchId: id, deletedAt: null } });
-        const activeSections = await tx.section.count({ where: { batchId: id, deletedAt: null } });
-        if (activeStudents > 0 || activeSections > 0) {
-          throw new Error('Cannot delete batch — it still has active students or sections');
+        // Get all sections in this batch
+        const sections = await tx.section.findMany({ where: { batchId: id } });
+        const sectionIds = sections.map(s => s.id);
+
+        // Get all students in this batch
+        const students = await tx.student.findMany({ where: { batchId: id } });
+        const studentIds = students.map(s => s.id);
+
+        if (studentIds.length > 0) {
+          // Delete student sub-entities
+          await tx.mark.deleteMany({ where: { studentId: { in: studentIds } } });
+          await tx.attendance.deleteMany({ where: { studentId: { in: studentIds } } });
+          await tx.studentHealth.deleteMany({ where: { studentId: { in: studentIds } } });
+          await tx.studentSkill.deleteMany({ where: { studentId: { in: studentIds } } });
+          await tx.parent.deleteMany({ where: { studentId: { in: studentIds } } });
+          await tx.financialAid.deleteMany({ where: { studentId: { in: studentIds } } });
+          await tx.previousEducation.deleteMany({ where: { studentId: { in: studentIds } } });
+          await tx.studentHobby.deleteMany({ where: { studentId: { in: studentIds } } });
+          await tx.skillCourseEnrollment.deleteMany({ where: { studentId: { in: studentIds } } });
+          await tx.notificationLog.deleteMany({ where: { studentId: { in: studentIds } } });
+          await tx.studentFeedback.deleteMany({ where: { studentId: { in: studentIds } } });
+
+          // Delete student user records
+          const studentUserIds = students.map(s => s.userId).filter(Boolean);
+          await tx.student.deleteMany({ where: { id: { in: studentIds } } });
+          await tx.user.deleteMany({ where: { id: { in: studentUserIds } } });
         }
+
+        if (sectionIds.length > 0) {
+          await tx.classAssignment.deleteMany({ where: { sectionId: { in: sectionIds } } });
+          await tx.section.deleteMany({ where: { id: { in: sectionIds } } });
+        }
+
         await tx.batch.delete({ where: { id } });
         break;
       }
 
       case 'sections': {
-        const activeStudents = await tx.student.count({ where: { sectionId: id, deletedAt: null } });
-        if (activeStudents > 0) {
-          throw new Error('Cannot delete section — it still has active students');
+        // Get all students in this section
+        const students = await tx.student.findMany({ where: { sectionId: id } });
+        const studentIds = students.map(s => s.id);
+
+        if (studentIds.length > 0) {
+          // Delete student sub-entities
+          await tx.mark.deleteMany({ where: { studentId: { in: studentIds } } });
+          await tx.attendance.deleteMany({ where: { studentId: { in: studentIds } } });
+          await tx.studentHealth.deleteMany({ where: { studentId: { in: studentIds } } });
+          await tx.studentSkill.deleteMany({ where: { studentId: { in: studentIds } } });
+          await tx.parent.deleteMany({ where: { studentId: { in: studentIds } } });
+          await tx.financialAid.deleteMany({ where: { studentId: { in: studentIds } } });
+          await tx.previousEducation.deleteMany({ where: { studentId: { in: studentIds } } });
+          await tx.studentHobby.deleteMany({ where: { studentId: { in: studentIds } } });
+          await tx.skillCourseEnrollment.deleteMany({ where: { studentId: { in: studentIds } } });
+          await tx.notificationLog.deleteMany({ where: { studentId: { in: studentIds } } });
+          await tx.studentFeedback.deleteMany({ where: { studentId: { in: studentIds } } });
+
+          // Delete student user records
+          const studentUserIds = students.map(s => s.userId).filter(Boolean);
+          await tx.student.deleteMany({ where: { id: { in: studentIds } } });
+          await tx.user.deleteMany({ where: { id: { in: studentUserIds } } });
         }
+
         await tx.classAssignment.deleteMany({ where: { sectionId: id } });
         await tx.section.delete({ where: { id } });
         break;

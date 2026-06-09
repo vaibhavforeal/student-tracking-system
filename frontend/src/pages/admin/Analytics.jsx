@@ -141,9 +141,10 @@ export default function Analytics() {
               className="rd-card rd-card-pad"
               style={{ textAlign: 'left', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 9,
                 border: `1.5px solid ${activeAiTab === action.type ? 'var(--accent)' : 'var(--border)'}`,
-                background: activeAiTab === action.type ? 'var(--accent-soft)' : 'var(--surface)' }}>
+                background: activeAiTab === action.type ? 'var(--accent-soft)' : 'var(--surface)',
+                color: 'inherit' }}>
               <div className="rd-stat-ico" style={{ background: activeAiTab === action.type ? 'var(--surface)' : 'var(--accent-soft)', color: 'var(--accent)' }}><Icon name={action.icon} /></div>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14.5 }}>{action.title}</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14.5, color: 'var(--color-gray-900)' }}>{action.title}</div>
               <div style={{ fontSize: 12.5, color: 'var(--muted)', lineHeight: 1.4 }}>{action.desc}</div>
               {aiLoading === action.type && <div className="spinner" style={{ marginTop: 4 }} />}
             </button>

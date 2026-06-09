@@ -26,6 +26,7 @@ const adminNavGroups = [
       { to: '/admin/staff', icon: 'users', label: 'Staff' },
       { to: '/admin/departments', icon: 'building', label: 'Departments' },
       { to: '/admin/batches', icon: 'layers', label: 'Batches' },
+      { to: '/admin/sections', icon: 'clipboard', label: 'Sections' },
       { to: '/admin/courses', icon: 'book', label: 'Courses' },
       { to: '/admin/assignments', icon: 'link', label: 'Class Mapping' },
       { to: '/admin/skill-courses', icon: 'bulb', label: 'Skill Courses' },

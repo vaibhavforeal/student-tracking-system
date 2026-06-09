@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Menu, Bell, ArrowLeft, Mail, MessageSquare, ScanBarcode, Search } from 'lucide-react';
 import useAuthStore from '../../store/authStore';

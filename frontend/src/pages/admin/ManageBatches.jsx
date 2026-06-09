@@ -34,7 +34,7 @@ export default function ManageBatches() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  const openCreate = () => { setEditing(null); setForm({ name: '', departmentId: departments[0]?.id || '', degree: '', startYear: new Date().getFullYear().toString(), endYear: (new Date().getFullYear() + 4).toString() }); setShowModal(true); };
+  const openCreate = useCallback(() => { setEditing(null); setForm({ name: '', departmentId: departments[0]?.id || '', degree: '', startYear: new Date().getFullYear().toString(), endYear: (new Date().getFullYear() + 4).toString() }); setShowModal(true); }, [departments]);
   const openEdit = (b) => { setEditing(b); setForm({ name: b.name, departmentId: b.departmentId, degree: b.degree, startYear: b.startYear.toString(), endYear: b.endYear.toString() }); setShowModal(true); };
 
   const handleSubmit = async (e) => {
@@ -49,7 +49,7 @@ export default function ManageBatches() {
     catch (err) { alert(err.response?.data?.error || 'Failed to delete batch'); } finally { setDeleting(false); }
   };
 
-  useEffect(() => { if (location.state?.openAddModal) { openCreate(); navigate(location.pathname, { replace: true, state: {} }); } }, [location.state, navigate, location.pathname]);
+  useEffect(() => { if (location.state?.openAddModal) { openCreate(); navigate(location.pathname, { replace: true, state: {} }); } }, [location.state, navigate, location.pathname, openCreate]);
 
   if (loading) return <div className="loading-container"><div className="spinner spinner-lg" /></div>;
 

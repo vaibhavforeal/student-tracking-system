@@ -4,7 +4,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import client from '../../api/client';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import Icon from '../../components/ui/Icon';
-import { PageHead, deptColor, Meter } from '../../components/ui/DesignHelpers';
+import { PageHead, Meter } from '../../components/ui/DesignHelpers';
+import { deptColor } from '../../components/ui/DesignUtils';
 
 export default function ManageDepartments() {
   const [departments, setDepartments] = useState([]);

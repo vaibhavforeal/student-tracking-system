@@ -1,5 +1,4 @@
 import { useState, useCallback } from 'react';
-import { useLocation } from 'react-router-dom';
 import { CheckCircle2, XCircle, GraduationCap } from 'lucide-react';
 import BarcodeScanner from '../../components/BarcodeScanner';
 import client from '../../api/client';
@@ -8,9 +7,6 @@ import {
 } from 'react-icons/hi';
 
 export default function VerifyStudent() {
-  const location = useLocation();
-  const isTeacher = location.pathname.startsWith('/teacher');
-
   const [manualInput, setManualInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null); // { verified, student, error }

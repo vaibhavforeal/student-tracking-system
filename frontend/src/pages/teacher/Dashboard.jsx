@@ -4,7 +4,7 @@ import client from '../../api/client';
 import useAuthStore from '../../store/authStore';
 import Icon from '../../components/ui/Icon';
 import { AreaChart, LabeledBars } from '../../components/ui/DesignCharts';
-import { hueFor, StatTile, MiniAvatar, Meter } from '../../components/ui/DesignHelpers';
+import { StatTile, MiniAvatar, Meter } from '../../components/ui/DesignHelpers';
 import './TeacherDashboard.css';
 
 /* ═══════ Mock data — matches the design prototype exactly ═══════ */

@@ -6,22 +6,28 @@ const prisma = new PrismaClient();
 async function seed() {
   console.log('🌱 Seeding database...\n');
 
-  // ─── Default Admin User ──────────────────────────────
-  const adminEmail = 'admin@sts.com';
-  const existingAdmin = await prisma.user.findFirst({ where: { email: { equals: adminEmail, mode: 'insensitive' } } });
+  // ─── Default Admin Users ──────────────────────────────
+  const adminsToSeed = [
+    { email: 'admin@sts.com', name: 'System Administrator' },
+    { email: 'admin@nes.com', name: 'NES Administrator' }
+  ];
 
-  if (!existingAdmin) {
-    const admin = await prisma.user.create({
-      data: {
-        email: adminEmail,
-        passwordHash: await hashPassword('admin123'),
-        role: 'admin',
-        name: 'System Administrator',
-      },
-    });
-    console.log(`✅ Admin user created: ${admin.email} (password: admin123)`);
-  } else {
-    console.log(`ℹ️  Admin user already exists: ${adminEmail}`);
+  for (const adminData of adminsToSeed) {
+    const existingAdmin = await prisma.user.findFirst({ where: { email: { equals: adminData.email, mode: 'insensitive' } } });
+
+    if (!existingAdmin) {
+      const admin = await prisma.user.create({
+        data: {
+          email: adminData.email,
+          passwordHash: await hashPassword('admin123'),
+          role: 'admin',
+          name: adminData.name,
+        },
+      });
+      console.log(`✅ Admin user created: ${admin.email} (password: admin123)`);
+    } else {
+      console.log(`ℹ️  Admin user already exists: ${adminData.email}`);
+    }
   }
 
   // ─── Sample Department ───────────────────────────────
@@ -59,13 +65,12 @@ async function seed() {
         code: 'CS101',
         name: 'Introduction to Programming',
         credits: 4,
-        semester: 1,
         type: 'theory',
       },
     });
-    // Link course to department
+    // Link course to department with semester
     await prisma.courseDepartment.create({
-      data: { courseId: course.id, departmentId: dept.id },
+      data: { courseId: course.id, departmentId: dept.id, semester: 1 },
     });
     console.log(`✅ Sample course created: ${course.code} - ${course.name}`);
   } else {

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import client from '../../api/client';
 import useAuthStore from '../../store/authStore';
 import Icon from '../../components/ui/Icon';
-import { PageHead, MiniAvatar, hueFor, StatTile } from '../../components/ui/DesignHelpers';
+import { PageHead, MiniAvatar, StatTile } from '../../components/ui/DesignHelpers';
 import { AreaChart, Donut } from '../../components/ui/StudentCharts';
 
 /* ── Static demo data (schedule & deadlines — no backend API yet) ── */
@@ -241,7 +241,6 @@ export default function StudentDashboard() {
   const semester = stats?.currentSemester || profile?.semester || '—';
   const sectionName = profile?.section?.name || '—';
   const enrollmentNo = profile?.enrollmentNo || '';
-  const degree = profile?.batch?.degree ? `${profile.batch.degree} — ${profile.batch?.department?.name || ''}` : '';
 
   return (
     <div className="rd-content-inner">

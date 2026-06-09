@@ -19,8 +19,8 @@ router.get(
     try {
       const enrollmentNo = req.params.enrollmentNo as string;
 
-      const student = (await prisma.student.findUnique({
-        where: { enrollmentNo },
+      const student = (await prisma.student.findFirst({
+        where: { enrollmentNo: { equals: enrollmentNo, mode: 'insensitive' } },
         select: {
           id: true,
           enrollmentNo: true,

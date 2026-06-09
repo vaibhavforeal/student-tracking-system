@@ -4,7 +4,8 @@ import { X } from 'lucide-react';
 import client from '../../api/client';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import Icon from '../../components/ui/Icon';
-import { PageHead, MiniAvatar, DeptTag, StatusBadge, initials } from '../../components/ui/DesignHelpers';
+import { PageHead, MiniAvatar, DeptTag, StatusBadge } from '../../components/ui/DesignHelpers';
+import { initials } from '../../components/ui/DesignUtils';
 
 const API_BASE = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
 

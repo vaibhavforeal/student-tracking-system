@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Check } from 'lucide-react';
 import client from '../../api/client';
 import Icon from '../../components/ui/Icon';
-import { PageHead, MiniAvatar, initials } from '../../components/ui/DesignHelpers';
+import { PageHead, MiniAvatar } from '../../components/ui/DesignHelpers';
 
 const CATEGORIES = [
   { value: 'all', label: 'All Categories' },

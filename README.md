@@ -112,7 +112,7 @@ npm run seed
 ```
 
 Default admin credentials after seeding:
-- **Email:** `admin@sts.com`
+- **Email:** `admin@sts.com` or `admin@nes.com`
 - **Password:** `admin123`
 
 ### 7. Start the Application

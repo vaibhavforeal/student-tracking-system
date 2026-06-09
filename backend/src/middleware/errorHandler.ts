@@ -46,8 +46,16 @@ export function errorHandler(err: any, req: Request, res: Response, next: NextFu
     return;
   }
 
+  // Custom client errors (e.g., status < 500)
+  if (err.status && err.status < 500) {
+    res.status(err.status).json({
+      error: err.message || 'Bad request',
+    });
+    return;
+  }
+
   // Default server error
-  res.status(err.status || 500).json({
+  res.status(500).json({
     error: 'Internal server error',
     message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong',
   });

@@ -24,8 +24,8 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
       }
 
       // Find student by enrollment number
-      const student = await prisma.student.findUnique({
-        where: { enrollmentNo },
+      const student = await prisma.student.findFirst({
+        where: { enrollmentNo: { equals: enrollmentNo, mode: 'insensitive' } },
         select: {
           dob: true,
           userId: true,

@@ -20,6 +20,7 @@ export default function Reports() {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState('success');
 
   useEffect(() => { loadFilterData(); }, []);
 
@@ -34,11 +35,11 @@ export default function Reports() {
     } catch { /* filters empty */ }
   };
 
-  const handleSelectReport = (report) => { setSelectedReport(report); setFilters({}); setMessage(''); };
+  const handleSelectReport = (report) => { setSelectedReport(report); setFilters({}); setMessage(''); setMessageType('success'); };
   const handleFilterChange = (key, value) => { setFilters(prev => ({ ...prev, [key]: value })); };
 
   const handleGenerate = async () => {
-    if (!selectedReport) return; setLoading(true); setMessage('');
+    if (!selectedReport) return; setLoading(true); setMessage(''); setMessageType('success');
     try {
       const params = new URLSearchParams(); params.append('format', format);
       Object.entries(filters).forEach(([key, val]) => { if (val) params.append(key === 'batch' ? 'batchId' : key === 'section' ? 'sectionId' : key === 'course' ? 'courseId' : key, val); });

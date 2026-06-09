@@ -5,7 +5,7 @@
 import Icon from './Icon';
 
 /* Department hue map (code → background color string) */
-export const DEPT_HUE = {
+const DEPT_HUE = {
   indigo: '#5b54e6',
   teal: '#19a89a',
   amber: '#c98a1e',
@@ -14,23 +14,18 @@ export const DEPT_HUE = {
 };
 
 /* Map department code → hue key */
-export const deptHueKey = (code) =>
+const deptHueKey = (code) =>
   ({ CSE: 'indigo', ECE: 'teal', MECH: 'amber', CIVIL: 'rose', IT: 'violet' }[code] || 'indigo');
 
 /* Get actual color for a department code */
-export const deptColor = (code) => DEPT_HUE[deptHueKey(code)] || 'var(--accent)';
+const deptColor = (code) => DEPT_HUE[deptHueKey(code)] || 'var(--accent)';
 
 /* Deterministic avatar color from a string */
-export const AVATAR_HUES = ['#5b54e6', '#19a89a', '#c98a1e', '#d2553f', '#9b3d8f', '#3b7ec9', '#2f9968'];
-export function hueFor(str) {
+const AVATAR_HUES = ['#5b54e6', '#19a89a', '#c98a1e', '#d2553f', '#9b3d8f', '#3b7ec9', '#2f9968'];
+function hueFor(str) {
   let h = 0;
   for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) % AVATAR_HUES.length;
   return AVATAR_HUES[h];
-}
-
-/* Initials from first + last name */
-export function initials(f, l) {
-  return `${(f || '')[0] || ''}${(l || '')[0] || ''}`.toUpperCase();
 }
 
 /* Reusable page section header */

@@ -93,12 +93,12 @@ export default function ManageSkillCourses() {
   useEffect(() => { if (error) { const t = setTimeout(() => setError(''), 4000); return () => clearTimeout(t); } }, [error]);
   useEffect(() => { if (catError) { const t = setTimeout(() => setCatError(''), 4000); return () => clearTimeout(t); } }, [catError]);
 
-  const openCreate = () => {
+  const openCreate = useCallback(() => {
     setEditing(null);
     setError('');
     setForm({ title: '', description: '', categoryId: categories[0]?.id || '', difficulty: 'beginner', duration: '', provider: '', link: '' });
     setShowModal(true);
-  };
+  }, [categories]);
   const openEdit = (c) => {
     setEditing(c);
     setError('');
@@ -186,7 +186,7 @@ export default function ManageSkillCourses() {
       setShowCatModal(true);
       navigate(location.pathname, { replace: true, state: {} });
     }
-  }, [location.state, navigate, location.pathname]);
+  }, [location.state, navigate, location.pathname, openCreate]);
 
   if (loading) return <div className="loading-container"><div className="spinner spinner-lg" /></div>;
 

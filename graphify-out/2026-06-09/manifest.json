@@ -235,8 +235,8 @@
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\pages\\admin\\Analytics.jsx": {
-    "mtime": 1780958598.9653747,
-    "ast_hash": "8767d7a2f4babbf1207abc6e1de93e31",
+    "mtime": 1780644657.5423856,
+    "ast_hash": "d46be5b3ae8a67412dd639277fe28675",
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\pages\\admin\\Dashboard.jsx": {
@@ -577,11 +577,6 @@
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\backend\\prisma\\migrations\\20260608222100_move_semester_to_coursedept\\migration.sql": {
     "mtime": 1780957267.8249123,
     "ast_hash": "57dfad1f630c29fd1286c6bf442ce199",
-    "semantic_hash": ""
-  },
-  "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\backend\\src\\seed-all.ts": {
-    "mtime": 1780957740.0211701,
-    "ast_hash": "3a81b48e82c5708a4d88fc7ea2278f91",
     "semantic_hash": ""
   }
 }

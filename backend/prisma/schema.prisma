@@ -160,6 +160,7 @@ model Section {
   students         Student[]
   classAssignments ClassAssignment[]
 
+  @@unique([name, batchId])
   @@map("sections")
 }
 
@@ -168,7 +169,6 @@ model Course {
   code         String    @unique
   name         String
   credits      Int
-  semester     Int
   type         CourseType
   isMandatory  Boolean   @default(false) @map("is_mandatory")
   createdAt    DateTime  @default(now()) @map("created_at")
@@ -187,6 +187,7 @@ model CourseDepartment {
   id           String    @id @default(uuid())
   courseId     String    @map("course_id")
   departmentId String    @map("department_id")
+  semester     Int
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")
   deletedAt    DateTime? @map("deleted_at")
@@ -195,7 +196,7 @@ model CourseDepartment {
   department Department @relation(fields: [departmentId], references: [id])
   units      SyllabusUnit[]
 
-  @@unique([courseId, departmentId])
+  @@unique([courseId, departmentId, semester])
   @@index([departmentId])
   @@map("course_departments")
 }

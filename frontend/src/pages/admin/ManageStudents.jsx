@@ -5,8 +5,10 @@ import client from '../../api/client';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import BarcodeGenerator from '../../components/BarcodeGenerator';
 import Icon from '../../components/ui/Icon';
-import { PageHead, MiniAvatar, DeptTag, Meter, StatusBadge, initials, hueFor, StatTile } from '../../components/ui/DesignHelpers';
+import { PageHead, MiniAvatar, DeptTag, Meter, StatusBadge, StatTile } from '../../components/ui/DesignHelpers';
+import { initials } from '../../components/ui/DesignUtils';
 import * as XLSX from 'xlsx';
+import { HiOutlineCamera, HiOutlineCheckCircle, HiOutlineExclamationCircle } from 'react-icons/hi';
 
 const API_BASE = 'http://localhost:5000';
 
@@ -70,11 +72,11 @@ export default function ManageStudents() {
 
   const handleSearch = () => { setPage(1); fetchData(); };
 
-  const openCreate = () => {
+  const openCreate = useCallback(() => {
     setForm({ enrollmentNo: '', email: '', firstName: '', lastName: '', dob: '', gender: 'male', phone: '', address: '', batchId: batches[0]?.id || '', sectionId: sections[0]?.id || '', semester: '1', photoUrl: '' });
     setPhotoPreview(null);
     setShowModal(true);
-  };
+  }, [batches, sections]);
 
   const handlePhotoChange = async (e) => {
     const file = e.target.files[0];
@@ -114,7 +116,7 @@ export default function ManageStudents() {
   };
 
   // ─── Bulk Import Handlers ──────────────────────────────────
-  const openImportModal = () => { setShowImportModal(true); setImportStep(1); setImportFile(null); setImportPreview([]); setImportHeaders([]); setImportResult(null); setDragOver(false); };
+  const openImportModal = useCallback(() => { setShowImportModal(true); setImportStep(1); setImportFile(null); setImportPreview([]); setImportHeaders([]); setImportResult(null); setDragOver(false); }, []);
   const handleImportFileSelect = (file) => {
     if (!file) return;
     if (!/\.(csv|xlsx|xls)$/i.test(file.name)) { alert('Please select a CSV, XLS, or XLSX file'); return; }
@@ -157,7 +159,7 @@ export default function ManageStudents() {
     if (location.state?.openAddModal) { openCreate(); navigate(location.pathname, { replace: true, state: {} }); }
     else if (location.state?.openImportModal) { openImportModal(); navigate(location.pathname, { replace: true, state: {} }); }
     else if (location.state?.openBarcodeModal) { setShowBarcodeModal(true); navigate(location.pathname, { replace: true, state: {} }); }
-  }, [location.state, navigate, location.pathname]);
+  }, [location.state, navigate, location.pathname, openCreate, openImportModal]);
 
   // Filter by status tab
   const filteredStudents = statusTab === 'all' ? students : students.filter(s => s.status === statusTab);

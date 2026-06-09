@@ -710,33 +710,6 @@
       "norm_label": "app"
     },
     {
-      "label": "seed-all.ts",
-      "file_type": "code",
-      "source_file": "backend/src/seed-all.ts",
-      "source_location": "L1",
-      "id": "backend_src_seed_all_ts",
-      "community": 12,
-      "norm_label": "seed-all.ts"
-    },
-    {
-      "label": "prisma",
-      "file_type": "code",
-      "source_file": "backend/src/seed-all.ts",
-      "source_location": "L4",
-      "id": "src_seed_all_prisma",
-      "community": 12,
-      "norm_label": "prisma"
-    },
-    {
-      "label": "seedAll()",
-      "file_type": "code",
-      "source_file": "backend/src/seed-all.ts",
-      "source_location": "L6",
-      "id": "src_seed_all_seedall",
-      "community": 12,
-      "norm_label": "seedall()"
-    },
-    {
       "label": "seed-staff.ts",
       "file_type": "code",
       "source_file": "backend/src/seed-staff.ts",
@@ -2677,7 +2650,7 @@
       "source_file": "frontend/src/components/ui/DesignHelpers.jsx",
       "source_location": "L69",
       "id": "ui_designhelpers_statusbadge",
-      "community": 46,
+      "community": 56,
       "norm_label": "statusbadge()"
     },
     {
@@ -3055,7 +3028,7 @@
       "source_file": "frontend/src/pages/admin/ManageFeedback.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_admin_managefeedback_jsx",
-      "community": 56,
+      "community": 8,
       "norm_label": "managefeedback.jsx"
     },
     {
@@ -3064,7 +3037,7 @@
       "source_file": "frontend/src/pages/admin/ManageFeedback.jsx",
       "source_location": "L7",
       "id": "admin_managefeedback_categories",
-      "community": 56,
+      "community": 8,
       "norm_label": "categories"
     },
     {
@@ -3073,7 +3046,7 @@
       "source_file": "frontend/src/pages/admin/ManageFeedback.jsx",
       "source_location": "L18",
       "id": "admin_managefeedback_status_tabs",
-      "community": 56,
+      "community": 8,
       "norm_label": "status_tabs"
     },
     {
@@ -3082,7 +3055,7 @@
       "source_file": "frontend/src/pages/admin/ManageFeedback.jsx",
       "source_location": "L24",
       "id": "admin_managefeedback_managefeedback",
-      "community": 56,
+      "community": 8,
       "norm_label": "managefeedback()"
     },
     {
@@ -3271,7 +3244,7 @@
       "source_file": "frontend/src/pages/admin/NotificationHistory.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_admin_notificationhistory_jsx",
-      "community": 46,
+      "community": 56,
       "norm_label": "notificationhistory.jsx"
     },
     {
@@ -3280,7 +3253,7 @@
       "source_file": "frontend/src/pages/admin/NotificationHistory.jsx",
       "source_location": "L6",
       "id": "admin_notificationhistory_notificationhistory",
-      "community": 46,
+      "community": 56,
       "norm_label": "notificationhistory()"
     },
     {
@@ -3883,7 +3856,7 @@
       "source_file": "frontend/src/pages/student/Profile.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_student_profile_jsx",
-      "community": 8,
+      "community": 41,
       "norm_label": "profile.jsx"
     },
     {
@@ -3892,7 +3865,7 @@
       "source_file": "frontend/src/pages/student/Profile.jsx",
       "source_location": "L8",
       "id": "student_profile_infoitem",
-      "community": 8,
+      "community": 41,
       "norm_label": "infoitem()"
     },
     {
@@ -3901,7 +3874,7 @@
       "source_file": "frontend/src/pages/student/Profile.jsx",
       "source_location": "L21",
       "id": "student_profile_section",
-      "community": 8,
+      "community": 41,
       "norm_label": "section()"
     },
     {
@@ -3910,7 +3883,7 @@
       "source_file": "frontend/src/pages/student/Profile.jsx",
       "source_location": "L34",
       "id": "student_profile_profile",
-      "community": 8,
+      "community": 41,
       "norm_label": "profile()"
     },
     {
@@ -3937,7 +3910,7 @@
       "source_file": "frontend/src/pages/teacher/Attendance.jsx",
       "source_location": "L1",
       "id": "frontend_src_pages_teacher_attendance_jsx",
-      "community": 8,
+      "community": 12,
       "norm_label": "attendance.jsx"
     },
     {
@@ -3946,7 +3919,7 @@
       "source_file": "frontend/src/pages/teacher/Attendance.jsx",
       "source_location": "L5",
       "id": "teacher_attendance_status_options",
-      "community": 8,
+      "community": 12,
       "norm_label": "status_options"
     },
     {
@@ -3955,7 +3928,7 @@
       "source_file": "frontend/src/pages/teacher/Attendance.jsx",
       "source_location": "L6",
       "id": "teacher_attendance_statusstyles",
-      "community": 8,
+      "community": 12,
       "norm_label": "statusstyles"
     },
     {
@@ -3964,7 +3937,7 @@
       "source_file": "frontend/src/pages/teacher/Attendance.jsx",
       "source_location": "L12",
       "id": "teacher_attendance_teacherattendance",
-      "community": 8,
+      "community": 12,
       "norm_label": "teacherattendance()"
     },
     {
@@ -6805,26 +6778,6 @@
       "confidence_score": 1.0,
       "source": "backend_src_index_ts",
       "target": "src_index_purgeoldtrash"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "backend/src/seed-all.ts",
-      "source_location": "L4",
-      "weight": 1.0,
-      "source": "backend_src_seed_all_ts",
-      "target": "src_seed_all_prisma",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "backend/src/seed-all.ts",
-      "source_location": "L6",
-      "weight": 1.0,
-      "source": "backend_src_seed_all_ts",
-      "target": "src_seed_all_seedall",
-      "confidence_score": 1.0
     },
     {
       "relation": "contains",
