@@ -7,6 +7,7 @@ import SyllabusEditor from '../../components/SyllabusEditor';
 import Icon from '../../components/ui/Icon';
 import { PageHead, StatTile } from '../../components/ui/DesignHelpers';
 import { deptColor } from '../../components/ui/DesignUtils';
+import { toast } from '../../store/toastStore';
 
 const EMPTY_FORM = { code: '', name: '', credits: '3', semester: '1', type: 'theory', isMandatory: false, departments: [] };
 
@@ -71,17 +72,22 @@ export default function ManageCourses() {
   const handleSubmit = async (e) => {
     e.preventDefault(); setSaving(true); setError('');
     try {
-      if (editing) await client.put(`/admin/courses/${editing.id}`, { code: form.code, name: form.name, credits: form.credits, semester: form.semester, type: form.type });
-      else await client.post('/admin/courses', { code: form.code, name: form.name, credits: form.credits, semester: form.semester, type: form.type, isMandatory: form.isMandatory, departments: form.departments });
+      if (editing) {
+        await client.put(`/admin/courses/${editing.id}`, { code: form.code, name: form.name, credits: form.credits, semester: form.semester, type: form.type });
+        toast.success('Course updated successfully!');
+      } else {
+        await client.post('/admin/courses', { code: form.code, name: form.name, credits: form.credits, semester: form.semester, type: form.type, isMandatory: form.isMandatory, departments: form.departments });
+        toast.success('Course created successfully!');
+      }
       setShowModal(false); fetchData();
     } catch (err) { setError(err.response?.data?.error || err.response?.data?.message || 'Failed to save course'); }
     finally { setSaving(false); }
   };
 
-  const handleDelete = async () => { if (!deleteTarget) return; setDeleting(true); try { await client.delete(`/admin/courses/${deleteTarget}`); setDeleteTarget(null); fetchData(); } catch (err) { alert(err.response?.data?.error || 'Failed to delete course'); } finally { setDeleting(false); } };
+  const handleDelete = async () => { if (!deleteTarget) return; setDeleting(true); try { await client.delete(`/admin/courses/${deleteTarget}`); setDeleteTarget(null); fetchData(); toast.success('Course deleted successfully'); } catch (err) { toast.error(err.response?.data?.error || 'Failed to delete course'); } finally { setDeleting(false); } };
 
   const openSyllabusEditor = (courseId, departmentId, departmentName, existingUnits) => { setSyllabusModal({ courseId, departmentId, departmentName, units: (existingUnits || []).map(u => ({ number: u.number, title: u.title, hours: u.hours || '', topics: (u.topics || []).map(t => ({ order: t.order, title: t.title, description: t.description || '' })) })) }); };
-  const saveSyllabus = async () => { if (!syllabusModal) return; setSavingSyllabus(true); try { await client.put(`/admin/courses/${syllabusModal.courseId}/departments/${syllabusModal.departmentId}/syllabus`, { units: syllabusModal.units }); setSyllabusModal(null); fetchData(); } catch (err) { alert(err.response?.data?.error || 'Failed to save syllabus'); } finally { setSavingSyllabus(false); } };
+  const saveSyllabus = async () => { if (!syllabusModal) return; setSavingSyllabus(true); try { await client.put(`/admin/courses/${syllabusModal.courseId}/departments/${syllabusModal.departmentId}/syllabus`, { units: syllabusModal.units }); setSyllabusModal(null); fetchData(); toast.success('Syllabus saved successfully!'); } catch (err) { toast.error(err.response?.data?.error || 'Failed to save syllabus'); } finally { setSavingSyllabus(false); } };
 
   const setDeptUnits = (deptIdx, units) => { const updated = form.departments.map((d, i) => (i === deptIdx ? { ...d, units } : d)); setForm({ ...form, departments: updated }); };
   const setDeptId = (deptIdx, departmentId) => { const updated = form.departments.map((d, i) => (i === deptIdx ? { ...d, departmentId } : d)); setForm({ ...form, departments: updated }); };

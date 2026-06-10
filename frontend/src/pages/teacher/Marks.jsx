@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import client from '../../api/client';
 import { HiOutlineSave } from 'react-icons/hi';
+import { toast } from '../../store/toastStore';
 
 const ASSESSMENT_TYPES = [
   { value: 'internal', label: 'Internal' },
@@ -77,7 +78,7 @@ export default function TeacherMarks() {
   };
 
   const handleSave = async () => {
-    if (!academicYear) { alert('Please select an academic year'); return; }
+    if (!academicYear) { toast.warning('Please select an academic year'); return; }
     setSaving(true);
     try {
       const semester = students[0]?.semester || 1;
@@ -90,9 +91,9 @@ export default function TeacherMarks() {
         courseId: selectedCourse, sectionId: selectedSection,
         assessmentType, maxMarks, semester, academicYear, entries: entryList,
       });
-      alert('Marks saved successfully!');
+      toast.success('Marks saved successfully!');
       fetchMarks();
-    } catch (err) { alert(err.response?.data?.error || 'Error saving marks'); }
+    } catch (err) { toast.error(err.response?.data?.error || 'Error saving marks'); }
     finally { setSaving(false); }
   };
 

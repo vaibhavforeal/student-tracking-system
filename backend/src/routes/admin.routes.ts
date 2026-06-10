@@ -1362,6 +1362,87 @@ router.get('/students/sample-template', asyncHandler(async (req: Request, res: R
   }
 }));
 
+function excelDateToJSDate(serial: number): Date {
+  const utc_days = Math.floor(serial - 25569);
+  const utc_value = utc_days * 86400;
+  const date_info = new Date(utc_value * 1000);
+
+  const fractional_day = serial - Math.floor(serial) + 0.0000001;
+  const total_seconds = Math.floor(86400 * fractional_day);
+
+  const seconds = total_seconds % 60;
+  const minutes = Math.floor(total_seconds / 60) % 60;
+  const hours = Math.floor(total_seconds / 3600);
+
+  return new Date(date_info.getFullYear(), date_info.getMonth(), date_info.getDate(), hours, minutes, seconds);
+}
+
+function parseDate(val: any): Date | null {
+  if (!val) return null;
+  if (val instanceof Date) {
+    if (!isNaN(val.getTime())) {
+      return val;
+    }
+  }
+
+  if (typeof val === 'number') {
+    return excelDateToJSDate(val);
+  }
+
+  if (typeof val === 'string') {
+    const trimmed = val.trim();
+    if (!trimmed) return null;
+
+    if (/^\d+(\.\d+)?$/.test(trimmed)) {
+      return excelDateToJSDate(parseFloat(trimmed));
+    }
+
+    // YYYY-MM-DD or YYYY/MM/DD
+    const ymdMatch = trimmed.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+    if (ymdMatch) {
+      const year = parseInt(ymdMatch[1], 10);
+      const month = parseInt(ymdMatch[2], 10);
+      const day = parseInt(ymdMatch[3], 10);
+      const date = new Date(year, month - 1, day);
+      if (!isNaN(date.getTime())) return date;
+    }
+
+    // DD-MM-YYYY or DD/MM/YYYY
+    const dmyMatch = trimmed.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
+    if (dmyMatch) {
+      const day = parseInt(dmyMatch[1], 10);
+      const month = parseInt(dmyMatch[2], 10);
+      const year = parseInt(dmyMatch[3], 10);
+      const date = new Date(year, month - 1, day);
+      if (!isNaN(date.getTime())) return date;
+    }
+
+    // DD-MM-YY or DD/MM/YY
+    const dmyShortMatch = trimmed.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{2})$/);
+    if (dmyShortMatch) {
+      const day = parseInt(dmyShortMatch[1], 10);
+      const month = parseInt(dmyShortMatch[2], 10);
+      let year = parseInt(dmyShortMatch[3], 10);
+      year = year >= 50 ? 1900 + year : 2000 + year;
+      const date = new Date(year, month - 1, day);
+      if (!isNaN(date.getTime())) return date;
+    }
+
+    const parsed = new Date(trimmed);
+    if (!isNaN(parsed.getTime())) return parsed;
+  }
+
+  return null;
+}
+
+function formatDateToYYYYMMDD(date: Date): string {
+  if (!date || isNaN(date.getTime())) return '';
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 // POST /api/admin/students/bulk-import — Bulk import students from CSV/XLSX
 router.post('/students/bulk-import', bulkUpload.single('file'), asyncHandler(async (req: Request, res: Response): Promise<void> => {
   if (!req.file) {
@@ -1373,7 +1454,7 @@ router.post('/students/bulk-import', bulkUpload.single('file'), asyncHandler(asy
 
   try {
     // Parse the uploaded file
-    const workbook = XLSX.readFile(req.file.path);
+    const workbook = XLSX.readFile(req.file.path, { cellDates: true });
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
     const rawRows: any[] = XLSX.utils.sheet_to_json(sheet, { defval: '' });
@@ -1442,14 +1523,17 @@ router.post('/students/bulk-import', bulkUpload.single('file'), asyncHandler(asy
       const rowNum = i + 2; // +2 because row 1 is header, data starts at row 2
 
       // Normalize field names (trim whitespace, case-insensitive match)
-      const normalizedRow: Record<string, string> = {};
+      const normalizedRow: Record<string, any> = {};
       for (const key of Object.keys(row)) {
-        normalizedRow[key.trim()] = String(row[key]).trim();
+        const trimmedKey = key.trim();
+        const rawVal = row[key];
+        normalizedRow[trimmedKey] = typeof rawVal === 'string' ? rawVal.trim() : rawVal;
       }
 
       // Check required fields
       for (const field of requiredFields) {
-        if (!normalizedRow[field] || normalizedRow[field] === '') {
+        const val = normalizedRow[field];
+        if (val === undefined || val === null || val === '') {
           errors.push({ row: rowNum, field, message: `${field} is required` });
         }
       }
@@ -1460,17 +1544,17 @@ router.post('/students/bulk-import', bulkUpload.single('file'), asyncHandler(asy
         continue;
       }
 
-      const enrollmentNo = normalizedRow.enrollmentNo;
-      const email = normalizedRow.email.toLowerCase();
-      const firstName = normalizedRow.firstName;
-      const lastName = normalizedRow.lastName;
-      const dob = normalizedRow.dob;
-      const gender = normalizedRow.gender.toLowerCase();
-      const phone = normalizedRow.phone;
-      const address = normalizedRow.address;
-      const batchName = normalizedRow.batchName;
-      const sectionName = normalizedRow.sectionName;
-      const semester = parseInt(normalizedRow.semester);
+      const enrollmentNo = String(normalizedRow.enrollmentNo || '').trim();
+      const email = String(normalizedRow.email || '').trim().toLowerCase();
+      const firstName = String(normalizedRow.firstName || '').trim();
+      const lastName = String(normalizedRow.lastName || '').trim();
+      const rawDob = normalizedRow.dob;
+      const gender = String(normalizedRow.gender || '').trim().toLowerCase();
+      const phone = String(normalizedRow.phone || '').trim();
+      const address = String(normalizedRow.address || '').trim();
+      const batchName = String(normalizedRow.batchName || '').trim();
+      const sectionName = String(normalizedRow.sectionName || '').trim();
+      const semester = parseInt(String(normalizedRow.semester || '').trim());
 
       // Validate gender
       if (!validGenders.includes(gender)) {
@@ -1483,9 +1567,9 @@ router.post('/students/bulk-import', bulkUpload.single('file'), asyncHandler(asy
       }
 
       // Validate DOB format
-      const dobDate = new Date(dob);
-      if (isNaN(dobDate.getTime())) {
-        errors.push({ row: rowNum, field: 'dob', message: `Invalid date format "${dob}". Use YYYY-MM-DD` });
+      const dobDate = parseDate(rawDob);
+      if (!dobDate || isNaN(dobDate.getTime())) {
+        errors.push({ row: rowNum, field: 'dob', message: `Invalid date format "${rawDob}". Use YYYY-MM-DD` });
       }
 
       // Validate email format
@@ -1521,7 +1605,7 @@ router.post('/students/bulk-import', bulkUpload.single('file'), asyncHandler(asy
       }
 
       parsedRows.push({
-        enrollmentNo, email, firstName, lastName, dob,
+        enrollmentNo, email, firstName, lastName, dob: dobDate ? formatDateToYYYYMMDD(dobDate) : '',
         gender, phone, address,
         batchId: batchLookup.id, sectionId, semester,
       });
@@ -1578,7 +1662,7 @@ router.post('/students/bulk-import', bulkUpload.single('file'), asyncHandler(asy
 
       for (const row of validRows) {
         // Generate password from DOB (DDMMYYYY)
-        const dobDate = new Date(row.dob);
+        const dobDate = parseDate(row.dob)!;
         const dd = String(dobDate.getDate()).padStart(2, '0');
         const mm = String(dobDate.getMonth() + 1).padStart(2, '0');
         const yyyy = String(dobDate.getFullYear());
@@ -1599,7 +1683,7 @@ router.post('/students/bulk-import', bulkUpload.single('file'), asyncHandler(asy
             userId: user.id,
             firstName: row.firstName,
             lastName: row.lastName,
-            dob: new Date(row.dob),
+            dob: dobDate,
             gender: row.gender as any,
             phone: row.phone,
             address: row.address,

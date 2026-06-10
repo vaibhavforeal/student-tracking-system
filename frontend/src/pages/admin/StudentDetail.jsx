@@ -5,6 +5,7 @@ import client from '../../api/client';
 import Icon from '../../components/ui/Icon';
 import { PageHead, MiniAvatar, StatusBadge } from '../../components/ui/DesignHelpers';
 import BarcodeGenerator from '../../components/BarcodeGenerator';
+import { toast } from '../../store/toastStore';
 
 export default function StudentDetail() {
   const { id } = useParams();
@@ -23,7 +24,7 @@ export default function StudentDetail() {
       setStudent(data.student);
     } catch (e) {
       console.error(e);
-      alert('Failed to load student details');
+      toast.error('Failed to load student details');
     } finally {
       setLoading(false);
     }
@@ -132,7 +133,7 @@ function EducationTab({ student, apiBase, refresh }) {
       setShowForm(false);
       setForm({ level: 'sslc_10th', institution: '', board: '', percentage: '', yearOfPass: '' });
       refresh();
-    } catch (err) { alert(err.response?.data?.error || 'Error saving education record'); }
+    } catch (err) { toast.error(err.response?.data?.error || 'Error saving education record'); }
     finally { setSaving(false); }
   };
 
@@ -141,7 +142,7 @@ function EducationTab({ student, apiBase, refresh }) {
     try {
       await client.delete(`${apiBase}/students/${student.id}/previous-education/${eduId}`);
       refresh();
-    } catch { alert('Error deleting record'); }
+    } catch { toast.error('Error deleting record'); }
   };
 
   const levelLabel = (level) => level === 'sslc_10th' ? '10th / SSLC' : '12th / PU';
@@ -242,7 +243,7 @@ function SkillsTab({ student, apiBase, refresh }) {
       await client.post(`${apiBase}/students/${student.id}/skills`, { name: skillName.trim(), category: 'General', level: 'beginner' });
       setSkillName('');
       refresh();
-    } catch (err) { alert(err.response?.data?.error || 'Error'); }
+    } catch (err) { toast.error(err.response?.data?.error || 'Error'); }
     finally { setSaving(false); }
   };
 
@@ -254,7 +255,7 @@ function SkillsTab({ student, apiBase, refresh }) {
       setShowHobbyForm(false);
       setHobbyForm({ type: 'hobby', name: '' });
       refresh();
-    } catch (err) { alert(err.response?.data?.error || 'Error'); }
+    } catch (err) { toast.error(err.response?.data?.error || 'Error'); }
     finally { setSaving(false); }
   };
 
@@ -375,8 +376,8 @@ function HealthTab({ student, apiBase, refresh }) {
         emergencyContactPhone: form.emergencyContactPhone,
       });
       refresh();
-      alert('Health details saved!');
-    } catch (err) { alert(err.response?.data?.error || 'Error saving health details'); }
+      toast.success('Health details saved!');
+    } catch (err) { toast.error(err.response?.data?.error || 'Error saving health details'); }
     finally { setSaving(false); }
   };
 
@@ -441,7 +442,7 @@ function ParentsTab({ student, apiBase, refresh }) {
       setShowForm(false);
       setForm({ name: '', relation: '', phone: '', email: '', occupation: '' });
       refresh();
-    } catch (err) { alert(err.response?.data?.error || 'Error'); }
+    } catch (err) { toast.error(err.response?.data?.error || 'Error'); }
     finally { setSaving(false); }
   };
 
@@ -542,10 +543,10 @@ function AlumniProfileTab({ student, refresh }) {
       await client.put(`/admin/alumni/${student.id}`, form);
       setEditing(false);
       refresh();
-      alert('Alumni details updated successfully!');
+      toast.success('Alumni details updated successfully!');
     } catch (err) {
       console.error(err);
-      alert(err.response?.data?.error || 'Failed to update alumni profile');
+      toast.error(err.response?.data?.error || 'Failed to update alumni profile');
     } finally {
       setSaving(false);
     }
@@ -556,10 +557,10 @@ function AlumniProfileTab({ student, refresh }) {
     try {
       await client.post(`/admin/alumni/${student.id}/revert`);
       refresh();
-      alert('Student status reverted to active!');
+      toast.success('Student status reverted to active!');
     } catch (err) {
       console.error(err);
-      alert(err.response?.data?.error || 'Failed to revert status');
+      toast.error(err.response?.data?.error || 'Failed to revert status');
     }
   };
 
@@ -651,11 +652,11 @@ function GraduateModal({ student, onClose, onSuccess }) {
     setSaving(true);
     try {
       await client.post(`/admin/students/${student.id}/graduate`, form);
-      alert('Student graduated successfully!');
+      toast.success('Student graduated successfully!');
       onSuccess();
     } catch (err) {
       console.error(err);
-      alert(err.response?.data?.error || 'Failed to graduate student');
+      toast.error(err.response?.data?.error || 'Failed to graduate student');
     } finally {
       setSaving(false);
     }

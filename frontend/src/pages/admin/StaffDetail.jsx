@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import client from '../../api/client';
 import Icon from '../../components/ui/Icon';
 import { PageHead, MiniAvatar } from '../../components/ui/DesignHelpers';
+import { toast } from '../../store/toastStore';
 
 const EDUCATION_LEVELS = [
   { value: 'bachelors', label: "Bachelor's" },
@@ -40,7 +41,7 @@ export default function StaffDetail() {
       setStaff(data.staff);
     } catch (e) {
       console.error(e);
-      alert('Failed to load staff details');
+      toast.error('Failed to load staff details');
     } finally {
       setLoading(false);
     }
@@ -100,7 +101,7 @@ function PersonalSection({ staff, refresh }) {
       await client.put(`/admin/staff/${staff.id}/personal`, form);
       setEditing(false);
       refresh();
-    } catch (err) { alert(err.response?.data?.error || 'Error saving personal details'); }
+    } catch (err) { toast.error(err.response?.data?.error || 'Error saving personal details'); }
     finally { setSaving(false); }
   };
 
@@ -249,8 +250,8 @@ function HealthSection({ staff, refresh }) {
         emergencyContactPhone: form.emergencyContactPhone,
       });
       refresh();
-      alert('Health details saved!');
-    } catch (err) { alert(err.response?.data?.error || 'Error saving health details'); }
+      toast.success('Health details saved!');
+    } catch (err) { toast.error(err.response?.data?.error || 'Error saving health details'); }
     finally { setSaving(false); }
   };
 
@@ -321,7 +322,7 @@ function EducationSection({ staff, refresh }) {
       setShowForm(false);
       setForm({ level: 'bachelors', degree: '', specialization: '', institution: '', university: '', yearOfPass: '' });
       refresh();
-    } catch (err) { alert(err.response?.data?.error || 'Error saving education record'); }
+    } catch (err) { toast.error(err.response?.data?.error || 'Error saving education record'); }
     finally { setSaving(false); }
   };
 
@@ -330,7 +331,7 @@ function EducationSection({ staff, refresh }) {
     try {
       await client.delete(`/admin/staff/${staff.id}/education/${eduId}`);
       refresh();
-    } catch { alert('Error deleting record'); }
+    } catch { toast.error('Error deleting record'); }
   };
 
   return (
@@ -449,7 +450,7 @@ function DocumentsSection({ staff, refresh }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!file) { alert('Please select a file to upload'); return; }
+    if (!file) { toast.warning('Please select a file to upload'); return; }
     setSaving(true);
     try {
       const formData = new FormData();
@@ -466,7 +467,7 @@ function DocumentsSection({ staff, refresh }) {
       setForm({ type: 'aadhaar', title: '', documentNumber: '' });
       setFile(null);
       refresh();
-    } catch (err) { alert(err.response?.data?.error || 'Error uploading document'); }
+    } catch (err) { toast.error(err.response?.data?.error || 'Error uploading document'); }
     finally { setSaving(false); }
   };
 
@@ -475,7 +476,7 @@ function DocumentsSection({ staff, refresh }) {
     try {
       await client.delete(`/admin/staff/${staff.id}/documents/${docId}`);
       refresh();
-    } catch { alert('Error deleting document'); }
+    } catch { toast.error('Error deleting document'); }
   };
 
   return (

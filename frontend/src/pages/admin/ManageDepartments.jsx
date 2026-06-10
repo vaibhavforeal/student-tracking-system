@@ -6,6 +6,7 @@ import ConfirmDialog from '../../components/ConfirmDialog';
 import Icon from '../../components/ui/Icon';
 import { PageHead, Meter } from '../../components/ui/DesignHelpers';
 import { deptColor } from '../../components/ui/DesignUtils';
+import { toast as toastAlert } from '../../store/toastStore';
 
 export default function ManageDepartments() {
   const [departments, setDepartments] = useState([]);
@@ -38,11 +39,12 @@ export default function ManageDepartments() {
   const handleSubmit = async (e) => {
     e.preventDefault(); setSaving(true); setError('');
     try {
-      if (editing) { await client.put(`/admin/departments/${editing.id}`, form); }
+      if (editing) { await client.put(`/admin/departments/${editing.id}`, form); toastAlert.success('Department updated successfully!'); }
       else {
         const res = await client.post('/admin/departments', form);
         const dept = res.data.department;
         if (dept._mandatoryCount && dept._mandatoryCount > 0) setToast(`${dept._mandatoryCount} mandatory course(s) need syllabus for "${dept.name}".`);
+        toastAlert.success('Department created successfully!');
       }
       setShowModal(false); fetchDepartments();
     } catch (err) { setError(err.response?.data?.error || err.response?.data?.message || 'Failed to save department'); }
@@ -51,8 +53,8 @@ export default function ManageDepartments() {
 
   const handleDelete = async () => {
     if (!deleteTarget) return; setDeleting(true);
-    try { await client.delete(`/admin/departments/${deleteTarget}`); setDeleteTarget(null); fetchDepartments(); }
-    catch (err) { alert(err.response?.data?.error || 'Failed to delete department'); }
+    try { await client.delete(`/admin/departments/${deleteTarget}`); setDeleteTarget(null); fetchDepartments(); toastAlert.success('Department deleted successfully'); }
+    catch (err) { toastAlert.error(err.response?.data?.error || 'Failed to delete department'); }
     finally { setDeleting(false); }
   };
 

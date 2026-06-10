@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import client from '../../api/client';
 import Icon from '../../components/ui/Icon';
 import { PageHead, MiniAvatar } from '../../components/ui/DesignHelpers';
+import { toast } from '../../store/toastStore';
 
 export default function WhatsAppSend() {
   const [batches, setBatches] = useState([]);
@@ -26,17 +27,17 @@ export default function WhatsAppSend() {
   const toggleAll = () => { if (selectedStudents.length === students.length) setSelectedStudents([]); else setSelectedStudents(students.map(s => s.id)); };
 
   const handleSendBulk = async () => {
-    if (selectedStudents.length === 0) return alert('Select at least one student');
+    if (selectedStudents.length === 0) return toast.warning('Select at least one student');
     if (!confirm(`Send attendance reports via WhatsApp for ${selectedStudents.length} student(s)?`)) return;
     setSending(true); setResults(null);
     try { const { data } = await client.post('/whatsapp/send-attendance-bulk', { studentIds: selectedStudents }); setResults(data); }
-    catch (err) { alert(err.response?.data?.error || 'Failed to send'); } finally { setSending(false); }
+    catch (err) { toast.error(err.response?.data?.error || 'Failed to send'); } finally { setSending(false); }
   };
 
   const handleSendSingle = async (studentId) => {
     setSending(true);
-    try { const { data } = await client.post(`/whatsapp/send-attendance/${studentId}`); alert(`Sent to ${data.results?.length || 0} parent(s) — Overall: ${data.overallAttendance}`); }
-    catch (err) { alert(err.response?.data?.error || 'Failed'); } finally { setSending(false); }
+    try { const { data } = await client.post(`/whatsapp/send-attendance/${studentId}`); toast.success(`Sent to ${data.results?.length || 0} parent(s) — Overall: ${data.overallAttendance}`); }
+    catch (err) { toast.error(err.response?.data?.error || 'Failed'); } finally { setSending(false); }
   };
 
   const getParentPhones = (s) => (s.parents || []).map(p => p.phone).join(', ') || 'No parents';

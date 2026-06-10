@@ -4,6 +4,7 @@ import client from '../../api/client';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import Icon from '../../components/ui/Icon';
 import { PageHead, MiniAvatar, StatTile } from '../../components/ui/DesignHelpers';
+import { toast } from '../../store/toastStore';
 
 export default function AlumniDatabase() {
   const [alumni, setAlumni] = useState([]);
@@ -42,8 +43,8 @@ export default function AlumniDatabase() {
 
   const handleRevert = async () => {
     if (!revertTarget) return; setReverting(true);
-    try { await client.post(`/admin/alumni/${revertTarget}/revert`); setRevertTarget(null); if (previewAlumni?.id === revertTarget) setPreviewAlumni(null); fetchData(); alert('Alumni reverted to active student.'); }
-    catch (err) { alert(err.response?.data?.error || 'Failed to revert'); } finally { setReverting(false); }
+    try { await client.post(`/admin/alumni/${revertTarget}/revert`); setRevertTarget(null); if (previewAlumni?.id === revertTarget) setPreviewAlumni(null); fetchData(); toast.success('Alumni reverted to active student.'); }
+    catch (err) { toast.error(err.response?.data?.error || 'Failed to revert'); } finally { setReverting(false); }
   };
 
   const handleOpenPreview = (student) => {
@@ -56,12 +57,12 @@ export default function AlumniDatabase() {
     e.preventDefault(); setSaving(true);
     try { await client.put(`/admin/alumni/${previewAlumni.id}`, editForm); setEditing(false);
       const { data } = await client.get('/admin/alumni', { params: { search: previewAlumni.enrollmentNo } });
-      if (data.alumni?.length > 0) setPreviewAlumni(data.alumni[0]); fetchData(); alert('Profile updated!');
-    } catch (err) { alert(err.response?.data?.error || 'Failed to update'); } finally { setSaving(false); }
+      if (data.alumni?.length > 0) setPreviewAlumni(data.alumni[0]); fetchData(); toast.success('Profile updated!');
+    } catch (err) { toast.error(err.response?.data?.error || 'Failed to update'); } finally { setSaving(false); }
   };
 
   const handleExportCSV = () => {
-    if (alumni.length === 0) return alert('No records to export');
+    if (alumni.length === 0) return toast.warning('No records to export');
     const headers = ['Enrollment No','First Name','Last Name','Email','Phone','Degree','Batch','Department','Semester','Graduation Year','Current Employer','Job Title','Alumni Email','LinkedIn'];
     const rows = alumni.map(a => { const p = a.alumniProfile || {}; return [a.enrollmentNo,a.firstName,a.lastName,a.user?.email||'',a.phone,a.batch?.degree||'',a.batch?.name||'',a.batch?.department?.name||'',a.semester,p.graduationYear||'',p.currentEmployer||'',p.currentJobTitle||'',p.alumniEmail||'',p.linkedInUrl||'']; });
     const csv = [headers.join(','), ...rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(','))].join('\n');

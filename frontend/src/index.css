@@ -4372,3 +4372,88 @@ input, button, textarea, select {
 .s-kv-ico svg { width: 17px; height: 17px; }
 .s-kv-k { font-size: 10.5px; color: var(--faint); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
 .s-kv-v { font-weight: 600; font-size: 13.6px; line-height: 1.3; margin-top: 1px; }
+
+/* ── Toast Notifications ── */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 380px;
+  width: calc(100% - 40px);
+}
+
+.toast-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--radius-lg);
+  background-color: var(--color-white);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(8px);
+  animation: toastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transition: all 0.2s ease;
+  border: 1px solid var(--color-gray-100);
+}
+
+.toast-item.toast-success {
+  border-left: 4px solid var(--color-success);
+}
+.toast-item.toast-error {
+  border-left: 4px solid var(--color-danger);
+}
+.toast-item.toast-warning {
+  border-left: 4px solid var(--color-warning);
+}
+.toast-item.toast-info {
+  border-left: 4px solid var(--color-info);
+}
+
+.toast-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+.toast-success .toast-icon { color: var(--color-success); }
+.toast-error .toast-icon { color: var(--color-danger); }
+.toast-warning .toast-icon { color: var(--color-warning); }
+.toast-info .toast-icon { color: var(--color-info); }
+
+.toast-message {
+  font-size: var(--font-sm);
+  font-weight: 500;
+  color: var(--color-gray-800);
+  flex-grow: 1;
+  line-height: 1.4;
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-gray-400);
+  display: flex;
+  align-items: center;
+  padding: 2px;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+.toast-close:hover {
+  background: var(--color-gray-100);
+  color: var(--color-gray-700);
+}
+
+@keyframes toastSlideIn {
+  from {
+    transform: translateY(-20px) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}

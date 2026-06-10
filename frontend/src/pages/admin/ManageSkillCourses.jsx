@@ -5,6 +5,7 @@ import client from '../../api/client';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import Icon from '../../components/ui/Icon';
 import { PageHead, StatusBadge } from '../../components/ui/DesignHelpers';
+import { toast } from '../../store/toastStore';
 
 const getCategoryMeta = (name) => {
   const meta = {
@@ -129,8 +130,9 @@ export default function ManageSkillCourses() {
       await client.delete(`/admin/skill-courses/${deleteTarget}`);
       setDeleteTarget(null);
       fetchData();
+      toast.success('Course deleted successfully');
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to delete');
+      toast.error(err.response?.data?.error || 'Failed to delete');
     } finally {
       setDeleting(false);
     }
@@ -144,6 +146,7 @@ export default function ManageSkillCourses() {
       await client.post('/admin/skill-course-categories', { name: catName });
       setCatName('');
       fetchData();
+      toast.success('Category added successfully!');
     } catch (err) {
       setCatError(err.response?.data?.error || 'Failed to add category');
     } finally {
@@ -155,8 +158,9 @@ export default function ManageSkillCourses() {
     try {
       await client.delete(`/admin/skill-course-categories/${id}`);
       fetchData();
+      toast.success('Category deleted successfully');
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to delete category');
+      toast.error(err.response?.data?.error || 'Failed to delete category');
     }
   };
 

@@ -130,8 +130,8 @@
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\backend\\src\\routes\\teacher.routes.ts": {
-    "mtime": 1781104514.7956889,
-    "ast_hash": "e069641b546c5702c5290c439e4b6f29",
+    "mtime": 1781103796.8923545,
+    "ast_hash": "3fba26cc7761b9f445fc4c4872db3ecd",
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\backend\\src\\routes\\whatsapp.routes.ts": {
@@ -375,8 +375,8 @@
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\pages\\teacher\\Dashboard.jsx": {
-    "mtime": 1781104550.9923117,
-    "ast_hash": "482c13da78e37791769727c198cf69de",
+    "mtime": 1781103816.832446,
+    "ast_hash": "7dd2e3262395704535de1cc0c1e89804",
     "semantic_hash": ""
   },
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\pages\\teacher\\Marks.jsx": {
@@ -592,11 +592,6 @@
   "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\frontend\\src\\store\\toastStore.js": {
     "mtime": 1781038458.2329319,
     "ast_hash": "a195054ef86b2a72fa30ac9b0d930923",
-    "semantic_hash": ""
-  },
-  "D:\\Software Ideas\\College Student Management\\student-tracking-system-master\\backend\\src\\check-user-assignments.ts": {
-    "mtime": 1781104389.405177,
-    "ast_hash": "0bd77f6f69d976a6e26aa7f9a822683d",
     "semantic_hash": ""
   }
 }

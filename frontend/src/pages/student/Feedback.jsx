@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { PartyPopper } from 'lucide-react';
 import client from '../../api/client';
+import { toast } from '../../store/toastStore';
 import {
   HiOutlineLightBulb, HiOutlinePaperAirplane, HiOutlineClock,
   HiOutlineCheckCircle, HiOutlineReply, HiOutlineTag,
@@ -49,7 +50,7 @@ export default function StudentFeedback() {
       fetchFeedbacks();
     } catch (err) {
       console.error(err);
-      alert(err.response?.data?.error || 'Failed to submit feedback');
+      toast.error(err.response?.data?.error || 'Failed to submit feedback');
     }
     finally { setSubmitting(false); }
   };

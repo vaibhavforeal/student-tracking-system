@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Search, Book, Check } from 'lucide-react';
 import client from '../../api/client';
 import ConfirmDialog from '../../components/ConfirmDialog';
+import { toast } from '../../store/toastStore';
 import {
   HiOutlineLightBulb, HiOutlineSearch, HiOutlineExternalLink,
   HiOutlineClock, HiOutlineAcademicCap, HiOutlineCheckCircle,
@@ -55,7 +56,7 @@ export default function SkillCourses() {
     try {
       await client.post(`/student/skill-courses/${courseId}/enroll`);
       if (tab === 'browse') fetchBrowse(); else fetchMy();
-    } catch (err) { alert(err.response?.data?.error || 'Failed to enroll'); }
+    } catch (err) { toast.error(err.response?.data?.error || 'Failed to enroll'); }
     finally { setActionLoading(''); }
   };
 
@@ -66,7 +67,7 @@ export default function SkillCourses() {
       await client.put(`/student/skill-courses/${confirmDrop}/drop`);
       setConfirmDrop(null);
       if (tab === 'browse') fetchBrowse(); else fetchMy();
-    } catch (err) { alert(err.response?.data?.error || 'Failed to drop'); }
+    } catch (err) { toast.error(err.response?.data?.error || 'Failed to drop'); }
     finally { setActionLoading(''); }
   };
 
@@ -75,7 +76,7 @@ export default function SkillCourses() {
     try {
       await client.put(`/student/skill-courses/${courseId}/complete`);
       if (tab === 'browse') fetchBrowse(); else fetchMy();
-    } catch (err) { alert(err.response?.data?.error || 'Failed to mark complete'); }
+    } catch (err) { toast.error(err.response?.data?.error || 'Failed to mark complete'); }
     finally { setActionLoading(''); }
   };
 

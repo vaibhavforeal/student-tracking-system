@@ -3,6 +3,7 @@ import { Check } from 'lucide-react';
 import client from '../../api/client';
 import Icon from '../../components/ui/Icon';
 import { PageHead, MiniAvatar } from '../../components/ui/DesignHelpers';
+import { toast } from '../../store/toastStore';
 
 const CATEGORIES = [
   { value: 'all', label: 'All Categories' },
@@ -49,8 +50,8 @@ export default function ManageFeedback() {
   useEffect(() => { fetchFeedbacks(); }, [fetchFeedbacks]);
 
   const openFeedback = async (id) => { try { const { data } = await client.get(`/admin/feedback/${id}`); setSelectedFeedback(data.feedback); setReplyText(data.feedback.adminReply || ''); fetchFeedbacks(); } catch (err) { console.error(err); } };
-  const handleReply = async () => { if (!replyText.trim()) return; setReplying(true); try { const { data } = await client.put(`/admin/feedback/${selectedFeedback.id}/reply`, { reply: replyText }); setSelectedFeedback({ ...selectedFeedback, adminReply: data.feedback.adminReply, repliedAt: data.feedback.repliedAt }); fetchFeedbacks(); } catch (err) { alert(err.response?.data?.error || 'Failed to send reply'); } finally { setReplying(false); } };
-  const handleArchive = async (id) => { setActionLoading(id); try { await client.put(`/admin/feedback/${id}/archive`); if (selectedFeedback?.id === id) setSelectedFeedback(null); fetchFeedbacks(); } catch (err) { console.error(err); } finally { setActionLoading(null); } };
+  const handleReply = async () => { if (!replyText.trim()) return; setReplying(true); try { const { data } = await client.put(`/admin/feedback/${selectedFeedback.id}/reply`, { reply: replyText }); setSelectedFeedback({ ...selectedFeedback, adminReply: data.feedback.adminReply, repliedAt: data.feedback.repliedAt }); fetchFeedbacks(); toast.success('Reply sent successfully!'); } catch (err) { toast.error(err.response?.data?.error || 'Failed to send reply'); } finally { setReplying(false); } };
+  const handleArchive = async (id) => { setActionLoading(id); try { await client.put(`/admin/feedback/${id}/archive`); if (selectedFeedback?.id === id) setSelectedFeedback(null); fetchFeedbacks(); toast.success('Feedback archived successfully'); } catch (err) { console.error(err); } finally { setActionLoading(null); } };
   const handleToggleRead = async (id) => { setActionLoading(id); try { await client.put(`/admin/feedback/${id}/read`); if (selectedFeedback?.id === id) setSelectedFeedback({ ...selectedFeedback, isRead: !selectedFeedback.isRead }); fetchFeedbacks(); } catch (err) { console.error(err); } finally { setActionLoading(null); } };
 
   const getCategoryInfo = (cat) => CATEGORIES.find(c => c.value === cat) || CATEGORIES[1];

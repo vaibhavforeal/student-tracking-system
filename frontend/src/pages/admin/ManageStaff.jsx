@@ -6,6 +6,7 @@ import ConfirmDialog from '../../components/ConfirmDialog';
 import Icon from '../../components/ui/Icon';
 import { PageHead, MiniAvatar, DeptTag, StatusBadge } from '../../components/ui/DesignHelpers';
 import { initials } from '../../components/ui/DesignUtils';
+import { toast } from '../../store/toastStore';
 
 const API_BASE = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
 
@@ -54,14 +55,15 @@ export default function ManageStaff() {
       if (editing) await client.put(`/admin/staff/${editing.id}`, payload);
       else await client.post('/admin/staff', payload);
       setShowModal(false); fetchData();
-    } catch (err) { alert(err.response?.data?.error || err.response?.data?.message || 'Error'); }
+      toast.success(editing ? 'Staff updated successfully!' : 'Staff created successfully!');
+    } catch (err) { toast.error(err.response?.data?.error || err.response?.data?.message || 'Error'); }
     finally { setSaving(false); }
   };
 
   const handleDelete = async () => {
     if (!deleteTarget) return; setDeleting(true);
-    try { await client.delete(`/admin/staff/${deleteTarget}`); setDeleteTarget(null); fetchData(); }
-    catch (err) { alert(err.response?.data?.error || 'Failed to delete staff member'); }
+    try { await client.delete(`/admin/staff/${deleteTarget}`); setDeleteTarget(null); fetchData(); toast.success('Staff member deleted successfully'); }
+    catch (err) { toast.error(err.response?.data?.error || 'Failed to delete staff member'); }
     finally { setDeleting(false); }
   };
 

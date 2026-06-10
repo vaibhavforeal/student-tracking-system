@@ -33,12 +33,14 @@ import AcademicRecord from './pages/shared/AcademicRecord';
 import StudentFeedback from './pages/student/Feedback';
 import VerifyStudent from './pages/shared/VerifyStudent';
 import useAuthStore from './store/authStore';
+import ToastContainer from './components/ui/ToastContainer';
 
 function App() {
   const user = useAuthStore((s) => s.user);
 
   return (
     <BrowserRouter>
+      <ToastContainer />
       <Routes>
         {/* Public */}
         <Route path="/login" element={<Login />} />

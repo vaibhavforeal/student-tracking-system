@@ -1,11 +1,11 @@
 # Graph Report - student-tracking-system-master  (2026-06-10)
 
 ## Corpus Check
-- 110 files · ~154,882 words
+- 109 files · ~154,476 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 655 nodes · 947 edges · 55 communities (43 shown, 12 thin omitted)
+- 652 nodes · 945 edges · 54 communities (44 shown, 10 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 5 edges (avg confidence: 0.82)
 - Token cost: 0 input · 0 output
 
@@ -59,7 +59,6 @@
 - [[_COMMUNITY_Community 46|Community 46]]
 - [[_COMMUNITY_Community 47|Community 47]]
 - [[_COMMUNITY_Community 48|Community 48]]
-- [[_COMMUNITY_Community 50|Community 50]]
 - [[_COMMUNITY_Community 56|Community 56]]
 - [[_COMMUNITY_Community 57|Community 57]]
 - [[_COMMUNITY_Community 58|Community 58]]
@@ -93,7 +92,7 @@
 - **Student Lifecycle Management** — student_status_lifecycle, semester_promotion_flow, auto_graduate_feature, soft_delete_pattern [INFERRED 0.85]
 - **Role-Based Access System** — role_based_access, admin_role, teacher_role, student_role [EXTRACTED 1.00]
 
-## Communities (55 total, 12 thin omitted)
+## Communities (54 total, 10 thin omitted)
 
 ### Community 0 - "Backend Core & Routes"
 Cohesion: 0.05
@@ -105,7 +104,7 @@ Nodes (29): AdminDashboard(), ManageUsers(), StudentDetail(), Login(), ROLES, Pr
 
 ### Community 2 - "Analytics & Feedback Dashboard"
 Cohesion: 0.15
-Nodes (7): EMPTY_FORM, TYPE_BADGE, TYPE_LABEL, AVATAR_HUES, DEPT_HUE, deptColor(), deptHueKey()
+Nodes (10): EMPTY_FORM, TYPE_BADGE, TYPE_LABEL, AVATAR_HUES, DEPT_HUE, deptColor(), deptHueKey(), DeptTag() (+2 more)
 
 ### Community 3 - "Admin Entity Management"
 Cohesion: 0.20
@@ -128,8 +127,8 @@ Cohesion: 0.10
 Nodes (19): compilerOptions, baseUrl, declaration, declarationMap, esModuleInterop, forceConsistentCasingInFileNames, lib, module (+11 more)
 
 ### Community 8 - "Community 8"
-Cohesion: 0.11
-Nodes (10): CATEGORIES, STATUS_TABS, client, failedQueue, toast, CATEGORIES, statusStyles, STATUS_OPTIONS (+2 more)
+Cohesion: 0.13
+Nodes (7): client, failedQueue, toast, CATEGORIES, STATUS_OPTIONS, statusStyles, ASSESSMENT_TYPES
 
 ### Community 9 - "WhatsApp & Notifications"
 Cohesion: 0.09
@@ -171,9 +170,13 @@ Nodes (6): 📅 2026-03-19 — Session 1: Initialization + Discovery, 📐 Archi
 Cohesion: 0.20
 Nodes (10): Admin Routes (`/api/admin`), AI Routes (`/api/ai`), API Design, Auth Routes (`/api/auth`), Error Response Format, Integration Routes, Report Routes (`/api/reports`), Route Organization (+2 more)
 
+### Community 28 - "Community 28"
+Cohesion: 0.22
+Nodes (3): CATEGORIES, STATUS_TABS, statusStyles
+
 ### Community 29 - "Community 29"
-Cohesion: 0.08
-Nodes (18): Analytics(), BAR_PALETTE, CHART_COLORS, MONTHS, PIE_COLORS, STATUS_COLORS, ATTENDANCE_TREND, DEADLINES (+10 more)
+Cohesion: 0.06
+Nodes (22): Analytics(), BAR_PALETTE, CHART_COLORS, MONTHS, PIE_COLORS, STATUS_COLORS, ATTENDANCE_TREND, DEADLINES (+14 more)
 
 ### Community 30 - "Community 30"
 Cohesion: 0.33
@@ -220,11 +223,11 @@ Cohesion: 0.50
 Nodes (4): Future Roadmap, Long Term, Medium Term, Short Term
 
 ### Community 46 - "Community 46"
-Cohesion: 0.15
-Nodes (13): ROLE_COLORS, ROLE_TABS, reportTypes, AVATAR_HUES, DEPT_HUE, deptColor(), deptHueKey(), DeptTag() (+5 more)
+Cohesion: 0.18
+Nodes (5): ROLE_COLORS, ROLE_TABS, reportTypes, PageHead(), ICONS
 
 ### Community 47 - "Community 47"
-Cohesion: 0.47
+Cohesion: 0.32
 Nodes (4): daysAgo(), daysLeft(), ENTITY_CONFIG, formatDeletedDate()
 
 ### Community 48 - "Community 48"
@@ -232,8 +235,8 @@ Cohesion: 0.22
 Nodes (3): DIFF_BADGE, DIFF_LABEL, levelMeta
 
 ### Community 56 - "Community 56"
-Cohesion: 0.23
-Nodes (9): DESG_COLORS, DESIGNATION_OPTIONS, ManageStaff(), excelDateToJSDate(), ManageStudents(), parseDate(), STATUS_TABS, initials() (+1 more)
+Cohesion: 0.18
+Nodes (12): DESG_COLORS, DESIGNATION_OPTIONS, ManageStaff(), excelDateToJSDate(), ManageStudents(), parseDate(), STATUS_TABS, hueFor() (+4 more)
 
 ### Community 58 - "Community 58"
 Cohesion: 0.18
@@ -244,9 +247,9 @@ Cohesion: 0.67
 Nodes (3): Backend, Frontend, Technology Stack
 
 ## Knowledge Gaps
-- **319 isolated node(s):** `name`, `version`, `description`, `main`, `dev` (+314 more)
+- **318 isolated node(s):** `name`, `version`, `description`, `main`, `dev` (+313 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **12 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **10 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
@@ -254,11 +257,11 @@ _Questions this graph is uniquely positioned to answer:_
 - **Why does `🎓 Student Tracking System — Design Document` connect `Admin Entity Management` to `Community 34`, `Community 36`, `Community 37`, `Community 39`, `Community 59`, `Community 43`, `Community 44`, `Community 27`, `Community 30`?**
   _High betweenness centrality (0.011) - this node is a cross-community bridge._
 - **Why does `PageHead()` connect `Community 46` to `Analytics & Feedback Dashboard`, `Community 38`, `Community 8`, `Community 47`, `Community 48`, `Community 56`, `Community 24`, `Community 58`, `Community 28`, `Community 29`?**
-  _High betweenness centrality (0.004) - this node is a cross-community bridge._
+  _High betweenness centrality (0.005) - this node is a cross-community bridge._
 - **Why does `Key Features` connect `Community 34` to `Admin Entity Management`?**
   _High betweenness centrality (0.004) - this node is a cross-community bridge._
 - **What connects `name`, `version`, `description` to the rest of the system?**
-  _330 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _329 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Backend Core & Routes` be split into smaller, more focused modules?**
   _Cohesion score 0.05493863237872589 - nodes in this community are weakly interconnected._
 - **Should `Student Detail & Auth Pages` be split into smaller, more focused modules?**

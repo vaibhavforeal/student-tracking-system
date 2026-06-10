@@ -5,6 +5,7 @@ import client from '../../api/client';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import Icon from '../../components/ui/Icon';
 import { PageHead, DeptTag, Meter, StatTile } from '../../components/ui/DesignHelpers';
+import { toast } from '../../store/toastStore';
 
 export default function ManageBatches() {
   const navigate = useNavigate();
@@ -39,14 +40,23 @@ export default function ManageBatches() {
 
   const handleSubmit = async (e) => {
     e.preventDefault(); setSaving(true);
-    try { if (editing) await client.put(`/admin/batches/${editing.id}`, form); else await client.post('/admin/batches', form); setShowModal(false); fetchData(); }
-    catch (err) { alert(err.response?.data?.error || 'Error'); } finally { setSaving(false); }
+    try {
+      if (editing) {
+        await client.put(`/admin/batches/${editing.id}`, form);
+        toast.success('Batch updated successfully!');
+      } else {
+        await client.post('/admin/batches', form);
+        toast.success('Batch created successfully!');
+      }
+      setShowModal(false); fetchData();
+    }
+    catch (err) { toast.error(err.response?.data?.error || 'Error'); } finally { setSaving(false); }
   };
 
   const handleDelete = async () => {
     if (!deleteTarget) return; setDeleting(true);
-    try { await client.delete(`/admin/batches/${deleteTarget}`); setDeleteTarget(null); fetchData(); }
-    catch (err) { alert(err.response?.data?.error || 'Failed to delete batch'); } finally { setDeleting(false); }
+    try { await client.delete(`/admin/batches/${deleteTarget}`); setDeleteTarget(null); fetchData(); toast.success('Batch deleted successfully'); }
+    catch (err) { toast.error(err.response?.data?.error || 'Failed to delete batch'); } finally { setDeleting(false); }
   };
 
   useEffect(() => { if (location.state?.openAddModal) { openCreate(); navigate(location.pathname, { replace: true, state: {} }); } }, [location.state, navigate, location.pathname, openCreate]);

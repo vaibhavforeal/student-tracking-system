@@ -9,10 +9,92 @@ import { PageHead, MiniAvatar, DeptTag, Meter, StatusBadge, StatTile } from '../
 import { initials } from '../../components/ui/DesignUtils';
 import * as XLSX from 'xlsx';
 import { HiOutlineCamera, HiOutlineCheckCircle, HiOutlineExclamationCircle } from 'react-icons/hi';
+import { toast } from '../../store/toastStore';
 
 const API_BASE = 'http://localhost:5000';
 
 const STATUS_TABS = ['all', 'active', 'inactive', 'graduated'];
+
+function excelDateToJSDate(serial) {
+  const utc_days = Math.floor(serial - 25569);
+  const utc_value = utc_days * 86400;
+  const date_info = new Date(utc_value * 1000);
+
+  const fractional_day = serial - Math.floor(serial) + 0.0000001;
+  const total_seconds = Math.floor(86400 * fractional_day);
+
+  const seconds = total_seconds % 60;
+  const minutes = Math.floor(total_seconds / 60) % 60;
+  const hours = Math.floor(total_seconds / 3600);
+
+  return new Date(date_info.getFullYear(), date_info.getMonth(), date_info.getDate(), hours, minutes, seconds);
+}
+
+function parseDate(val) {
+  if (!val) return null;
+  if (val instanceof Date) {
+    if (!isNaN(val.getTime())) {
+      return val;
+    }
+  }
+
+  if (typeof val === 'number') {
+    return excelDateToJSDate(val);
+  }
+
+  if (typeof val === 'string') {
+    const trimmed = val.trim();
+    if (!trimmed) return null;
+
+    if (/^\d+(\.\d+)?$/.test(trimmed)) {
+      return excelDateToJSDate(parseFloat(trimmed));
+    }
+
+    // YYYY-MM-DD or YYYY/MM/DD
+    const ymdMatch = trimmed.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+    if (ymdMatch) {
+      const year = parseInt(ymdMatch[1], 10);
+      const month = parseInt(ymdMatch[2], 10);
+      const day = parseInt(ymdMatch[3], 10);
+      const date = new Date(year, month - 1, day);
+      if (!isNaN(date.getTime())) return date;
+    }
+
+    // DD-MM-YYYY or DD/MM/YYYY
+    const dmyMatch = trimmed.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
+    if (dmyMatch) {
+      const day = parseInt(dmyMatch[1], 10);
+      const month = parseInt(dmyMatch[2], 10);
+      const year = parseInt(dmyMatch[3], 10);
+      const date = new Date(year, month - 1, day);
+      if (!isNaN(date.getTime())) return date;
+    }
+
+    // DD-MM-YY or DD/MM/YY
+    const dmyShortMatch = trimmed.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{2})$/);
+    if (dmyShortMatch) {
+      const day = parseInt(dmyShortMatch[1], 10);
+      const month = parseInt(dmyShortMatch[2], 10);
+      let year = parseInt(dmyShortMatch[3], 10);
+      year = year >= 50 ? 1900 + year : 2000 + year;
+      const date = new Date(year, month - 1, day);
+      if (!isNaN(date.getTime())) return date;
+    }
+
+    const parsed = new Date(trimmed);
+    if (!isNaN(parsed.getTime())) return parsed;
+  }
+
+  return null;
+}
+
+function formatDateToYYYYMMDD(date) {
+  if (!date || isNaN(date.getTime())) return '';
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
 
 export default function ManageStudents() {
   const [students, setStudents] = useState([]);
@@ -91,7 +173,7 @@ export default function ManageStudents() {
       const { data } = await client.post('/admin/upload/photo', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
       setForm((prev) => ({ ...prev, photoUrl: data.photoUrl }));
     } catch {
-      alert('Failed to upload photo. Please try again.');
+      toast.error('Failed to upload photo. Please try again.');
       setPhotoPreview(null);
     } finally { setUploadingPhoto(false); }
   };
@@ -101,7 +183,8 @@ export default function ManageStudents() {
     try {
       await client.post('/admin/students', form);
       setShowModal(false); fetchData();
-    } catch (err) { alert(err.response?.data?.error || err.response?.data?.message || 'Error creating student'); }
+      toast.success('Student created successfully!');
+    } catch (err) { toast.error(err.response?.data?.error || err.response?.data?.message || 'Error creating student'); }
     finally { setSaving(false); }
   };
 
@@ -111,7 +194,8 @@ export default function ManageStudents() {
     try {
       await client.delete(`/admin/students/${deleteTarget}`);
       setDeleteTarget(null); fetchData();
-    } catch (err) { alert(err.response?.data?.error || 'Failed to delete student'); }
+      toast.success('Student deleted successfully');
+    } catch (err) { toast.error(err.response?.data?.error || 'Failed to delete student'); }
     finally { setDeleting(false); }
   };
 
@@ -119,19 +203,32 @@ export default function ManageStudents() {
   const openImportModal = useCallback(() => { setShowImportModal(true); setImportStep(1); setImportFile(null); setImportPreview([]); setImportHeaders([]); setImportResult(null); setDragOver(false); }, []);
   const handleImportFileSelect = (file) => {
     if (!file) return;
-    if (!/\.(csv|xlsx|xls)$/i.test(file.name)) { alert('Please select a CSV, XLS, or XLSX file'); return; }
+    if (!/\.(csv|xlsx|xls)$/i.test(file.name)) { toast.warning('Please select a CSV, XLS, or XLSX file'); return; }
     setImportFile(file);
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
         const data = new Uint8Array(e.target.result);
-        const wb = XLSX.read(data, { type: 'array' });
-        const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '' });
-        if (!rows.length) { alert('No data rows found'); setImportFile(null); return; }
-        setImportHeaders(Object.keys(rows[0]));
-        setImportPreview(rows);
+        const wb = XLSX.read(data, { type: 'array', cellDates: true });
+        const rawRows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '' });
+        if (!rawRows.length) { toast.warning('No data rows found'); setImportFile(null); return; }
+        
+        const formattedRows = rawRows.map(row => {
+          const newRow = { ...row };
+          const dobKey = Object.keys(row).find(k => k.trim().toLowerCase() === 'dob');
+          if (dobKey) {
+            const parsed = parseDate(row[dobKey]);
+            if (parsed) {
+              newRow[dobKey] = formatDateToYYYYMMDD(parsed);
+            }
+          }
+          return newRow;
+        });
+
+        setImportHeaders(Object.keys(formattedRows[0]));
+        setImportPreview(formattedRows);
         setImportStep(2);
-      } catch { alert('Failed to parse file'); setImportFile(null); }
+      } catch { toast.error('Failed to parse file'); setImportFile(null); }
     };
     reader.readAsArrayBuffer(file);
   };
@@ -151,7 +248,7 @@ export default function ManageStudents() {
     try {
       const { data } = await client.get(`/admin/students/sample-template?format=${fmt}`, { responseType: 'blob' });
       const url = window.URL.createObjectURL(data); const a = document.createElement('a'); a.href = url; a.download = `student_import_template.${fmt}`; a.click(); window.URL.revokeObjectURL(url);
-    } catch { alert('Failed to download template'); }
+    } catch { toast.error('Failed to download template'); }
   };
   const formatFileSize = (b) => b < 1024 ? b + ' B' : b < 1048576 ? (b / 1024).toFixed(1) + ' KB' : (b / 1048576).toFixed(1) + ' MB';
 

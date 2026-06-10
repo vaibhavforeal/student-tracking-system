@@ -5,6 +5,7 @@ import client from '../../api/client';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import Icon from '../../components/ui/Icon';
 import { PageHead, DeptTag } from '../../components/ui/DesignHelpers';
+import { toast } from '../../store/toastStore';
 
 export default function ManageSections() {
   const navigate = useNavigate();
@@ -43,6 +44,7 @@ export default function ManageSections() {
       else await client.post('/admin/sections', form);
       setShowModal(false);
       fetchData();
+      toast.success(editing ? 'Section updated successfully!' : 'Section created successfully!');
     }
     catch (err) {
       setError(err.response?.data?.error || 'Error');
@@ -53,8 +55,8 @@ export default function ManageSections() {
 
   const handleDelete = async () => {
     if (!deleteTarget) return; setDeleting(true);
-    try { await client.delete(`/admin/sections/${deleteTarget}`); setDeleteTarget(null); fetchData(); }
-    catch (err) { alert(err.response?.data?.error || 'Failed'); } finally { setDeleting(false); }
+    try { await client.delete(`/admin/sections/${deleteTarget}`); setDeleteTarget(null); fetchData(); toast.success('Section deleted successfully'); }
+    catch (err) { toast.error(err.response?.data?.error || 'Failed'); } finally { setDeleting(false); }
   };
 
   useEffect(() => { if (location.state?.openAddModal) { openCreate(); navigate(location.pathname, { replace: true, state: {} }); } }, [location.state, navigate, location.pathname, openCreate]);

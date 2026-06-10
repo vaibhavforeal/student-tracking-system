@@ -4,6 +4,7 @@ import client from '../../api/client';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import Icon from '../../components/ui/Icon';
 import { PageHead } from '../../components/ui/DesignHelpers';
+import { toast } from '../../store/toastStore';
 
 const RETENTION_DAYS = 30;
 function daysAgo(dateStr) { return Math.floor((new Date() - new Date(dateStr)) / 86400000); }
@@ -32,9 +33,9 @@ export default function Trash() {
   const fetchTrash = async () => { try { const { data: res } = await client.get('/admin/trash'); setData(res); } catch (err) { console.error(err); } finally { setLoading(false); } };
   useEffect(() => { fetchTrash(); }, []);
 
-  const handleRestore = async (type, id) => { setRestoring({ type, id }); try { await client.put(`/admin/${type}/${id}/restore`); fetchTrash(); } catch (err) { alert(err.response?.data?.error || 'Failed to restore'); } finally { setRestoring(null); } };
-  const handleDeletePermanently = (type, id, name) => { setConfirmConfig({ title: 'Delete Permanently?', message: `"${name}" will be permanently deleted. This cannot be undone.`, confirmText: 'Delete Forever', onConfirm: async () => { setDeleting({ type, id }); setConfirmOpen(false); try { await client.delete(`/admin/trash/${type}/${id}`); fetchTrash(); } catch (err) { alert(err.response?.data?.error || 'Failed to delete permanently'); } finally { setDeleting(null); } } }); setConfirmOpen(true); };
-  const handleClearTrash = () => { setConfirmConfig({ title: 'Empty Trash?', message: `All ${totalCount} item${totalCount !== 1 ? 's' : ''} will be permanently deleted.`, confirmText: 'Empty Trash', onConfirm: async () => { setClearing(true); setConfirmOpen(false); try { await client.delete('/admin/trash/clear'); fetchTrash(); } catch (err) { alert(err.response?.data?.error || 'Failed to clear trash'); } finally { setClearing(false); } } }); setConfirmOpen(true); };
+  const handleRestore = async (type, id) => { setRestoring({ type, id }); try { await client.put(`/admin/${type}/${id}/restore`); fetchTrash(); toast.success('Item restored successfully'); } catch (err) { toast.error(err.response?.data?.error || 'Failed to restore'); } finally { setRestoring(null); } };
+  const handleDeletePermanently = (type, id, name) => { setConfirmConfig({ title: 'Delete Permanently?', message: `"${name}" will be permanently deleted. This cannot be undone.`, confirmText: 'Delete Forever', onConfirm: async () => { setDeleting({ type, id }); setConfirmOpen(false); try { await client.delete(`/admin/trash/${type}/${id}`); fetchTrash(); toast.success('Permanently deleted'); } catch (err) { toast.error(err.response?.data?.error || 'Failed to delete permanently'); } finally { setDeleting(null); } } }); setConfirmOpen(true); };
+  const handleClearTrash = () => { setConfirmConfig({ title: 'Empty Trash?', message: `All ${totalCount} item${totalCount !== 1 ? 's' : ''} will be permanently deleted.`, confirmText: 'Empty Trash', onConfirm: async () => { setClearing(true); setConfirmOpen(false); try { await client.delete('/admin/trash/clear'); fetchTrash(); toast.success('Trash cleared'); } catch (err) { toast.error(err.response?.data?.error || 'Failed to clear trash'); } finally { setClearing(false); } } }); setConfirmOpen(true); };
 
   const allItems = data ? Object.entries(ENTITY_CONFIG).flatMap(([type]) => (data[type] || []).map(item => ({ ...item, _type: type }))).sort((a, b) => new Date(b.deletedAt) - new Date(a.deletedAt)) : [];
   const filteredItems = filter === 'all' ? allItems : allItems.filter(i => i._type === filter);

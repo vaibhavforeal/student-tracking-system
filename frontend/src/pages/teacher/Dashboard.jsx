@@ -54,7 +54,15 @@ const T = {
 function StatTiles({ apiStats }) {
   const stats = [
     { label: 'My Students', value: apiStats?.totalStudents || '148', delta: `${apiStats?.totalSections || 4} sections`, up: true, ico: 'cap', tint: 'var(--accent)', soft: 'var(--accent-soft)' },
-    { label: 'Avg. Attendance', value: '88%', delta: '+2.1%', up: true, ico: 'scan', tint: 'var(--good)', soft: 'var(--good-soft)' },
+    { 
+      label: 'Avg. Attendance', 
+      value: apiStats?.avgAttendance !== undefined && apiStats?.avgAttendance !== null ? `${apiStats.avgAttendance}%` : '88%', 
+      delta: apiStats?.attendanceDelta || '+2.1%', 
+      up: apiStats?.attendanceDeltaUp !== undefined ? apiStats.attendanceDeltaUp : true, 
+      ico: 'scan', 
+      tint: 'var(--good)', 
+      soft: 'var(--good-soft)' 
+    },
     { label: 'Classes Today', value: '3', delta: '1 done', up: true, ico: 'cal', tint: 'var(--info)', soft: 'var(--info-soft)' },
     { label: 'Pending Tasks', value: '5', delta: '2 urgent', up: false, ico: 'flag', tint: 'var(--warn)', soft: 'var(--warn-soft)' },
   ];
@@ -139,65 +147,74 @@ function TasksCard() {
 }
 
 /* ════════════════ MY CLASSES ════════════════ */
-function ClassesCard() {
+function ClassesCard({ classes = [] }) {
   const navigate = useNavigate();
   return (
     <div className="rd-card fade-up rd-card-pad" style={{ animationDelay: '220ms' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
         <div>
           <div className="rd-card-title">My classes &amp; subjects</div>
-          <div className="rd-card-sub">4 active this semester</div>
+          <div className="rd-card-sub">{classes.length} active this semester</div>
         </div>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(225px, 1fr))', gap: 'var(--gap, 12px)' }}>
-        {T.classes.map(c => (
-          <div className="rd-card rd-card-pad t-class-card" key={c.id} style={{ background: 'var(--surface-2)' }}>
-            <div className="t-class-code-row">
-              <span className="t-badge-id">{c.code}</span>
-              <span style={{ fontSize: 11.5, color: 'var(--faint)', fontWeight: 600 }}>{c.section}</span>
-            </div>
-            <div style={{ display: 'flex', gap: 10 }}>
-              <span className="t-class-spine" style={{ background: c.spine }} />
-              <div>
-                <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14.5, letterSpacing: '-.2px', lineHeight: 1.25 }}>{c.name}</div>
-                <div style={{ fontSize: 11.5, color: 'var(--muted)', marginTop: 3, fontFamily: 'var(--font-mono)' }}>{c.days} · {c.slot}</div>
+      {classes.length === 0 ? (
+        <div style={{ padding: '24px 0', textAlign: 'center', color: 'var(--muted)', fontSize: 14 }}>
+          No classes assigned this semester.
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(225px, 1fr))', gap: 'var(--gap, 12px)' }}>
+          {classes.map(c => (
+            <div className="rd-card rd-card-pad t-class-card" key={c.id} style={{ background: 'var(--surface-2)' }}>
+              <div className="t-class-code-row">
+                <span className="t-badge-id">{c.code}</span>
+                <span style={{ fontSize: 11.5, color: 'var(--faint)', fontWeight: 600 }}>{c.section}</span>
+              </div>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <span className="t-class-spine" style={{ background: c.spine }} />
+                <div>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 14.5, letterSpacing: '-.2px', lineHeight: 1.25 }}>{c.name}</div>
+                  <div style={{ fontSize: 11.5, color: 'var(--muted)', marginTop: 3, fontFamily: 'var(--font-mono)' }}>{c.days} · {c.slot}</div>
+                </div>
+              </div>
+              <div className="t-kpi-row">
+                <div className="t-kpi"><div className="t-kpi-v">{c.students}</div><div className="t-kpi-k">Students</div></div>
+                <div className="t-kpi"><div className="t-kpi-v" style={{ color: c.att >= 85 ? 'var(--good)' : c.att >= 75 ? 'var(--warn)' : 'var(--bad)' }}>{c.att}%</div><div className="t-kpi-k">Attend.</div></div>
+                <div className="t-kpi"><div className="t-kpi-v">{c.marks}%</div><div className="t-kpi-k">Avg mark</div></div>
+              </div>
+              <div style={{ display: 'flex', gap: 7, marginTop: 'auto' }}>
+                <button className="rd-btn rd-btn-ghost rd-btn-sm" style={{ flex: 1 }} onClick={() => navigate('/teacher/attendance')}>
+                  Attendance
+                </button>
+                <button className="rd-btn rd-btn-ghost rd-btn-sm" style={{ flex: 1 }} onClick={() => navigate('/teacher/marks')}>
+                  <Icon name="report" /> Marks
+                </button>
               </div>
             </div>
-            <div className="t-kpi-row">
-              <div className="t-kpi"><div className="t-kpi-v">{c.students}</div><div className="t-kpi-k">Students</div></div>
-              <div className="t-kpi"><div className="t-kpi-v" style={{ color: c.att >= 85 ? 'var(--good)' : c.att >= 75 ? 'var(--warn)' : 'var(--bad)' }}>{c.att}%</div><div className="t-kpi-k">Attend.</div></div>
-              <div className="t-kpi"><div className="t-kpi-v">{c.marks}%</div><div className="t-kpi-k">Avg mark</div></div>
-            </div>
-            <div style={{ display: 'flex', gap: 7, marginTop: 'auto' }}>
-              <button className="rd-btn rd-btn-ghost rd-btn-sm" style={{ flex: 1 }} onClick={() => navigate('/teacher/attendance')}>
-                Attendance
-              </button>
-              <button className="rd-btn rd-btn-ghost rd-btn-sm" style={{ flex: 1 }} onClick={() => navigate('/teacher/marks')}>
-                <Icon name="report" /> Marks
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
 /* ════════════════ ROSTER + AT-RISK ════════════════ */
-function RosterCard() {
+function RosterCard({ students = [] }) {
   const [tab, setTab] = useState('risk');
   const rows = useMemo(() =>
-    tab === 'risk' ? T.students.filter(s => s.flags && s.flags.length) : T.students,
-    [tab]
+    tab === 'risk' ? students.filter(s => s.flags && s.flags.length) : students,
+    [tab, students]
   );
-  const riskCount = T.students.filter(s => s.flags && s.flags.length).length;
+  const riskCount = students.filter(s => s.flags && s.flags.length).length;
+  const uniqueSections = new Set(students.map(s => s.section)).size;
 
   return (
     <div className="rd-card fade-up" style={{ animationDelay: '260ms', overflow: 'hidden' }}>
       <div className="rd-card-head" style={{ paddingBottom: 14 }}>
         <div>
           <div className="rd-card-title">My students</div>
-          <div className="rd-card-sub">{T.students.length} across 4 sections</div>
+          <div className="rd-card-sub">
+            {students.length} across {uniqueSections} {uniqueSections === 1 ? 'section' : 'sections'}
+          </div>
         </div>
         <div className="rd-seg">
           <button className={tab === 'risk' ? 'on' : ''} onClick={() => setTab('risk')}>
@@ -207,52 +224,58 @@ function RosterCard() {
         </div>
       </div>
       <div className="rd-table-wrap">
-        <table className="rd-tbl">
-          <thead>
-            <tr>
-              <th>Student</th>
-              <th>Section</th>
-              <th>Attendance</th>
-              <th>Avg. Marks</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map(s => (
-              <tr key={s.id}>
-                <td>
-                  <div className="t-cell-name">
-                    <MiniAvatar name={s.name} size={32} />
-                    <div>
-                      <div className="rd-name-main">
-                        {s.name}
-                        {s.flags && s.flags.length > 0 && (
-                          <span title="Needs attention" style={{ color: 'var(--bad)', marginLeft: 6, fontSize: 10 }}>●</span>
-                        )}
-                      </div>
-                      <div className="rd-name-sub">{s.roll}</div>
-                    </div>
-                  </div>
-                </td>
-                <td><span style={{ fontSize: 12.5, fontWeight: 500 }}>{s.section}</span></td>
-                <td><Meter value={s.att} /></td>
-                <td>
-                  <span style={{
-                    fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 13,
-                    color: s.marks >= 75 ? 'var(--good)' : s.marks >= 55 ? 'var(--ink)' : 'var(--bad)'
-                  }}>{s.marks}%</span>
-                </td>
-                <td>
-                  <div className="rd-row-act">
-                    <button className="rd-icon-btn" style={{ width: 30, height: 30 }}>
-                      <Icon name="eye" style={{ width: 16, height: 16 }} />
-                    </button>
-                  </div>
-                </td>
+        {rows.length === 0 ? (
+          <div style={{ padding: '32px 0', textAlign: 'center', color: 'var(--muted)', fontSize: 14 }}>
+            No students found.
+          </div>
+        ) : (
+          <table className="rd-tbl">
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Section</th>
+                <th>Attendance</th>
+                <th>Avg. Marks</th>
+                <th></th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {rows.map(s => (
+                <tr key={s.id}>
+                  <td>
+                    <div className="t-cell-name">
+                      <MiniAvatar name={s.name} size={32} />
+                      <div>
+                        <div className="rd-name-main">
+                          {s.name}
+                          {s.flags && s.flags.length > 0 && (
+                            <span title="Needs attention" style={{ color: 'var(--bad)', marginLeft: 6, fontSize: 10 }}>●</span>
+                          )}
+                        </div>
+                        <div className="rd-name-sub">{s.roll}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td><span style={{ fontSize: 12.5, fontWeight: 500 }}>{s.section}</span></td>
+                  <td><Meter value={s.att} /></td>
+                  <td>
+                    <span style={{
+                      fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: 13,
+                      color: s.marks >= 75 ? 'var(--good)' : s.marks >= 55 ? 'var(--ink)' : 'var(--bad)'
+                    }}>{s.marks}%</span>
+                  </td>
+                  <td>
+                    <div className="rd-row-act">
+                      <button className="rd-icon-btn" style={{ width: 30, height: 30 }}>
+                        <Icon name="eye" style={{ width: 16, height: 16 }} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );
@@ -354,12 +377,12 @@ export default function TeacherDashboard() {
 
       {/* ─── Classes ─── */}
       <div style={{ marginBottom: 'var(--gap, 12px)' }}>
-        <ClassesCard />
+        <ClassesCard classes={stats?.classes || []} />
       </div>
 
       {/* ─── Roster + Analytics (prototype: 1.4fr 1fr) ─── */}
       <div className="t-grid-roster" style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 'var(--gap, 12px)', marginBottom: 'var(--gap, 12px)' }}>
-        <RosterCard />
+        <RosterCard students={stats?.students || []} />
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--gap, 12px)' }}>
           <PerformanceCard />
           <AttTrendCard />

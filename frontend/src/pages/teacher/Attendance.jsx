@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import client from '../../api/client';
 import { HiOutlineCheck, HiOutlineX, HiOutlineClock, HiOutlineChevronLeft, HiOutlineChevronRight } from 'react-icons/hi';
+import { toast } from '../../store/toastStore';
 
 const STATUS_OPTIONS = ['present', 'absent', 'late'];
 const statusStyles = {
@@ -86,8 +87,8 @@ export default function TeacherAttendance() {
       await client.post('/teacher/attendance/bulk', {
         courseId: selectedCourse, sectionId: selectedSection, date, entries: entryList,
       });
-      alert('Attendance saved successfully!');
-    } catch (err) { alert(err.response?.data?.error || 'Error saving attendance'); }
+      toast.success('Attendance saved successfully!');
+    } catch (err) { toast.error(err.response?.data?.error || 'Error saving attendance'); }
     finally { setSaving(false); }
   };
 
