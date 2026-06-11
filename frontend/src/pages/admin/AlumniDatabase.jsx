@@ -84,11 +84,11 @@ export default function AlumniDatabase() {
       </PageHead>
 
       {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 'var(--gap)', marginBottom: 'var(--gap)' }}>
-        <StatTile label="Total Alumni" value={total} icon="cap" />
-        <StatTile label="Employed" value={employed} icon="briefcase" good />
-        <StatTile label="Higher Ed / Others" value={stats?.employment?.unemployed || 0} icon="book" />
-        <StatTile label="Employment Rate" value={`${rate}%`} icon="chart" accent />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 'var(--gap)', marginBottom: 'var(--gap)' }}>
+        <StatTile label="Total Alumni" value={total} icon="cap" compact />
+        <StatTile label="Employed" value={employed} icon="briefcase" good compact />
+        <StatTile label="Higher Ed / Others" value={stats?.employment?.unemployed || 0} icon="book" compact />
+        <StatTile label="Employment Rate" value={`${rate}%`} icon="chart" accent compact />
       </div>
 
       {/* Filters */}

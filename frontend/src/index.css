@@ -3762,6 +3762,30 @@ input, button, textarea, select {
   font-weight: 500;
 }
 
+/* Compact stat tile styles */
+.rd-stat.rd-stat-compact {
+  padding: 12px 14px;
+}
+.rd-stat.rd-stat-compact .rd-stat-top {
+  margin-bottom: 8px;
+}
+.rd-stat.rd-stat-compact .rd-stat-ico {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-sm);
+}
+.rd-stat.rd-stat-compact .rd-stat-ico svg {
+  width: 16px;
+  height: 16px;
+}
+.rd-stat.rd-stat-compact .rd-stat-val {
+  font-size: 22px;
+}
+.rd-stat.rd-stat-compact .rd-stat-label {
+  font-size: 12px;
+  margin-top: 3px;
+}
+
 /* ─── Redesign: Segmented control ──────────────────────────── */
 .rd-seg {
   display: inline-flex;

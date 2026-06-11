@@ -89,12 +89,12 @@ export function Meter({ value, showValue = true }) {
 }
 
 /* Stat tile (used on dashboard, alumni, etc.) */
-export function StatTile({ label, value, delta, up, icon, tint, soft, good, accent, delay = 0 }) {
+export function StatTile({ label, value, delta, up, icon, tint, soft, good, accent, delay = 0, compact }) {
   /* Convenience booleans → tint/soft */
   const t = tint || (good ? 'var(--good)' : accent ? 'var(--accent)' : 'var(--info)');
   const s = soft || `color-mix(in srgb, ${t} 10%, transparent)`;
   return (
-    <div className="rd-stat fade-up" style={{ animationDelay: `${delay}ms` }}>
+    <div className={`rd-stat fade-up ${compact ? 'rd-stat-compact' : ''}`} style={{ animationDelay: `${delay}ms` }}>
       <div className="rd-stat-top">
         <div className="rd-stat-ico" style={{ background: s, color: t }}>
           <Icon name={icon} />

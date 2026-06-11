@@ -84,8 +84,8 @@ export default function ManageDepartments() {
             <div className="rd-card fade-up" key={dept.id} style={{ animationDelay: `${i * 60}ms`, overflow: 'hidden' }}>
               {/* Color accent strip */}
               <div style={{ height: 4, background: deptColor(dept.code) }} />
-              <div className="rd-card-pad">
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
+              <div className="rd-card-pad" style={{ padding: '12px 16px' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <div style={{ width: 44, height: 44, borderRadius: 'var(--r-md)', background: deptColor(dept.code), display: 'grid', placeItems: 'center', color: '#fff', fontFamily: 'var(--font-mono)', fontSize: 14, fontWeight: 700, letterSpacing: '-.5px' }}>
                       {dept.code}
@@ -104,23 +104,23 @@ export default function ManageDepartments() {
                 </div>
 
                 {/* Stats row */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 14 }}>
-                  <div style={{ textAlign: 'center', padding: '8px 0', background: 'var(--surface-2)', borderRadius: 'var(--r-sm)' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 10 }}>
+                  <div style={{ textAlign: 'center', padding: '6px 0', background: 'var(--surface-2)', borderRadius: 'var(--r-sm)' }}>
                     <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 700, color: 'var(--ink)' }}>{dept._count?.batches || 0}</div>
                     <div style={{ fontSize: 11.5, color: 'var(--faint)', fontWeight: 600 }}>Batches</div>
                   </div>
-                  <div style={{ textAlign: 'center', padding: '8px 0', background: 'var(--surface-2)', borderRadius: 'var(--r-sm)' }}>
+                  <div style={{ textAlign: 'center', padding: '6px 0', background: 'var(--surface-2)', borderRadius: 'var(--r-sm)' }}>
                     <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 700, color: 'var(--ink)' }}>{dept._count?.courseDepartments || 0}</div>
                     <div style={{ fontSize: 11.5, color: 'var(--faint)', fontWeight: 600 }}>Courses</div>
                   </div>
-                  <div style={{ textAlign: 'center', padding: '8px 0', background: 'var(--surface-2)', borderRadius: 'var(--r-sm)' }}>
+                  <div style={{ textAlign: 'center', padding: '6px 0', background: 'var(--surface-2)', borderRadius: 'var(--r-sm)' }}>
                     <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 700, color: 'var(--ink)' }}>{dept._count?.staff || 0}</div>
                     <div style={{ fontSize: 11.5, color: 'var(--faint)', fontWeight: 600 }}>Staff</div>
                   </div>
                 </div>
 
                 {/* Avg attendance */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 12.5, color: 'var(--muted)', fontWeight: 600, marginBottom: 6 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 12.5, color: 'var(--muted)', fontWeight: 600, marginBottom: 4 }}>
                   <span>Avg Attendance</span>
                 </div>
                 <Meter value={dept.attendancePercentage ?? 0} />
